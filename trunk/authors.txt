@@ -1,0 +1,3 @@
+Philippe Rétornaz <philippe dot retornaz at epfl dot ch>
+Valentin Longchamp <valentin dot longchamp at a3 dot epfl dot ch>
+Stéphane Magnenat <stephane at magnenat dot net>
