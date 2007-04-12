@@ -1,9 +1,4 @@
-
-.include "p24hj128gp506.inc"
-
-;.include cpuinc
-;"p24HJ128GP506.inc"
-
+.include cpuinc
 
 ; PIC have SRAM, datasheet say that it keep data if Vdd > 2.8V
 ; Moreover a PDF by microchip say the ram is untouched from a software 
