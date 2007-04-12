@@ -316,7 +316,7 @@ cmd_readpage:
 	mov w0, [w3 + 4]
 	
 	; Set aseba message type
-	mov #can_MSG_PAGE_DATA, w0
+	mov #can_PUSH_PAGE_DATA, w0
 	mov w0, [w3 + 6]	; set data[0]
 	
 	; Loop (PAGE_SIZE / 2) times
@@ -563,7 +563,7 @@ send_error_code:
 	mov #4, w1
 	mov w1, [w3+4]
 	; Set aseba message type
-	mov #can_MSG_ACK, w1
+	mov #can_PUSH_ACK, w1
 	mov w1, [w3+6]	 ; set data[0]
 	; Set error code
 	mov w0, [w3+8]  ; set data[1]
