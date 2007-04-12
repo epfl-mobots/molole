@@ -11,50 +11,54 @@ config __FOSCSEL, FNOSC_FRCPLL ; FRC Oscillator with PLL
 ; OSC2 Pin Function: OSC2 is Clock Output
 config __FOSC, FCKSM_CSDCMD & OSCIOFNC_OFF  & POSCMD_NONE
 
-.equ Fcy, 40000000 ; 40Mhz
-.equ ramend, 0x15800
-.equ DEVICEID_ADDR, 0xFF0000
-
 ; page size ( in nb of instructions  )
-.equ page_size, 512
+.equ PAGE_SIZE, 512
 ; row size ( in nb of instructions )
 .equ row_size, 64
 
 ; MUST be a multiple of page_size
-.equ bootloadersize, page_size
-; any size, as soon it's a 2 multiple
+.equ bootloadersize, PAGE_SIZE
+; any size, as long as it's a multiple of 2
 .equ confsize, row_size
 
 .equ can_config_mode, 0x400
 .equ can_normal_mode, 0x0
+
 .equ can_answer_OK, 0x0
-.equ can_answer_UNKNOW_COMMAND, 0x1
-.equ can_answer_INVALID_DLC, 0x2
-.equ can_answer_INVALID_VALUE, 0x3
-.equ can_answer_PROGRAM_FAILED, 0x4
-.equ can_CMD_IDENTIFY, 0x0		; ask the bootloader to identify itself
-.equ can_CMD_LOADPAGE, 0x1		; ask the bootloader to load a page
-.equ can_CMD_RESET, 0x2			; ask the bootloader to reset
-.equ can_CMD_GOTOUSER, 0x3		; ask the bootloader to run usercode
-.equ can_CMD_READPAGE, 0x4		; ask the bootloader to read a page en send it back
-.equ can_CMD_LOADCONF, 0x5		; ask the bootloader to load configs bits
+.equ can_answer_INVALID_SIZE, 0x1
+.equ can_answer_INVALID_VALUE, 0x2
+.equ can_answer_PROGRAM_FAILED, 0x3
+.equ can_answer_NOT_PROGRAMMING, 0x4
+
+.equ can_CMD_RESET, 0x8000		; ask the bootloader to reset
+.equ can_CMD_READ_PAGE, 0x8001	; ask the bootloader to read a page and send it back
+.equ can_CMD_WRITE_PAGE, 0x8002	; ask the bootloader to write a page
+.equ can_CMD_WRITE_CONF, 0x8003	; ask the bootloader to write configs bits
+.equ can_CMD_PAGE_DATA, 0x8004	; CAN message containing data from host
+.equ can_PUSH_PAGE_DATA, 0x8005	; CAN message containing data to host
+.equ can_PUSH_ACK, 0x8006		; CAN message containing return value
+
 .equ can_STATE_CMD, 0x0
 .equ can_STATE_PAGE, 0x1
 
+.equ can_MSG_SHORT, 0x300
+.equ can_MSG_PHY_TYPE_MASK, 0x700
 
-.equ BOOTLOADER_VERSION, 0x0
+.equ BOOTLOADER_VERSION, 0x1
 
 .bss
-; so we can see the other variables when debugging with ICD2
-pp:			.space 1536 
-can_sid:	.space 2
 
-page_buf: 	.space 1536
+; so we can see the other variables when debugging with ICD2
+_workaround_mplab_ICD2_bug:	.space 1536
+
+can_sid:		.space 2
+
+; Memory for a page when flashing
+page_buf: 		.space 1536
 page_lowptr:	.space 2
-; 0xDEAD 0xBEEF 0xDEFA 0xCED0 0x4242
-bootloader_magic: .space 10
+
 .section canbuf,bss,dma
-can_buf:	.space 64
+can_buf:		.space 64
 
 .text
 .global __reset
@@ -63,9 +67,7 @@ can_buf:	.space 64
 ; Configuration page                   ;
 ; DO NOT CHANGE THE ORDER AND OFFSETS  ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-.section confpage,code,address(ramend - 0x200 - bootloadersize - confsize)
-user_goto:
-.word 0, 0
+.section confpage,code,address(FLASH_END - 0x200 - bootloadersize - confsize)
 pll_pllfbd_conf:
 .word 38 
 pll_clkdiv_conf:
@@ -77,11 +79,11 @@ can_sid_conf:
 can_c1cfg1_conf:
 .word 0xc0
 can_c1cfg2_conf:
-.word 0x7bf 
+.word 0x7bf
 low_wait_conf:
 .word 65535
 high_wait_conf:
-.word (Fcy/(65536*6))
+.word (FCY/(65536*6))
 can_enable_latch_addr:
 .word 0x2D6 ; LATD ( TRIS == LAT - 4 )
 can_enable_mask:
@@ -100,51 +102,15 @@ can_enable_mask:
 ; w8, w9, w10: scratch register
 ; w11: reserved for flashing operation
 
-.section bootloader,code,address(ramend - 0x200 - bootloadersize)
+.section bootloader,code,address(FLASH_END - 0x200 - bootloadersize)
 __reset:
-; first check if the bootloader magic is correct, if so goto usercode
-; 0xDEAD 0xBEEF 0xDEFA 0xCED0 0x4242
-	mov #bootloader_magic,w0
-	mov [w0++],w1
-	mov #0xDEAD,w2
-	cpseq w1,w2
-	bra bootloader_start
-	mov [w0++],w1
-	mov #0xBEEF,w2
-	cpseq w1,w2
-	bra bootloader_start
-	mov [w0++],w1
-	mov #0xDEFA,w2
-	cpseq w1,w2
-	bra bootloader_start
-	mov [w0++],w1
-	mov #0xCED0,w2
-	cpseq w1,w2
-	bra bootloader_start
-	mov [w0++],w1
-	mov #0x4242,w2
-	cpseq w1,w2
-	bra bootloader_start
-	mov #bootloader_magic,w0
-	clr w1
-	; clear the magic key ( so if usercode doesn't touch it, it doesn't exist anymore )
-	mov w1,[w0++]
-	mov w1,[w0++]
-	mov w1,[w0++]
-	mov w1,[w0++]
-	mov w1,[w0++]
-	
-	clr w0
-	clr w2
-	bra user_goto
-
-bootloader_start:
 ; setup stack pointer
 	mov #__SP_init, W15
 	mov #__SPLIM_init, W0
 	mov W0, SPLIM
 	nop
 	nop
+	
 ; init pll
 	; get the pll conf from program memory
 	mov #tblpage(pll_pllfbd_conf), w0
@@ -161,7 +127,6 @@ pll_stab_init:
 	btss OSCCON,  #5
 	bra pll_stab_init
 	
-
 ; init can
 	mov #can_config_mode, w0
 	rcall ask_can_runlevel
@@ -181,7 +146,6 @@ pll_stab_init:
 	and w8,w2,w8
 	mov w8,[w1]				; clear the correct TRIS bit according to mask
 	
-	
 ; load can config
 	mov #tblpage(can_sid_conf), w0
 	mov w0, _TBLPAG
@@ -189,21 +153,20 @@ pll_stab_init:
 	tblrdl [w0++], w1
 	mov w1, can_sid			; can SID
 	
-	tblrdl [w0++],w1 		; C1CFG1
+	tblrdl [w0++] ,w1 		; C1CFG1
 	mov w1, C1CFG1
-	tblrdl [w0],w1 			; C1CFG2
+	tblrdl [w0], w1 		; C1CFG2
 	mov w1, C1CFG2
 	
 ; configure Filter 
-
 	bset C1CTRL1, #0 		; C1CTRL1.WIN = 1
 	
 ; enable only first filter
 	clr C1FEN1
 	bset C1FEN1, #0
 	mov can_sid, w0
-	sl w0,#5,w0
-	mov #0xFFE0,w1
+	sl w0, #5, w0
+	mov #0xFFE0, w1
 ;	and w0,w1,w0
 	mov w0, C1RXF0SID
 	mov w1, C1RXM0SID
@@ -252,7 +215,7 @@ pll_stab_init:
 	mov w0, [w3+2]		; eid
 
 	add w3,#16,w4		; setup can RX ptr
-	clr w6			; status == 0
+	clr w6				; status == 0
 
 	clr C1INTF
 ; enable CAN "interrupt" ( but not enabled in interrupt controller )
@@ -267,7 +230,7 @@ pll_stab_init:
 ; one non-successfull loop need 6 cycles
 ; ( each 65536 loop, it need 4 more cycles )
 ; 40Mips, 1 sec == 40'000'000 cycles
-; Fcy/(6 * 65536 + 4*x) = x => 4x*x + 6*65536x - Fcy = 0
+; FCY/(6 * 65536 + 4*x) = x => 4x*x + 6*65536x - FCY = 0
 ; since assembler doesn't know the sqrt() operator, we 
 ; ignore the "4 more cycles"
 ; See the confpage definition.
@@ -282,81 +245,49 @@ pll_stab_init:
 wait_loop:
 	btsc C1RXFUL1, #1		; 2
 	bra got_can_packet
-	dec w0,w0				; 1
-	bra z, out_cnt			; 1 ( 2 ) 
-	bra wait_loop				; 2
+	dec w0, w0				; 1
+	bra z, out_cnt			; 1 ( 2 )
+	bra wait_loop			; 2
 out_cnt:
 	dec w1,w1				; 1
 	bra Z, timeout			; 1
-	bra wait_loop				; 2
+	bra wait_loop			; 2
 	
 timeout:
-	; set the magic reset key
-	; 0xDEAD 0xBEEF 0xDEFA 0xCED0 0x4242
-	mov #bootloader_magic,w0
-	mov #0xDEAD,w1
-	mov w1,[w0++]
-	mov #0xBEEF,w1
-	mov w1,[w0++]
-	mov #0xDEFA,w1
-	mov w1,[w0++]
-	mov #0xCED0,w1
-	mov w1,[w0++]
-	mov #0x4242,w1
-	mov w1,[w0++]
 	reset
 
-; the whole state machine
+; The main state machine
 got_can_packet:
-	subr w6, #can_STATE_CMD, w0	; if state == accepting command
-	bra Z,state_CMD
-	subr w6, #can_STATE_PAGE, w0	; if state == flashing a page
-	bra Z,state_PAGE
-state_CMD:
-; Big switch-like statement
+	; Is it for us ?
+	mov [w4+8], w0
+	cp w0, #NODE_ID
+	bra NZ, wait_can_packet
+	
+	; If yes, parse aseba message type
 	mov [w4+6], w0
-	subr.b w0,#can_CMD_IDENTIFY, w1
-	bra Z,cmd_identify
-	subr.b w0,#can_CMD_GOTOUSER, w1
-	bra Z,cmd_gotouser
-	subr.b w0,#can_CMD_RESET, w1
-	bra Z,cmd_reset
-	subr.b w0,#can_CMD_READPAGE, w1
-	bra Z,cmd_readpage
-	subr.b w0,#can_CMD_LOADCONF, w1	
-	bra Z,cmd_loadconf
-	subr.b w0,#can_CMD_LOADPAGE, w1
-	bra Z,cmd_loadpage
-; ?! Unknow command 
-	mov #can_answer_UNKNOW_COMMAND, w0
-	rcall send_error_code
+	
+	mov #can_CMD_PAGE_DATA, w1
+	cp w0, w1
+	bra Z, cmd_PAGE
+	
+	mov #can_CMD_RESET, w1
+	cp w0, w1
+	bra Z, cmd_reset
+	
+	mov #can_CMD_READ_PAGE, w1
+	cp w0, w1
+	bra Z, cmd_readpage
+	
+	mov #can_CMD_WRITE_PAGE, w1
+	cp w0, w1
+	bra Z, cmd_writepage
+	
+	mov #can_CMD_WRITE_CONF, w1
+	cp w0, w1
+	bra Z, cmd_writeconf
+
+	; Others aseba messages
 	bra wait_can_packet
-;;;;;;;;;;;;
-; Identify Command
-;;;;;;;;;;;;
-cmd_identify:
-	mov #tblpage(DEVICEID_ADDR), w0
-    mov w0, _TBLPAG
-    mov #tbloffset(DEVICEID_ADDR), w0
-    tblrdl [w0++],w1			; DEVID
-	tblrdl [w0],w2				; DEVREV
-	mov #BOOTLOADER_VERSION,w0
-	mov w0,[w3+8]			; data[1]
-	mov w1,[w3+10]			; data[2]
-	mov w2,[w3+12]			; data[3]
-	mov #can_answer_OK, w0		; data[0]
-	mov w0,[w3 + 6]			
-	mov #8, w0		
-	mov w0,[w3+4]			; dlc
-	rcall send_can_packet
-	bra wait_can_packet
-;;;;;;;;;;;;
-; Goto user Command
-;;;;;;;;;;;;
-cmd_gotouser:
-	mov #can_answer_OK, w0
-	rcall send_error_code
-	bra timeout;
 
 ;;;;;;;;;;;;
 ; Reset Command
@@ -364,114 +295,112 @@ cmd_gotouser:
 cmd_reset:
 	mov #can_answer_OK, w0
 	rcall send_error_code
-; doesn't set the magic key ! so we will re-execute de bootloader 
 	reset
 
 ;;;;;;;;;;;;
 ; Readpage Command
 ;;;;;;;;;;;;
 cmd_readpage:
+	; Check DLC
 	mov [w4 + 4], w0
-	subr w0,#6,w0
+	subr w0, #8 ,w0
 	bra NZ, error_dlc
-	mov [w4 + 8], w0
-	mov w0,TBLPAG
-	mov [w4 + 10], w2
-	mov #can_answer_OK, w0	; send ACK
-	rcall send_error_code
-	mov #6, w0
-	mov w0,[w3 + 4]		; set dlc to 6
 	
-	mov #256, w1		; loop 256 times
+	; Set flash pointers
+	mov [w4 + 10], w0	; high word from data[2]
+	mov w0,TBLPAG
+	mov [w4 + 12], w2	; low word from data[3]
+	
+	; Set DLC
+	mov #6, w0
+	mov w0, [w3 + 4]
+	
+	; Set aseba message type
+	mov #can_MSG_PAGE_DATA, w0
+	mov w0, [w3 + 6]	; set data[0]
+	
+	; Loop (PAGE_SIZE / 2) times
+	mov #(PAGE_SIZE / 2), w1
 readpage_loop:
-	mov w3,w8
-	add w8,#6,w8
+	mov w3, w8
+	add w8, #8, w8		; w8 points to data[1]
+	
+	; First instruction
 	tblrdh.b [w2],w0
-	tblrdl [w2++],[w8++]
-	mov.b w0,[w8++]
+	tblrdl [w2++], [w8++]
+	mov.b w0, [w8++]
+	
+	; Second instruction
 	tblrdh.b [w2],w0
-	tblrdl.b [w2++],[w8++]
-	tblrdl.b [w2++],[w8++]
-	mov.b w0,[w8]
+	tblrdl [w2++], [w8++]
+	mov.b w0, [w8]
+	
 	rcall send_can_packet
-	dec w1,w1
-	bra NZ, readpage_loop 
+	dec w1, w1
+	bra NZ, readpage_loop
+	
+	; Everything went fine
+	mov #can_answer_OK, w0
+	rcall send_error_code
+	
 	bra wait_can_packet
 
 error_dlc:
-	mov #can_answer_INVALID_DLC, w0
+	mov #can_answer_INVALID_SIZE, w0
 	rcall send_error_code
 	bra wait_can_packet
 
 ;;;;;;;;;;;;
-; Load page Command
+; Write page Command
 ;;;;;;;;;;;;
-cmd_loadpage:
+cmd_writepage:
+	; Check DLC
 	mov [w4 + 4], w0
-	subr w0,#6,w0
+	subr w0, #8, w0
 	bra NZ, error_dlc
-	mov [w4 + 8], w0
+	
+	; Set flash pointers
+	mov [w4 + 10], w0	; high word from data[2]
 	mov w0,TBLPAG
-	mov [w4 + 10], w2
+	mov [w4 + 12], w2	; low word from data[3]
+	
+	; Check if page size is divisible by 1024
 	mov w2,w1
-	lsr w1,#10,w1 ; check if it's divisible by 1024
-	sl w1,#10,w1
-	cpseq w1,w2
+	lsr w1, #10, w1
+	sl w1, #10, w1
+	cpseq w1, w2
 	bra error_inval
-	mov #192, w7		; 192 * 8 = 1356
+	
+	; Go into page mode
+	mov #384, w7		; number of times cmd_PAGE should be called per page (384 * 4 = 1536 = 512 * 3)
 	mov #can_STATE_PAGE, w6	; state is now "page mode"
-	mov w2,page_lowptr
-	mov #page_buf,w5
-	mov #can_answer_OK, w0
-	rcall send_error_code
-	bra wait_can_packet	
+	mov w2, page_lowptr
+	mov #page_buf, w5
+
+	bra wait_can_packet
 
 error_inval:
 	mov #can_answer_INVALID_VALUE, w0
 	rcall send_error_code
 	bra wait_can_packet
 
-;;;;;;;;;;;;
-; Load configuration Command
-;;;;;;;;;;;;
-cmd_loadconf:
-	mov [w4 + 4], w0
-	subr w0,#8,w0	
-	bra NZ, error_dlc
-	mov [w4 + 8], w0
-	mov w0,TBLPAG
-	btss w0,#7	; check that this is really a configuration address
-	bra error_inval
-	mov [w4 + 10], w0
-	mov [w4 + 12], w1
-	mov #0x4000, w2
-	mov w2, NVMCON
-	tblwtl w0, [w1]
-	rcall do_key_seq	; program
-	mov w0,w2
-	mov #can_answer_OK, w0
-	tblrdl [w1],w1
-	cpseq w1,w2		; check it's ok
-	mov #can_answer_PROGRAM_FAILED, w0
-	rcall send_error_code
-	bra wait_can_packet
 
 ;;;;;;;;;;;;
-; Page loading state
+; Page loading command
 ;;;;;;;;;;;;
-state_PAGE:
-	; read the next 8bytes 
-	mov [w4+6],w0		
+cmd_PAGE:
+	; Read the next 4 bytes
+	mov [w4+10], w0		; from data[2]
 	mov w0, [w5++]
-	mov [w4+8],w0
+	mov [w4+12], w0		; from data[3]
 	mov w0, [w5++]
-	mov [w4+10],w0
-	mov w0, [w5++]
-	mov [w4+12],w0
-	mov w0, [w5++]
-	clr w0
-	dec w7,w7			
-	bra NZ, return_state_page	; if read the whole page
+	
+	; If we have not finished page
+	dec w7, w7
+	bra NZ, wait_can_packet
+	
+	; If we have read the whole page
+	; zzz we are HERE TODO FIXME
 	rcall do_flash_page
 	mov #can_STATE_CMD,w6
 	cp w0,#0
@@ -485,55 +414,7 @@ state_PAGE:
 	rcall send_can_packet
 	bra wait_can_packet
 
-return_state_page:
-	rcall send_error_code
-		
 
-	; fallthrough
-wait_can_packet:
-	bclr C1RXFUL1, #1
-_wait_can_packet:
-	btss C1RXFUL1, #1
-	bra _wait_can_packet
-	bra got_can_packet
-
-; send an error code on can
-; in: w0: error code
-; out: nothing
-; modify w1
-send_error_code:
-	mov #1, w1
-	mov w1,[w3+4]	; set dlc
-	mov w0, [w3+6]  ; set data[0]
-
-; set the TX buffer as ready to send
-; and wait it's done
-; modify: nothing
-send_can_packet:
-	bset C1TR01CON, #3
-_sec_loop:
-	btsc C1TR01CON, #3 ; wait until the frame is sent
-	bra _sec_loop
-	return
-
-; ask can runlevel
-; in: w0: runlevel shifted by 8 bits
-; out: nothing
-; modify: w0, w1, w2
-ask_can_runlevel:
-	mov C1CTRL1, w1
-	mov #0xF8FF,w2
-	and w1,w2,w1
-	ior w1,w0,w1
-	mov w1, C1CTRL1
-	mov #0xE0, w2
-	lsr w0,#3,w0
-_ask_can_runlevel_loop:
-	mov C1CTRL1, w1
-	and w1,w2,w1
-	sub w1,w0,w1
-	bra NZ, _ask_can_runlevel_loop
-	return;
 
 ; programm a flash page ( 512 instr. )
 ; and verify it's correct
@@ -632,3 +513,88 @@ do_key_seq:
 	nop 
 	nop
 	return
+
+
+;;;;;;;;;;;;
+; Write configuration Command
+;;;;;;;;;;;;
+cmd_writeconf:
+	mov [w4 + 4], w0
+	subr w0,#8,w0	
+	bra NZ, error_dlc
+	mov [w4 + 8], w0
+	mov w0,TBLPAG
+	btss w0,#7	; check that this is really a configuration address
+	bra error_inval
+	mov [w4 + 10], w0
+	mov [w4 + 12], w1
+	mov #0x4000, w2
+	mov w2, NVMCON
+	tblwtl w0, [w1]
+	rcall do_key_seq	; program
+	mov w0,w2
+	mov #can_answer_OK, w0
+	tblrdl [w1],w1
+	cpseq w1,w2		; check it's ok
+	mov #can_answer_PROGRAM_FAILED, w0
+	rcall send_error_code
+	bra wait_can_packet
+
+
+;;;;;;;;;;;;
+; Utilities functions
+;;;;;;;;;;;;
+
+; Wait until a new CAN packet arrives
+wait_can_packet:
+	bclr C1RXFUL1, #1
+_wait_can_packet:
+	btss C1RXFUL1, #1
+	bra _wait_can_packet
+	bra got_can_packet
+
+
+; Send an error code on can
+; in: w0: error code
+; out: nothing
+; modify w1
+send_error_code:
+	; Set DLC
+	mov #4, w1
+	mov w1, [w3+4]
+	; Set aseba message type
+	mov #can_MSG_ACK, w1
+	mov w1, [w3+6]	 ; set data[0]
+	; Set error code
+	mov w0, [w3+8]  ; set data[1]
+
+
+; set the TX buffer as ready to send
+; and wait it's done
+; modify: nothing
+send_can_packet:
+	bset C1TR01CON, #3
+_sec_loop:
+	btsc C1TR01CON, #3 ; wait until the frame is sent
+	bra _sec_loop
+	return
+
+
+; ask can runlevel
+; in: w0: runlevel shifted by 8 bits
+; out: nothing
+; modify: w0, w1, w2
+ask_can_runlevel:
+	mov C1CTRL1, w1
+	mov #0xF8FF,w2
+	and w1,w2,w1
+	ior w1,w0,w1
+	mov w1, C1CTRL1
+	mov #0xE0, w2
+	lsr w0,#3,w0
+_ask_can_runlevel_loop:
+	mov C1CTRL1, w1
+	and w1,w2,w1
+	sub w1,w0,w1
+	bra NZ, _ask_can_runlevel_loop
+	return;
