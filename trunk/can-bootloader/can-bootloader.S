@@ -106,7 +106,8 @@ pll_clkdiv_conf:
 pll_osctun_conf:
 .word 23
 can_sid_conf:
-.word 0xa  ; configured for 700'000 Kbit/s
+.word (~(NODE_ID | can_MSG_SHORT))
+; 0xa  ; configured for 700'000 Kbit/s
 can_c1cfg1_conf:
 .word 0xc0
 can_c1cfg2_conf:
@@ -142,8 +143,7 @@ __reset:
 	nop
 	nop
 	
-; init pll
-	; Get the pll conf from program memory
+	; Init pll, get the conf from program memory
 	mov #tblpage(pll_pllfbd_conf), w0
 	mov w0, _TBLPAG
 	mov #tbloffset(pll_pllfbd_conf), w0
@@ -248,6 +248,7 @@ pll_stab_init:
 	clr w6				; status == 0
 
 	clr C1INTF
+	
 	; Enable CAN "interrupt" ( but not enabled in interrupt controller )
 	bset C1INTE, #1
 	bset C1INTE, #0
@@ -354,7 +355,8 @@ cmd_readpage:
 	mov w0, [w3 + 6]	; set data[0]
 	
 	; Loop boundary
-	add w2, #(FLASH_PAGE_SIZE), w1
+	mov #FLASH_PAGE_SIZE, w0
+	add w2, w0, w1
 	
 readpage_loop:
 	; Set w8 points to data[1]
