@@ -93,27 +93,33 @@ can_buf:		.space 64
 ; DO NOT CHANGE THE ORDER AND OFFSETS  ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 .section confpage,code,address(FLASH_END - FLASH_PAGE_SIZE - FLASH_PAGE_SIZE)
+
 configuration_page:
+
+can_id_conf:
+.word NODE_ID
+can_c1cfg1_conf:
+.word 0xc0				; configured for 700'000 Kbit/s
+can_c1cfg2_conf:
+.word 0x7bf				;
+
+can_enable_latch_addr:
+.word 0x2D6				; LATD ( TRIS == LAT - 4 )
+can_enable_mask:
+.word 0xFFEF			; bit 4
+
 pll_pllfbd_conf:
 .word 38 
 pll_clkdiv_conf:
 .word 0
 pll_osctun_conf:
 .word 23
-can_sid_conf:
-.word (~(NODE_ID | can_MSG_SHORT))
-can_c1cfg1_conf:
-.word 0xc0				; configured for 700'000 Kbit/s
-can_c1cfg2_conf:
-.word 0x7bf				; 
+
 low_wait_conf:
 .word 65535
 high_wait_conf:
 .word (FCY/(65536*6))
-can_enable_latch_addr:
-.word 0x2D6				; LATD ( TRIS == LAT - 4 )
-can_enable_mask:
-.word 0xFFEF			; bit 4
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Bootloader Code start
@@ -173,12 +179,17 @@ pll_stab_init:
 	mov w8, [w1]			; clear the correct TRIS bit according to mask
 	
 	; Load CAN config
-	mov #tblpage(can_sid_conf), w0
+	mov #tblpage(can_id_conf), w0
 	mov w0, _TBLPAG
-	mov #tbloffset(can_sid_conf), w0
+	mov #tbloffset(can_id_conf), w0
 	tblrdl [w0++], w1
+	
+	; Build physical CAN sid
+	ior #can_MSG_SHORT, w1
+	com w1, w1
 	mov w1, can_sid			; can SID
 	
+	; Load others CAN configuration registers
 	tblrdl [w0++] ,w1 		; C1CFG1
 	mov w1, C1CFG1
 	tblrdl [w0], w1 		; C1CFG2
