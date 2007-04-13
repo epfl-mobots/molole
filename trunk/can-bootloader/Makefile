@@ -17,7 +17,7 @@ CC = $(prefix)cc
 BIN2HEX = $(prefix)bin2hex
 CPPFLAGS = -Dcpuinc=\"p$(cpu).inc\" -DFCY=$(fcy) -DFLASH_END=$(flashend) -DNODE_ID=$(nodeid)
 ASFLAGS = -Wa,-p$(cpu) -Wa,-I$(PIC30SUPPORTROOT)/inc 
-LDFLAGS = -p $(cpu) --stack 16 --no-isr --no-data-init --warn-section-align --script $(PIC30SUPPORTROOT)/gld/p$(cpu).gld
+LDFLAGS = -p $(cpu) --stack 16 --no-isr --no-data-init --warn-section-align --script $(PIC30SUPPORTROOT)/gld/p$(cpu).gld -Map out.map
 
 $(target-hex): $(target-elf)
 	$(BIN2HEX) $<

@@ -49,11 +49,6 @@ config __FOSC, FCKSM_CSDCMD & OSCIOFNC_OFF  & POSCMD_NONE
 ; row size ( in nb of instructions )
 .equ FLASH_ROW_INSTRUCTION_COUNT, 64
 
-; MUST be a multiple of page_size
-.equ bootloadersize, FLASH_PAGE_INSTRUCTION_COUNT
-; any size, as long as it's a multiple of 2
-.equ confsize, FLASH_ROW_INSTRUCTION_COUNT
-
 .equ can_config_mode, 0x400
 .equ can_normal_mode, 0x0
 
@@ -65,10 +60,9 @@ config __FOSC, FCKSM_CSDCMD & OSCIOFNC_OFF  & POSCMD_NONE
 .equ can_CMD_RESET, 0x8000		; ask the bootloader to reset
 .equ can_CMD_READ_PAGE, 0x8001	; ask the bootloader to read a page and send it back
 .equ can_CMD_WRITE_PAGE, 0x8002	; ask the bootloader to write a page
-.equ can_CMD_WRITE_CONF, 0x8003	; ask the bootloader to write configs bits
-.equ can_CMD_PAGE_DATA, 0x8004	; CAN message containing data from host
-.equ can_PUSH_PAGE_DATA, 0x8005	; CAN message containing data to host
-.equ can_PUSH_ACK, 0x8006		; CAN message containing return value
+.equ can_CMD_PAGE_DATA, 0x8003	; CAN message containing data from host
+.equ can_PUSH_PAGE_DATA, 0x8004	; CAN message containing data to host
+.equ can_PUSH_ACK, 0x8005		; CAN message containing return value
 
 .equ can_MSG_SHORT, 0x300
 .equ can_MSG_PHY_TYPE_MASK, 0x700
@@ -98,7 +92,8 @@ can_buf:		.space 64
 ; Configuration page                   ;
 ; DO NOT CHANGE THE ORDER AND OFFSETS  ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-.section confpage,code,address(FLASH_END - 0x200 - bootloadersize - confsize)
+.section confpage,code,address(FLASH_END - FLASH_PAGE_SIZE - FLASH_PAGE_SIZE)
+configuration_page:
 pll_pllfbd_conf:
 .word 38 
 pll_clkdiv_conf:
@@ -107,19 +102,18 @@ pll_osctun_conf:
 .word 23
 can_sid_conf:
 .word (~(NODE_ID | can_MSG_SHORT))
-; 0xa  ; configured for 700'000 Kbit/s
 can_c1cfg1_conf:
-.word 0xc0
+.word 0xc0				; configured for 700'000 Kbit/s
 can_c1cfg2_conf:
-.word 0x7bf
+.word 0x7bf				; 
 low_wait_conf:
 .word 65535
 high_wait_conf:
 .word (FCY/(65536*6))
 can_enable_latch_addr:
-.word 0x2D6 ; LATD ( TRIS == LAT - 4 )
+.word 0x2D6				; LATD ( TRIS == LAT - 4 )
 can_enable_mask:
-.word 0xFFEF ; bit 4
+.word 0xFFEF			; bit 4
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Bootloader Code start
@@ -134,7 +128,7 @@ can_enable_mask:
 ; w8, w9, w10: scratch register
 ; w11: reserved for flashing operation
 
-.section bootloader,code,address(FLASH_END - 0x200 - bootloadersize)
+.section bootloader,code,address(FLASH_END - FLASH_PAGE_SIZE)
 __reset:
 	; Setup stack pointer
 	mov #__SP_init, W15
@@ -153,6 +147,7 @@ __reset:
 	mov w1, CLKDIV
 	tblrdl [w0] , w1 				; osctun
 	mov w1, OSCTUN
+	
 	; Wait on pll stabilisation
 pll_stab_init:
 	btss OSCCON,  #5
@@ -311,10 +306,6 @@ got_can_packet:
 	mov #can_CMD_WRITE_PAGE, w1
 	cp w0, w1
 	bra Z, cmd_writepage
-	
-	mov #can_CMD_WRITE_CONF, w1
-	cp w0, w1
-	bra Z, cmd_writeconf
 
 	; Others aseba messages are ignored
 	bra wait_can_packet
@@ -440,7 +431,7 @@ cmd_page:
 	; If we have read the whole page
 	rcall do_flash_page
 	cp w0,#0
-	bra Z,return_state_page
+	bra Z, prog_ok
 	
 	; Set DLC
 	mov #6, w2
@@ -568,35 +559,6 @@ do_key_seq:
 	nop
 	nop
 	return
-
-
-;;;;;;;;;;;;
-; Write configuration Command
-;;;;;;;;;;;;
-cmd_writeconf:
-	; Check DLC
-	mov [w4 + 4], w0
-	subr w0, #8, w0
-	bra NZ, error_dlc
-	
-	; TODO
-	mov [w4 + 8], w0
-	mov w0,TBLPAG
-	btss w0,#7	; check that this is really a configuration address
-	bra error_inval
-	mov [w4 + 10], w0
-	mov [w4 + 12], w1
-	mov #0x4000, w2
-	mov w2, NVMCON
-	tblwtl w0, [w1]
-	rcall do_key_seq	; program
-	mov w0,w2
-	mov #can_answer_OK, w0
-	tblrdl [w1],w1
-	cpseq w1,w2		; check it's ok
-	mov #can_answer_PROGRAM_FAILED, w0
-	rcall send_error_code
-	bra wait_can_packet
 
 
 ;;;;;;;;;;;;
