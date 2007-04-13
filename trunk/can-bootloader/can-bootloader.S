@@ -303,13 +303,12 @@ cmd_reset:
 cmd_readpage:
 	; Check DLC
 	mov [w4 + 4], w0
-	subr w0, #8 ,w0
+	subr w0, #6 ,w0
 	bra NZ, error_dlc
 	
 	; Set flash pointers
-	mov [w4 + 10], w0	; high word from data[2]
+	mov [w4 + 10], w0	; page number from data[2]
 	mov w0,TBLPAG
-	mov [w4 + 12], w2	; low word from data[3]
 	
 	; Set DLC
 	mov #6, w0
@@ -321,6 +320,7 @@ cmd_readpage:
 	
 	; Loop (PAGE_SIZE / 2) times
 	mov #(PAGE_SIZE / 2), w1
+	mov 0, w2
 readpage_loop:
 	mov w3, w8
 	add w8, #8, w8		; w8 points to data[1]
