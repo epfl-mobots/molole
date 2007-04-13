@@ -1,3 +1,31 @@
+/*
+
+CAN bootloader for PIC 24/33
+This file is part of Molole (Mobots low level library)
+Copyright (C) 2006 - 2007 Philippe Rétornaz <philippe dot retornaz at epfl dot ch>
+Copyright (C) 2007 Valentin Longchamp <valentin dot longchamp at a3 dot epfl dot ch>
+Copyright (C) 2007 Stéphane Magnenat <stephane at magnenat dot net>
+Laboratory of Robotics Systems 1 - EPFL
+
+See authors.txt in top level directory for more details about other contributors.
+
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, 
+USA.
+
+*/
+
 .include cpuinc
 
 ; PIC have SRAM, datasheet say that it keep data if Vdd > 2.8V
@@ -12,23 +40,27 @@ config __FOSCSEL, FNOSC_FRCPLL ; FRC Oscillator with PLL
 config __FOSC, FCKSM_CSDCMD & OSCIOFNC_OFF  & POSCMD_NONE
 
 ; page size ( in nb of instructions  )
-.equ PAGE_SIZE, 512
+.equ FLASH_PAGE_INSTRUCTION_COUNT, 512
+.equ FLASH_PAGE_SIZE, 1024
+
+.equ FLASH_ERASE_PAGE_CODE, 0x4042
+.equ FLASH_PROG_ROW_CODE, 0x4001
+
 ; row size ( in nb of instructions )
-.equ row_size, 64
+.equ FLASH_ROW_INSTRUCTION_COUNT, 64
 
 ; MUST be a multiple of page_size
-.equ bootloadersize, PAGE_SIZE
+.equ bootloadersize, FLASH_PAGE_INSTRUCTION_COUNT
 ; any size, as long as it's a multiple of 2
-.equ confsize, row_size
+.equ confsize, FLASH_ROW_INSTRUCTION_COUNT
 
 .equ can_config_mode, 0x400
 .equ can_normal_mode, 0x0
 
 .equ can_answer_OK, 0x0
 .equ can_answer_INVALID_SIZE, 0x1
-.equ can_answer_INVALID_VALUE, 0x2
-.equ can_answer_PROGRAM_FAILED, 0x3
-.equ can_answer_NOT_PROGRAMMING, 0x4
+.equ can_answer_PROGRAM_FAILED, 0x2
+.equ can_answer_NOT_PROGRAMMING, 0x3
 
 .equ can_CMD_RESET, 0x8000		; ask the bootloader to reset
 .equ can_CMD_READ_PAGE, 0x8001	; ask the bootloader to read a page and send it back
@@ -38,9 +70,6 @@ config __FOSC, FCKSM_CSDCMD & OSCIOFNC_OFF  & POSCMD_NONE
 .equ can_PUSH_PAGE_DATA, 0x8005	; CAN message containing data to host
 .equ can_PUSH_ACK, 0x8006		; CAN message containing return value
 
-.equ can_STATE_CMD, 0x0
-.equ can_STATE_PAGE, 0x1
-
 .equ can_MSG_SHORT, 0x300
 .equ can_MSG_PHY_TYPE_MASK, 0x700
 
@@ -48,15 +77,17 @@ config __FOSC, FCKSM_CSDCMD & OSCIOFNC_OFF  & POSCMD_NONE
 
 .bss
 
-; so we can see the other variables when debugging with ICD2
-_workaround_mplab_ICD2_bug:	.space 1536
-
-can_sid:		.space 2
+; Workaround bug, so we can see the other variables when debugging with ICD2
+_workaround_mplab_ICD2_bug:	.space 1024
 
 ; Memory for a page when flashing
 page_buf: 		.space 1536
+
+; Additional variables
+can_sid:		.space 2
 page_lowptr:	.space 2
 
+; CAN buffer in DMA area
 .section canbuf,bss,dma
 can_buf:		.space 64
 
@@ -104,7 +135,7 @@ can_enable_mask:
 
 .section bootloader,code,address(FLASH_END - 0x200 - bootloadersize)
 __reset:
-; setup stack pointer
+	; Setup stack pointer
 	mov #__SP_init, W15
 	mov #__SPLIM_init, W0
 	mov W0, SPLIM
@@ -112,22 +143,22 @@ __reset:
 	nop
 	
 ; init pll
-	; get the pll conf from program memory
+	; Get the pll conf from program memory
 	mov #tblpage(pll_pllfbd_conf), w0
 	mov w0, _TBLPAG
 	mov #tbloffset(pll_pllfbd_conf), w0
-	tblrdl [w0++],w1 				; pllfbd
+	tblrdl [w0++], w1 				; pllfbd
 	mov w1, PLLFBD
-	tblrdl [w0++],w1				; clkdiv
+	tblrdl [w0++], w1				; clkdiv
 	mov w1, CLKDIV
-	tblrdl [w0] ,w1 				; osctun
+	tblrdl [w0] , w1 				; osctun
 	mov w1, OSCTUN
-; wait on pll stabilisation
+	; Wait on pll stabilisation
 pll_stab_init:
 	btss OSCCON,  #5
 	bra pll_stab_init
 	
-; init can
+	; Init CAN
 	mov #can_config_mode, w0
 	rcall ask_can_runlevel
 	
@@ -136,17 +167,17 @@ pll_stab_init:
 	mov #tblpage(can_enable_latch_addr), w0
 	mov w0, _TBLPAG
 	mov #tbloffset(can_enable_latch_addr), w0
-	tblrdl [w0++],w1 		; can latch addr
+	tblrdl [w0++], w1 		; can latch addr
 	tblrdl [w0], w2			; can bit mask
 	mov [w1], w8			; get the latch value
-	and w8,w2,w8
-	mov w8,[w1]				; clear the correct LATCH bit according to mask
-	sub #4,w1				; get the tris addr
-	mov [w1],w8
-	and w8,w2,w8
-	mov w8,[w1]				; clear the correct TRIS bit according to mask
+	and w8, w2, w8
+	mov w8, [w1]			; clear the correct LATCH bit according to mask
+	sub #4, w1				; get the tris addr
+	mov [w1], w8
+	and w8, w2, w8
+	mov w8, [w1]			; clear the correct TRIS bit according to mask
 	
-; load can config
+	; Load CAN config
 	mov #tblpage(can_sid_conf), w0
 	mov w0, _TBLPAG
 	mov #tbloffset(can_sid_conf), w0
@@ -158,10 +189,10 @@ pll_stab_init:
 	tblrdl [w0], w1 		; C1CFG2
 	mov w1, C1CFG2
 	
-; configure Filter 
+	; Configure Filter 
 	bset C1CTRL1, #0 		; C1CTRL1.WIN = 1
 	
-; enable only first filter
+	; Enable only first filter
 	clr C1FEN1
 	bset C1FEN1, #0
 	mov can_sid, w0
@@ -183,11 +214,10 @@ pll_stab_init:
 	clr C1RXFUL1
 	clr C1RXOVF1
 	
-
-; configure DMA channels
+	; Configure DMA channels
 	mov #0x0020, w0
 	mov w0, DMA0CON
-	mov #C1RXD,w0
+	mov #C1RXD, w0
 	mov w0, DMA0PAD
 	mov #7, w0
 	mov w0, DMA0CNT
@@ -206,10 +236,10 @@ pll_stab_init:
 	bset DMA1CON, #15
 	bset DMA0CON, #15
 
-; prepare can TX frame header
+	; Prepare can TX frame header
 	mov #can_buf, w3
 	mov can_sid, w0
-	sl w0,#2,w0
+	sl w0, #2, w0
 	mov w0, [w3]		; sid
 	clr w0
 	mov w0, [w3+2]		; eid
@@ -218,30 +248,29 @@ pll_stab_init:
 	clr w6				; status == 0
 
 	clr C1INTF
-; enable CAN "interrupt" ( but not enabled in interrupt controller )
+	; Enable CAN "interrupt" ( but not enabled in interrupt controller )
 	bset C1INTE, #1
 	bset C1INTE, #0
 
-; Initialization phase complete ! 
+	; Initialization phase complete !
 	mov #can_normal_mode, w0
 	rcall ask_can_runlevel
 
-
-; one non-successfull loop need 6 cycles
-; ( each 65536 loop, it need 4 more cycles )
-; 40Mips, 1 sec == 40'000'000 cycles
-; FCY/(6 * 65536 + 4*x) = x => 4x*x + 6*65536x - FCY = 0
-; since assembler doesn't know the sqrt() operator, we 
-; ignore the "4 more cycles"
-; See the confpage definition.
-
+	; Setup timeout
+	; one non-successfull loop need 6 cycles
+	; ( each 65536 loop, it need 4 more cycles )
+	; 40Mips, 1 sec == 40'000'000 cycles
+	; FCY/(6 * 65536 + 4*x) = x => 4x*x + 6*65536x - FCY = 0
+	; since assembler doesn't know the sqrt() operator, we 
+	; ignore the "4 more cycles"
+	; See the confpage definition.
 	mov #tblpage(low_wait_conf), w2
 	mov w2, _TBLPAG
 	mov #tbloffset(low_wait_conf), w2
 	tblrdl [w2++], w0
 	tblrdl [w2++], w1
 
-; wait on incomming CAN packet ( RX buffer 1 )
+	; Wait on incoming CAN packet ( RX buffer 1 )
 wait_loop:
 	btsc C1RXFUL1, #1		; 2
 	bra got_can_packet
@@ -256,7 +285,7 @@ out_cnt:
 timeout:
 	reset
 
-; The main state machine
+	; Depending on aseba type od incoming packet, we take a different action
 got_can_packet:
 	; Is it for us ?
 	mov [w4+8], w0
@@ -268,7 +297,7 @@ got_can_packet:
 	
 	mov #can_CMD_PAGE_DATA, w1
 	cp w0, w1
-	bra Z, cmd_PAGE
+	bra Z, cmd_page
 	
 	mov #can_CMD_RESET, w1
 	cp w0, w1
@@ -286,7 +315,7 @@ got_can_packet:
 	cp w0, w1
 	bra Z, cmd_writeconf
 
-	; Others aseba messages
+	; Others aseba messages are ignored
 	bra wait_can_packet
 
 ;;;;;;;;;;;;
@@ -306,37 +335,47 @@ cmd_readpage:
 	subr w0, #6 ,w0
 	bra NZ, error_dlc
 	
-	; Set flash pointers
-	mov [w4 + 10], w0	; page number from data[2]
-	mov w0,TBLPAG
+	; Page number from data[2]
+	mov [w4 + 10], w0
+	
+	; Page address high 8 bits ((pageNumber << 10) >> 16)
+	lsr w0, #6, w1
+	mov w1, TBLPAG
+	
+	; Page address low 16 bits to w2 ((pageNumber << 10) & 0xFFFF)
+	sl w0, #10, w2
 	
 	; Set DLC
-	mov #6, w0
+	mov #8, w0
 	mov w0, [w3 + 4]
 	
 	; Set aseba message type
 	mov #can_PUSH_PAGE_DATA, w0
 	mov w0, [w3 + 6]	; set data[0]
 	
-	; Loop (PAGE_SIZE / 2) times
-	mov #(PAGE_SIZE / 2), w1
-	mov 0, w2
+	; Loop boundary
+	add w2, #(FLASH_PAGE_SIZE), w1
+	
 readpage_loop:
+	; Set w8 points to data[1]
 	mov w3, w8
-	add w8, #8, w8		; w8 points to data[1]
+	add w8, #8, w8
 	
 	; First instruction
-	tblrdh.b [w2],w0
-	tblrdl [w2++], [w8++]
+	tblrdl [w2], [w8++]
+	tblrdh [w2++], w0
 	mov.b w0, [w8++]
 	
 	; Second instruction
-	tblrdh.b [w2],w0
-	tblrdl [w2++], [w8++]
-	mov.b w0, [w8]
+	tblrdl [w2], [w8++]
+	tblrdh [w2++], w0
+	mov.b w0, [w8++]
 	
+	; Send 2 instructions
 	rcall send_can_packet
-	dec w1, w1
+	
+	; If not sent all instructions yet, loop
+	cp w2, w1
 	bra NZ, readpage_loop
 	
 	; Everything went fine
@@ -356,39 +395,36 @@ error_dlc:
 cmd_writepage:
 	; Check DLC
 	mov [w4 + 4], w0
-	subr w0, #8, w0
+	subr w0, #6, w0
 	bra NZ, error_dlc
 	
-	; Set flash pointers
-	mov [w4 + 10], w0	; high word from data[2]
-	mov w0,TBLPAG
-	mov [w4 + 12], w2	; low word from data[3]
+	; Page number from data[2]
+	mov [w4 + 10], w0
 	
-	; Check if page size is divisible by 1024
-	mov w2,w1
-	lsr w1, #10, w1
-	sl w1, #10, w1
-	cpseq w1, w2
-	bra error_inval
+	; Page address high 8 bits ((pageNumber << 10) >> 16)
+	lsr w0, #6, w1
+	mov w1, TBLPAG
+	
+	; Page address low 16 bits to w2 ((pageNumber << 10) & 0xFFFF)
+	sl w0, #10, w2
 	
 	; Go into page mode
-	mov #384, w7		; number of times cmd_PAGE should be called per page (384 * 4 = 1536 = 512 * 3)
-	mov #can_STATE_PAGE, w6	; state is now "page mode"
+	mov #384, w7		; number of times cmd_page should be called per page (384 * 4 = 1536 = 512 * 3)
 	mov w2, page_lowptr
 	mov #page_buf, w5
 
-	bra wait_can_packet
-
-error_inval:
-	mov #can_answer_INVALID_VALUE, w0
-	rcall send_error_code
 	bra wait_can_packet
 
 
 ;;;;;;;;;;;;
 ; Page loading command
 ;;;;;;;;;;;;
-cmd_PAGE:
+cmd_page:
+	; Check if we are actually progromming something
+	mov #384, w0
+	cp w7, w0
+	bra Z, error_not_prog
+	
 	; Read the next 4 bytes
 	mov [w4+10], w0		; from data[2]
 	mov w0, [w5++]
@@ -400,21 +436,35 @@ cmd_PAGE:
 	bra NZ, wait_can_packet
 	
 	; If we have read the whole page
-	; zzz we are HERE TODO FIXME
 	rcall do_flash_page
-	mov #can_STATE_CMD,w6
 	cp w0,#0
 	bra Z,return_state_page
-	mov w0,[w3 + 6]
-	mov w1,[w3 + 8]
-	mov TBLPAG, w0
-	mov w0,[w3 + 10]
-	mov #6, w0
-	mov w0,[w3 + 4]
+	
+	; Set DLC
+	mov #6, w2
+	mov w2, [w3+4]
+	
+	; Set aseba message type
+	mov #can_PUSH_ACK, w2
+	mov w2, [w3+6]	 	; set data[0]
+	
+	; Set error code
+	mov w0, can_answer_PROGRAM_FAILED
+	mov w0, [w3+8]  ; set data[1]
+	mov w1, [w3+10] ; set data[2]
+	
 	rcall send_can_packet
 	bra wait_can_packet
 
+prog_ok:
+	mov #can_answer_OK, w0
+	rcall send_error_code
+	bra wait_can_packet
 
+error_not_prog:
+	mov #can_answer_NOT_PROGRAMMING, w0
+	rcall send_error_code
+	bra wait_can_packet
 
 ; programm a flash page ( 512 instr. )
 ; and verify it's correct
@@ -423,79 +473,82 @@ cmd_PAGE:
 ;      w1: the failing low address ( if failed )
 ; modify: w0,w1,w2,w5,w9,w10,w8
 do_flash_page:
-; earse the page
-	mov #0x4042, w0
-	mov w0,NVMCON		; ask for erase operation
+	; Erase the page
+	
+	; Setup flash for erase operation
+	mov #FLASH_ERASE_PAGE_CODE, w0
+	mov w0, NVMCON
 
+	; Dummy write to select the page to erase
 	mov page_lowptr, w0
-	tblwtl w0,[w0]		; set base address
-	rcall do_key_seq	; do it !
-
-; now write it ( in chunk of 64 instr ) !
-	mov #page_buf, w5 	; reset the page buf ptr
-	mov #0x4001, w0
-	mov w0,NVMCON		; ask for row write
-	mov page_lowptr, w11
-	mov #8, w10		; 64*8 = 512 couter
-
-dfp_prog_loop_page:
-	mov #64,w9		; 64 instr. counter
-dfp_prog_loop_row:
-	mov.b [w5++],w1
-	mov.b [w5++],w2
-	mov.b [w5++],w8
-	tblwth.b w8,[w11]
-	tblwtl.b w1,[w11++]
-	tblwtl.b w2,[w11++]
-	dec w9,w9
-	bra NZ, dfp_prog_loop_row
+	tblwtl w0, [w0]
+	
+	; Do the real flash page erase
 	rcall do_key_seq
-	dec w10,w10
+
+	; Prepare to write rows
+	
+	; Setup flash for row write
+	mov #FLASH_PROG_ROW_CODE, w0
+	mov w0, NVMCON
+	
+	; Setup pointers
+	mov page_lowptr, w11
+	mov #(FLASH_PAGE_INSTRUCTION_COUNT / FLASH_ROW_INSTRUCTION_COUNT), w10
+	mov #page_buf, w5
+	
+dfp_prog_loop_page:
+	; Row instruction counter
+	mov #FLASH_ROW_INSTRUCTION_COUNT, w9
+	
+dfp_prog_loop_row:
+	; Read from buffer
+	mov [w5++], w1
+	mov.b [w5++], w2
+
+	; Write into flash
+	tblwtl w1, [w11]
+	tblwth w2, [w11++]
+
+	; Decrement and check row counter
+	dec w9, w9
+	bra NZ, dfp_prog_loop_row
+	
+	; Do the real flash write
+	rcall do_key_seq
+	
+	; Decrement and check page counter
+	dec w10, w10
 	bra NZ, dfp_prog_loop_page
 	
 ; now verify the whole thing
 	mov #page_buf, w5	; reset page buf ptr
-	mov page_lowptr,w0
+	mov page_lowptr, w0
 
-	mov #512,w10		; 512 instr. counter
+	mov #FLASH_PAGE_INSTRUCTION_COUNT,w10
 
 dfp_verify_loop:
-	mov.b [w5++], w2
-	tblrdh [w0],w8
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; BUG in the microcontroller !
-; If you read the flash with tblrdl.b two time (with post-increment)
-; The second read is _corrupted_. You MUST use 
-; tblrdl with word addressing then swap the word
-; MANY thanks to Microchip for this undocummented bug 
-; it took about ~10 hours to catch this one ... 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; There is still a bug somewhere. I _REALLY_ don't know why
-; but sometime I get wrong data either from w5 or flash ... 
-; The most strange thing is that if we verify after with a READPAGE
-; it works .... 
-; Maybe a errata will pop on Microhip in 6 month ? 
-	tblrdl [w0++],w1
-	cpseq.b w1,w2
+	; Compare low word
+	mov [w5++], w1
+	tblrdl [w0], w2
+	cpseq w1, w2
 	bra dfp_error_prog
 	
-	mov.b [w5++], w2
-	swap w1
-	cpseq.b w1,w2
-	bra dfp_error_prog
-
-	mov.b [w5++], w2
-	cpseq.b w1,w8
+	; Compare high byte
+	mov.b [w5++], w1
+	tblrdh [w0++], w2
+	cpseq.b w1, w2
 	bra dfp_error_prog
 	
-	dec w10,w10
+	; Decrement and check instruction counter
+	dec w10, w10
 	bra NZ, dfp_verify_loop
 	
-	retlw #can_answer_OK,w0
+	retlw #can_answer_OK, w0
 	
 dfp_error_prog:
-	dec w0,w1
-	retlw #can_answer_PROGRAM_FAILED,w0
+	dec w0, w1
+	retlw #can_answer_PROGRAM_FAILED, w0
 
 
 
@@ -505,12 +558,12 @@ dfp_error_prog:
 ; modify: w0,w1
 do_key_seq:
 	disi #5
-	mov #0x55,w0
-	mov w0,NVMKEY
-	mov #0xaa,w1
-	mov w1,NVMKEY
+	mov #0x55, w0
+	mov w0, NVMKEY
+	mov #0xaa, w1
+	mov w1, NVMKEY
 	bset NVMCON, #WR
-	nop 
+	nop
 	nop
 	return
 
@@ -519,9 +572,12 @@ do_key_seq:
 ; Write configuration Command
 ;;;;;;;;;;;;
 cmd_writeconf:
+	; Check DLC
 	mov [w4 + 4], w0
-	subr w0,#8,w0	
+	subr w0, #8, w0
 	bra NZ, error_dlc
+	
+	; TODO
 	mov [w4 + 8], w0
 	mov w0,TBLPAG
 	btss w0,#7	; check that this is really a configuration address
@@ -562,9 +618,11 @@ send_error_code:
 	; Set DLC
 	mov #4, w1
 	mov w1, [w3+4]
+	
 	; Set aseba message type
 	mov #can_PUSH_ACK, w1
 	mov w1, [w3+6]	 ; set data[0]
+	
 	; Set error code
 	mov w0, [w3+8]  ; set data[1]
 
