@@ -39,8 +39,9 @@ config __FOSCSEL, FNOSC_FRCPLL ; FRC Oscillator with PLL
 ; OSC2 Pin Function: OSC2 is Clock Output
 config __FOSC, FCKSM_CSDCMD & OSCIOFNC_OFF  & POSCMD_NONE
 
-; page size ( in nb of instructions  )
+; page size ( in nb of instructions )
 .equ FLASH_PAGE_INSTRUCTION_COUNT, 512
+; page size ( in stupid dspic address )
 .equ FLASH_PAGE_SIZE, 1024
 
 .equ FLASH_ERASE_PAGE_CODE, 0x4042
@@ -57,12 +58,13 @@ config __FOSC, FCKSM_CSDCMD & OSCIOFNC_OFF  & POSCMD_NONE
 .equ can_answer_PROGRAM_FAILED, 0x2
 .equ can_answer_NOT_PROGRAMMING, 0x3
 
-.equ can_CMD_RESET, 0x8000		; ask the bootloader to reset
-.equ can_CMD_READ_PAGE, 0x8001	; ask the bootloader to read a page and send it back
-.equ can_CMD_WRITE_PAGE, 0x8002	; ask the bootloader to write a page
-.equ can_CMD_PAGE_DATA, 0x8003	; CAN message containing data from host
-.equ can_PUSH_PAGE_DATA, 0x8004	; CAN message containing data to host
-.equ can_PUSH_ACK, 0x8005		; CAN message containing return value
+.equ can_CMD_RESET, 0x8000			; ask the bootloader to reset
+.equ can_CMD_READ_PAGE, 0x8001		; ask the bootloader to read a page and send it back
+.equ can_CMD_WRITE_PAGE, 0x8002		; ask the bootloader to write a page
+.equ can_CMD_PAGE_DATA, 0x8003		; CAN message containing data from host
+.equ can_PUSH_DESCRIPITON, 0x8004	; CAN message containing bootloader description
+.equ can_PUSH_PAGE_DATA, 0x8005		; CAN message containing data to host
+.equ can_PUSH_ACK, 0x8006			; CAN message containing return value
 
 .equ can_MSG_SHORT, 0x300
 .equ can_MSG_PHY_TYPE_MASK, 0x700
@@ -75,7 +77,7 @@ config __FOSC, FCKSM_CSDCMD & OSCIOFNC_OFF  & POSCMD_NONE
 _workaround_mplab_ICD2_bug:	.space 1024
 
 ; Memory for a page when flashing
-page_buf: 		.space 1536
+page_buf: 		.space FLASH_PAGE_INSTRUCTION_COUNT * 4 
 
 ; Additional variables
 can_sid:		.space 2
@@ -161,7 +163,7 @@ pll_stab_init:
 	
 	; Init CAN
 	mov #can_config_mode, w0
-	rcall ask_can_runlevel
+	rcall setup_can_runlevel
 	
 	bset C1CTRL1, #11 		; Fcan = FCY
 	
@@ -261,7 +263,24 @@ pll_stab_init:
 
 	; Initialization phase complete !
 	mov #can_normal_mode, w0
-	rcall ask_can_runlevel
+	rcall setup_can_runlevel
+	
+	; Send description
+	
+	; Set DLC
+	mov #4, w1
+	mov w1, [w3+4]
+	
+	; Set aseba message type
+	mov #can_PUSH_DESCRIPITON, w1
+	mov w1, [w3+6]	 ; set data[0]
+	
+	; Set page size
+	mov #(FLASH_PAGE_INSTRUCTION_COUNT * 4), w1
+	mov w1, [w3+8]	 ; set data[1]
+	
+	; Send description
+	rcall send_can_packet
 
 	; Setup timeout
 	; one non-successfull loop need 6 cycles
@@ -341,15 +360,15 @@ cmd_readpage:
 	; Page number from data[2]
 	mov [w4 + 10], w0
 	
-	; Page address high 8 bits ((pageNumber << 10) >> 16)
+	; Page address high 8 bits ((pageNumber<< 10) >> 16)
 	lsr w0, #6, w1
 	mov w1, TBLPAG
 	
-	; Page address low 16 bits to w2 ((pageNumber << 10) & 0xFFFF)
+	; Page address low 16 bits to w2 ((pageNumber<< 10) & 0xFFFF)
 	sl w0, #10, w2
 	
 	; Set DLC
-	mov #8, w0
+	mov #6, w0
 	mov w0, [w3 + 4]
 	
 	; Set aseba message type
@@ -357,29 +376,22 @@ cmd_readpage:
 	mov w0, [w3 + 6]	; set data[0]
 	
 	; Loop boundary
-	mov #FLASH_PAGE_SIZE, w0
-	add w2, w0, w1
+	mov #FLASH_PAGE_INSTRUCTION_COUNT, w7
 	
 readpage_loop:
 	; Set w8 points to data[1]
 	mov w3, w8
 	add w8, #8, w8
 	
-	; First instruction
+	; Instruction
 	tblrdl [w2], [w8++]
-	tblrdh [w2++], w0
-	mov.b w0, [w8++]
+	tblrdh [w2++], [w8++]
 	
-	; Second instruction
-	tblrdl [w2], [w8++]
-	tblrdh [w2++], w0
-	mov.b w0, [w8++]
-	
-	; Send 2 instructions
+	; Send instruction
 	rcall send_can_packet
 	
 	; If not sent all instructions yet, loop
-	cp w2, w1
+	dec w7, w7
 	bra NZ, readpage_loop
 	
 	; Everything went fine
@@ -413,7 +425,7 @@ cmd_writepage:
 	sl w0, #10, w2
 	
 	; Go into page mode
-	mov #384, w7		; number of times cmd_page should be called per page (384 * 4 = 1536 = 512 * 3)
+	mov #FLASH_PAGE_INSTRUCTION_COUNT, w7		; number of times cmd_page should be called per page
 	mov w2, page_lowptr
 	mov #page_buf, w5
 
@@ -424,9 +436,8 @@ cmd_writepage:
 ; Page loading command
 ;;;;;;;;;;;;
 cmd_page:
-	; Check if we are actually progromming something
-	mov #384, w0
-	cp w7, w0
+	; Check if we are actually programming something
+	cp w7, #0
 	bra Z, error_not_prog
 	
 	; Read the next 4 bytes
@@ -441,7 +452,7 @@ cmd_page:
 	
 	; If we have read the whole page
 	rcall do_flash_page
-	cp w0,#0
+	cp w0, #0
 	bra Z, prog_ok
 	
 	; Set DLC
@@ -506,13 +517,9 @@ dfp_prog_loop_page:
 	mov #FLASH_ROW_INSTRUCTION_COUNT, w9
 	
 dfp_prog_loop_row:
-	; Read from buffer
-	mov [w5++], w1
-	mov.b [w5++], w2
-
-	; Write into flash
-	tblwtl w1, [w11]
-	tblwth w2, [w11++]
+	; Write into flash from buffer
+	tblwtl [w5++], [w11]
+	tblwth [w5++], [w11++]
 
 	; Decrement and check row counter
 	dec w9, w9
@@ -529,7 +536,7 @@ dfp_prog_loop_row:
 	mov #page_buf, w5	; reset page buf ptr
 	mov page_lowptr, w0
 
-	mov #FLASH_PAGE_INSTRUCTION_COUNT,w10
+	mov #FLASH_PAGE_INSTRUCTION_COUNT, w10
 
 dfp_verify_loop:
 	; Compare low word
@@ -539,9 +546,9 @@ dfp_verify_loop:
 	bra dfp_error_prog
 	
 	; Compare high byte
-	mov.b [w5++], w1
+	mov [w5++], w1
 	tblrdh [w0++], w2
-	cpseq.b w1, w2
+	cpseq w1, w2
 	bra dfp_error_prog
 	
 	; Decrement and check instruction counter
@@ -617,7 +624,7 @@ _sec_loop:
 ; in: w0: runlevel shifted by 8 bits
 ; out: nothing
 ; modify: w0, w1, w2
-ask_can_runlevel:
+setup_can_runlevel:
 	mov C1CTRL1, w1
 	mov #0xF8FF,w2
 	and w1,w2,w1
@@ -625,9 +632,9 @@ ask_can_runlevel:
 	mov w1, C1CTRL1
 	mov #0xE0, w2
 	lsr w0,#3,w0
-_ask_can_runlevel_loop:
+_setup_can_runlevel_loop:
 	mov C1CTRL1, w1
 	and w1,w2,w1
 	sub w1,w0,w1
-	bra NZ, _ask_can_runlevel_loop
+	bra NZ, _setup_can_runlevel_loop
 	return;
