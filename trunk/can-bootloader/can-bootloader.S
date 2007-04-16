@@ -200,24 +200,37 @@ pll_stab_init:
 	; Configure Filter 
 	bset C1CTRL1, #0 		; C1CTRL1.WIN = 1
 	
-	; Enable only first filter
+	; Enable only Filter 0
 	clr C1FEN1
 	bset C1FEN1, #0
-	mov can_sid, w0
+	
+	; Set Receive Filter for SHORT MESSAGES
+	mov #can_MSG_SHORT, w0
+	com w0, w0
 	sl w0, #5, w0
-	mov #0xFFE0, w1
-;	and w0,w1,w0
+	bclr w0, #3
 	mov w0, C1RXF0SID
-	mov w1, C1RXM0SID
 	
-	bset C1RXM0SID, #3  	; Match only SID messages
-	mov #1, w0				; filter 1 point RX buffer 1
+	; Set Receive Filter MASK
+	mov #can_MSG_PHY_TYPE_MASK, w0
+	sl w0, #5, w0
+	bclr w0, #3
+	mov w0, C1RXM0SID
+	
+	; Configure Receive and Transmit Buffers
+
+	; When Filter 0 hits, fill buffer 1
+	mov #1, w0		
 	mov w0, C1BUFPNT1
-	mov #0x0080, w0			; Buffer 0 TX, 1 RX
-	mov w0, C1TR01CON	
-	clr C1FCTRL				; 4 can buffer in DMA
+			
+	; Buffer 0 is a TX Buffer (and buffer 1 RX)
+	mov #0x0080, w0
+	mov w0, C1TR01CON
 	
-	bclr C1CTRL1, #0		; C1CTRL1.WIN = 0
+	; 4 can buffer in DMA
+	clr C1FCTRL
+	
+	bclr C1CTRL1, #0	; C1CTRL1.WIN = 0
 	
 	clr C1RXFUL1
 	clr C1RXOVF1
