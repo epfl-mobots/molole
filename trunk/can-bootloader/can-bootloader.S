@@ -189,6 +189,7 @@ pll_stab_init:
 	; Build physical CAN sid
 	ior #can_MSG_SHORT, w1
 	com w1, w1
+	sl w1, #2, w1
 	mov w1, can_sid			; can SID
 	
 	; Load others CAN configuration registers
@@ -207,15 +208,25 @@ pll_stab_init:
 	; Set Receive Filter for SHORT MESSAGES
 	mov #can_MSG_SHORT, w0
 	com w0, w0
-	sl w0, #5, w0
-	bclr w0, #3
+	sl w0, #5, w0			; MIDE bit is cleared by sl #5
 	mov w0, C1RXF0SID
+
+	; Clear EID Filter
+	mov #0, w0
+	mov w0, C1RXF0EID
 	
 	; Set Receive Filter MASK
 	mov #can_MSG_PHY_TYPE_MASK, w0
-	sl w0, #5, w0
-	bclr w0, #3
+	sl w0, #5, w0			; MIDE bit is cleared by sl #5
 	mov w0, C1RXM0SID
+
+	; Clear EID Mask
+	mov #0, w0
+	mov w0, C1RXM0EID
+
+	; Use Mask 0 with Filter 0
+	bclr C1FMSKSEL1, #0
+	bclr C1FMSKSEL1, #1
 	
 	; Configure Receive and Transmit Buffers
 
@@ -260,7 +271,6 @@ pll_stab_init:
 	; Prepare can TX frame header
 	mov #can_buf, w3
 	mov can_sid, w0
-	sl w0, #2, w0
 	mov w0, [w3]		; sid
 	clr w0
 	mov w0, [w3+2]		; eid
