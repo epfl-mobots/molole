@@ -39,6 +39,10 @@ config __FOSCSEL, FNOSC_FRCPLL ; FRC Oscillator with PLL
 ; OSC2 Pin Function: OSC2 is Clock Output
 config __FOSC, FCKSM_CSDCMD & OSCIOFNC_OFF  & POSCMD_NONE
 
+; 40 MHz CPU, if you change this, be sure to check CAN timing configurations
+; (can_c1cfg1_conf and can_c1cfg2_conf)
+.equ FCQ, 40000000
+
 ; page size ( in nb of instructions )
 .equ FLASH_PAGE_INSTRUCTION_COUNT, 512
 ; page size ( in stupid dspic address )
@@ -100,22 +104,47 @@ configuration_page:
 
 can_id_conf:
 .word NODE_ID
+
 can_c1cfg1_conf:
-.word 0xc0				; configured for 700'000 Kbit/s
+; SWJ = 11 (4x Tq)
+; BRP = 000000 (Tq = (2 * (0 + 1)) / Fcan))
+; Fcan MUST be 40 MHz
+.word 0x00C0
+
 can_c1cfg2_conf:
-.word 0x7bf				;
+; WAKFIL = 1 (CAN bus line can be used for wakeup)
+; SEG2PH = 101 (Phase 2 length is 6x Tq)
+; SEG2PHTS = 1 (Phase 2 time fully programmable)
+; SAM = 1 (bus line is sampled three times)
+; SEG1PH = 100 (Phase 1 length is 5x Tq)
+; PRSEG = 100 (Prop seg is 5x Tq)
+; Sync + Prop + Phase 1 + Phase 2 = 20 Tq => 1 Mbps
+.word 0x45E4
 
 can_enable_latch_addr:
-.word 0x2D6				; LATD ( TRIS == LAT - 4 )
+; LATD ( TRIS == LAT - 4 )
+.word 0x02D6
+
 can_enable_mask:
-.word 0xFFEF			; bit 4
+; bit 4 is cleared
+.word 0xFFEF
 
 pll_pllfbd_conf:
-.word 38 
+; PLLDIV = M = 130
+.word 0x0082
+
 pll_clkdiv_conf:
-.word 0
+; ROI = 0, interrupts have no effect on the DOZEN bit
+; DOZE = 0, processor clock reduction ratio = 1
+; DOZEN = 0 no processor clock reduction
+; FRCDIV = 0 , FRC divided by 1
+; PLLPOST = 0, N2 = 2
+; PLLPRE = 4, N1 = 6
+.word 0x0004
+
 pll_osctun_conf:
-.word 23
+; FRC internal = 7.3728
+.word 0
 
 low_wait_conf:
 .word 65535
@@ -291,7 +320,7 @@ pll_stab_init:
 	; Send description
 	
 	; Set DLC
-	mov #4, w1
+	mov #8, w1
 	mov w1, [w3+4]
 	
 	; Set aseba message type
@@ -301,6 +330,14 @@ pll_stab_init:
 	; Set page size
 	mov #(FLASH_PAGE_INSTRUCTION_COUNT * 4), w1
 	mov w1, [w3+8]	 ; set data[1]
+	
+	; Set page start
+	mov #0, w1
+	mov w1, [w3+10]	 ; set data[2]
+	
+	; Set page count
+	mov #((FLASH_END / FLASH_PAGE_SIZE) - 2), w1	; we forbide bootloader overwriting
+	mov w1, [w3+12]	 ; set data[3]
 	
 	; Send description
 	rcall send_can_packet
