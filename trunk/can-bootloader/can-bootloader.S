@@ -131,7 +131,7 @@ can_enable_mask:
 
 pll_pllfbd_conf:
 ; PLLDIV = M = 130
-.word 0x0082
+.word 0x0080
 
 pll_clkdiv_conf:
 ; ROI = 0, interrupts have no effect on the DOZEN bit
