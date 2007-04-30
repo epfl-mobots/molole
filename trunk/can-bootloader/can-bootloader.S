@@ -204,7 +204,7 @@ pll_stab_init:
 	mov [w1], w8			; get the latch value
 	and w8, w2, w8
 	mov w8, [w1]			; clear the correct LATCH bit according to mask
-	sub #4, w1				; get the tris addr
+	sub #4, w1			; get the tris addr
 	mov [w1], w8
 	and w8, w2, w8
 	mov w8, [w1]			; clear the correct TRIS bit according to mask
@@ -218,7 +218,7 @@ pll_stab_init:
 	; Build physical CAN sid
 	ior #can_MSG_SHORT, w1
 	com w1, w1
-	sl w1, #2, w1
+	sl w1, #2, w1			; standard configuration, normal frame
 	mov w1, can_sid			; can SID
 	
 	; Load others CAN configuration registers
@@ -237,16 +237,17 @@ pll_stab_init:
 	; Set Receive Filter for SHORT MESSAGES
 	mov #can_MSG_SHORT, w0
 	com w0, w0
-	sl w0, #5, w0			; MIDE bit is cleared by sl #5
+	sl w0, #5, w0			; EXIDE bit is cleared by sl #5
 	mov w0, C1RXF0SID
 
 	; Clear EID Filter
 	mov #0, w0
 	mov w0, C1RXF0EID
 	
-	; Set Receive Filter MASK
+	; Set Receive Mask
 	mov #can_MSG_PHY_TYPE_MASK, w0
 	sl w0, #5, w0			; MIDE bit is cleared by sl #5
+	bset w0, #3			; so we set MIDE
 	mov w0, C1RXM0SID
 
 	; Clear EID Mask
