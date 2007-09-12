@@ -41,7 +41,7 @@ config __FOSC, FCKSM_CSDCMD & OSCIOFNC_OFF  & POSCMD_NONE
 
 ; 40 MHz CPU, if you change this, be sure to check CAN timing configurations
 ; (can_c1cfg1_conf and can_c1cfg2_conf)
-.equ FCQ, 40000000
+.equ FCY, 40000000
 
 ; page size ( in nb of instructions )
 .equ FLASH_PAGE_INSTRUCTION_COUNT, 512
