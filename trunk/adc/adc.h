@@ -1,6 +1,7 @@
 /*
 	Molole - Mobots Low Level library
 	An open source toolkit for robot programming using DsPICs
+	Copyright (C) 2006 - 2007 Florian Vaussard <Florian dot Vaussard at a3 dot epfl dot ch>
 	Copyright (C) 2007 Stephane Magnenat <stephane at magnenat dot net>
 	
 	Mobots group http://mobots.epfl.ch
@@ -23,18 +24,20 @@
 	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef _MOLOLE_TYPES_H
-#define _MOLOLE_TYPES_H
+/** \file
+	\brief A wrapper around dsPIC33 ADC.
+*/
 
+#ifndef _MOLOLE_ADC_H
+#define _MOLOLE_ADC_H
 
-//! Boolean type for convenience
-typedef int bool;
+#include "../types/types.h"
 
-//! Boolean literals for convenience
-enum bool_literals
-{
-	false = 0,
-	true = 1
-};
+/** ADC callback when conversion is completed */
+typedef void(*adc_simple_callback)(int value);
+
+void adc1_init_simple(adc_simple_callback callback, unsigned long ports);
+
+void adc1_start_simple_conversion(int channel);
 
 #endif

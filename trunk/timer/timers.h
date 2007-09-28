@@ -25,7 +25,7 @@
 */
 
 /** \file
-	\brief	dsPIC33 Timers library.
+	\brief A wrapper around dsPIC33 Timers.
 	
 	<h2>Introduction</h2>
 	
@@ -50,12 +50,12 @@
 	and finally launch the timer.
 	
 	\code
-	if (timer_init(TIMER1, 400, 6)!=TIMER_NO_ERROR)			// 400 us
+	if (timer_init(TIMER1, 400, 6)!=TIMER_NO_ERROR)		// 400 us
 		return 1;		// error !!!
 	
 	timer_enable_interrupt(TIMER1, 1, int_timer1);		// int_timer1 is a void ...(void) function
 	
-	timer_set_enabled(TIMER1, true);				// start
+	timer_set_enabled(TIMER1, true);					// start
 	\endcode
 	
 	The return value of the timer_init() function determines if the initialization process is correctly completed.

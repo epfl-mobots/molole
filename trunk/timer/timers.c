@@ -25,9 +25,8 @@
 */
 
 /** \file
- *  \brief
- *  dsPIC33 Timers library implementation.
- */
+	\brief Implementation of the wrapper around dsPIC33 Timers.
+*/
 
 #include <p33fxxxx.h>
 
@@ -817,7 +816,7 @@ void m_set_period_32b(int id, unsigned long period)
  
 	Call the user-defined function.
 */
-void __attribute__((__interrupt__)) _ISR _T1Interrupt(void)
+void _ISR _T1Interrupt(void)
 {
 	// function must exist because this interrupt is enabled
 	timers[0].callback();
@@ -830,7 +829,7 @@ void __attribute__((__interrupt__)) _ISR _T1Interrupt(void)
 
 	Call the user-defined function.
 */
-void __attribute__((__interrupt__)) _ISR _T2Interrupt(void)
+void _ISR _T2Interrupt(void)
 {
 	// function must exist because this interrupt is enabled
 	timers[1].callback();
@@ -843,7 +842,7 @@ void __attribute__((__interrupt__)) _ISR _T2Interrupt(void)
  
 	Call the user-defined function.
 */
-void __attribute__((__interrupt__)) _ISR _T3Interrupt(void)
+void _ISR _T3Interrupt(void)
 {
 	// function must exist because this interrupt is enabled
 	timers[2].callback();
@@ -856,7 +855,7 @@ void __attribute__((__interrupt__)) _ISR _T3Interrupt(void)
  
 	Call the user-defined function.
 */
-void __attribute__((__interrupt__)) _ISR _T4Interrupt(void)
+void _ISR _T4Interrupt(void)
 {
 	// function must exist because this interrupt is enabled
 	timers[3].callback();
@@ -869,7 +868,7 @@ void __attribute__((__interrupt__)) _ISR _T4Interrupt(void)
  
 	Call the user-defined function.
 */
-void __attribute__((__interrupt__)) _ISR _T5Interrupt(void)
+void _ISR _T5Interrupt(void)
 {
 	// function must exist because this interrupt is enabled
 	timers[4].callback();
@@ -882,7 +881,7 @@ void __attribute__((__interrupt__)) _ISR _T5Interrupt(void)
  
 	Call the user-defined function.
 */
-void __attribute__((__interrupt__)) _ISR _T6Interrupt(void)
+void _ISR _T6Interrupt(void)
 {
 	// function must exist because this interrupt is enabled
 	timers[5].callback();
@@ -895,7 +894,7 @@ void __attribute__((__interrupt__)) _ISR _T6Interrupt(void)
  
 	Call the user-defined function.
 */
-void __attribute__((__interrupt__)) _ISR _T7Interrupt(void)
+void _ISR _T7Interrupt(void)
 {
 	// function must exist because this interrupt is enabled
 	timers[6].callback();
@@ -908,7 +907,7 @@ void __attribute__((__interrupt__)) _ISR _T7Interrupt(void)
  
 	Call the user-defined function.
 */
-void __attribute__((__interrupt__)) _ISR _T8Interrupt(void)
+void _ISR _T8Interrupt(void)
 {
 	// function must exist because this interrupt is enabled
 	timers[7].callback();
@@ -921,7 +920,7 @@ void __attribute__((__interrupt__)) _ISR _T8Interrupt(void)
  
 	Call the user-defined function.
 */
-void __attribute__((__interrupt__)) _ISR _T9Interrupt(void)
+void _ISR _T9Interrupt(void)
 {
 	// function must exist because this interrupt is enabled
 	timers[8].callback();
