@@ -80,33 +80,27 @@ void adc1_init_simple(adc_simple_callback callback, unsigned long inputs)
 	// configure I/O pins in digital or analogic
 	AD1PCFGH = ~((unsigned short)(inputs >> 16));
 	AD1PCFGL = ~((unsigned short)(inputs));
-	// ADC is off
-	// Discontinue module operation when device enters Idle mode
-	// DMA conf bits ignored
-	// 12-bit, 1-channel ADC operation
-	// Integer (DOUT = 0000 dddd dddd dddd)
-	// Internal counter ends sampling and starts conversion (auto-convert)
-	// Sampling begins when SAMP bit is set
-	AD1CON1 = 0x24E0;
-	// Avdd, Avss Converter Voltage References
-	// Do not scan inputs
-	// Converts CH0
-	// Always uses channel input selects for Sample A
-	// Always starts filling the buffer from the start address.
-	// DMA conf bits ignored
-	AD1CON2 = 0x0000;
-	// ADC Internal RC Clock
-	// Auto Sample Time bits 1 TAD
-	// ADC Conversion Clock Select bits 1 * TCY = TAD
-	AD1CON3 = 0x8100;
-	// No DMA, AD1CON4 ignored
+	
+	AD1CON1bits.ADSIDL = 1;		// Discontinue module operation when device enters Idle mode
+	AD1CON1bits.AD12B = 1;		// 12-bit, 1-channel ADC operation
+	AD1CON1bits.FORM = 0;		// Integer (DOUT = 0000 dddd dddd dddd)
+	AD1CON1bits.SSRC = 7;		// Internal counter ends sampling and starts conversion (auto-convert)
+	AD1CON1bits.ASAM = 0;		// Sampling begins when SAMP bit is set
+	
+	AD1CON2bits.VCFG = 0;		// Avdd, Avss Converter Voltage References
+	AD1CON2bits.CSCNA = 0;		// Do not scan inputs
+	AD1CON2bits.BUFM = 0;		// Always starts filling the buffer from the start address.
+	AD1CON2bits.ALTS = 0;		// Always uses channel input selects for Sample A
+	
+	AD1CON3bits.ADRC = 1;		// ADC Internal RC Clock
+	AD1CON3bits.SAMC = 1;		// Auto Sample Time bits 1 TAD
+	
 	// No input to scan yet
 	AD1CSSH = 0x0000;
 	AD1CSSL = 0x0000;
-	// Sample B bit ignored
-	// Channel 0 negative input is VREFL
-	// Channel 0 positive input is AN0
-	AD1CHS0 = 0x0000;
+	
+	AD1CHS0bits.CH0NA = 0;		// Channel 0 negative input is VREFL
+	AD1CHS0bits.CH0SA = 0;		// Channel 0 positive input is AN0
 	
 	// Reset ADC 1 interrupt flag
 	_AD1IF = 0;
@@ -128,7 +122,7 @@ void adc1_init_simple(adc_simple_callback callback, unsigned long inputs)
 void adc1_start_simple_conversion(int channel)
 {
 	// Select channel
-	AD1CHS0 = channel;
+	AD1CHS0bits.CH0SA = channel;
 	// Start sampling
 	AD1CON1bits.ASAM = 1;
 }
