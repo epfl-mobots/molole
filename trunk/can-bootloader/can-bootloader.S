@@ -40,8 +40,9 @@ config __FOSCSEL, FNOSC_FRCPLL ; FRC Oscillator with PLL
 config __FOSC, FCKSM_CSDCMD & OSCIOFNC_OFF  & POSCMD_NONE
 
 ; 40 MHz CPU, if you change this, be sure to check CAN timing configurations
+; ((130 / (2 * 6)) * 7.37e6) / 2			((M / (N1 * N2)) * Frc) / 2
 ; (can_c1cfg1_conf and can_c1cfg2_conf)
-.equ FCY, 40000000
+.equ FCY, 39920833
 
 ; page size ( in nb of instructions )
 .equ FLASH_PAGE_INSTRUCTION_COUNT, 512

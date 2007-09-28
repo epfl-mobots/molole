@@ -100,5 +100,4 @@ int timer_enable_interrupt(int id, int priority, timer_callback callback);
 
 int timer_disable_interrupt(int id);
 
-
-#endif // _TIMERS_H
+#endif

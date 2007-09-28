@@ -26,7 +26,6 @@
 #ifndef _MOLOLE_TYPES_H
 #define _MOLOLE_TYPES_H
 
-
 //! Boolean type for convenience
 typedef int bool;
 
