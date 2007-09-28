@@ -95,10 +95,10 @@ void adc1_init_simple(adc_simple_callback callback, unsigned long inputs)
 	// Always starts filling the buffer from the start address.
 	// DMA conf bits ignored
 	AD1CON2 = 0x0000;
-	// Clock Derived From System Clock
-	// Auto Sample Time bits 0 TAD
-	// ADC Conversion Clock Select bits 1 · TCY = TAD
-	AD1CON3 = 0x0000;
+	// ADC Internal RC Clock
+	// Auto Sample Time bits 1 TAD
+	// ADC Conversion Clock Select bits 1 * TCY = TAD
+	AD1CON3 = 0x8100;
 	// No DMA, AD1CON4 ignored
 	// No input to scan yet
 	AD1CSSH = 0x0000;
