@@ -28,6 +28,61 @@
 	\brief Implementation of the wrapper around dsPIC33 Timers.
 */
 
+//--------------------
+// Usage documentation
+//--------------------
+
+/**	
+	<h2>Introduction</h2>
+	
+	This library allows the user to easily configure and use the 9 16-bits timers of the
+	dsPIC33 microcontroller's family. The 16-bits timers can also be used 2 by 2
+	(TIMER2 + TIMER3, TIMER4 + TIMER5, TIMER6 + TIMER7, TIMER8 + TIMER9), which allows up to
+	4 32-bits timers. The management of the 16-bits / 32-bits timers is totally transparent,
+	preventing the user to configure an already in-use timer.
+	
+	<h2>Limits</h2>
+	
+	With a cycle frequency of 40 MHz, the maximum reachable timings are as follow:
+	<ul>
+		<li>16-bits timers : 419 ms</li>
+		<li>32-bits timers : 27'487 s</li>
+	</ul>
+	
+	<h2>Timer set-up</h2>
+	
+	You can configure one of the 16-bits timer (TIMER1 -> TIMER9), or one of the 32-bits timer (TIMER23 -> TIMER89).
+	The configuration process is: initializing the timer with the desired timing, optionally defining an interrupt routine,
+	and finally launch the timer.
+	
+	\code
+	if (timer_init(TIMER1, 400, 6)!=TIMER_NO_ERROR)		// 400 us
+		return 1;		// error !!!
+	
+	timer_enable_interrupt(TIMER1, 1, int_timer1);		// int_timer1 is a void ...(void) function
+	
+	timer_set_enabled(TIMER1, true);					// start
+	\endcode
+	
+	The return value of the timer_init() function determines if the initialization process is correctly completed.
+		You can test if a timer is available, with the function timer_is_free().
+	
+	<h2>Known bugs on MPLAB SIM</h2>
+	
+	The following problems occurs when using the MPLAB SIM simulator (the library is working fine on the real microcontrollers):
+	<ul>
+		<li>TIMER6: timer_enable_interrupt() don't modify the IEC2.T6IE register ! So the interruption is never fired...</li>
+		<li>TIMER9: everything is ok (register IEC3.T9IE = 1), the timer normally counts, but the flag IFS3bits.T9IF is never set !
+			The interruption is never fired ! If we set the flag by hand, we enter in the interruption...</li>
+		<li>TIMER67 and TIMER89: same problem as TIMER9</li>
+	</ul>
+
+*/
+
+//---------
+// Includes
+//---------
+
 #include <p33fxxxx.h>
 
 #include "timers.h"
@@ -60,7 +115,7 @@ typedef struct
 	unsigned is_32bits:1; /**< true if timer is 32 bits */
 } Timer_Data;
 
-/** Timer implementation data */
+/** Timer wrapper data */
 static Timer_Data timers[9] =
 {
 	{ 0, 1, 0, 0},

@@ -1,7 +1,6 @@
 /*
 	Molole - Mobots Low Level library
 	An open source toolkit for robot programming using DsPICs
-	Copyright (C) 2006 - 2007 Florian Vaussard <Florian dot Vaussard at a3 dot epfl dot ch>
 	Copyright (C) 2007 Stephane Magnenat <stephane at magnenat dot net>
 	
 	Mobots group http://mobots.epfl.ch
@@ -36,7 +35,10 @@
 /** ADC callback when conversion is completed */
 typedef void(*adc_simple_callback)(int value);
 
-void adc1_init_simple(adc_simple_callback callback, unsigned long ports);
+
+// Functions, doc in the .c
+
+void adc1_init_simple(adc_simple_callback callback, unsigned long inputs);
 
 void adc1_start_simple_conversion(int channel);
 

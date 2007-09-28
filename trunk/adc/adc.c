@@ -1,7 +1,6 @@
 /*
 	Molole - Mobots Low Level library
 	An open source toolkit for robot programming using DsPICs
-	Copyright (C) 2006 - 2007 Florian Vaussard <Florian dot Vaussard at a3 dot epfl dot ch>
 	Copyright (C) 2007 Stephane Magnenat <stephane at magnenat dot net>
 	
 	Mobots group http://mobots.epfl.ch
@@ -28,17 +27,49 @@
 	\brief Implementation of the wrapper around dsPIC33 ADC.
 */
 
+//--------------------
+// Usage documentation
+//--------------------
+
+/**
+	This very simple wrapper ease the usage of the ADC converter.
+*/
+
+//------------
+// Definitions
+//------------
+
 #include <p33fxxxx.h>
 
 #include "adc.h"
 
+//-----------------------
+// Structures definitions
+//-----------------------
+
+/** ADC wrapper data */
 static struct
 {
 	adc_simple_callback callback; /**< function to call upon conversion complete interrupt, 0 if none */
 } ADC_Data = { 0 };
 
 
-void adc1_init_simple(adc_simple_callback callback, unsigned long ports)
+//-------------------
+// Exported functions
+//-------------------
+
+/**
+	\brief Initialize ADC1 for simple input conversion.
+	
+	The converter is put in 12 bits / single conversion mode and callback is called when conversion is completed.
+	
+	\param	callback
+			Pointer to a function that will be called when conversion is completed.
+	\param	inputs
+			Bitfield that specify which physical input to use (AN0..AN31).
+			1 put pins in analogic, 0 in digital.
+*/
+void adc1_init_simple(adc_simple_callback callback, unsigned long inputs)
 {
 	// Turn off ADC Module
 	AD1CON1bits.ADON = 0;
@@ -47,8 +78,8 @@ void adc1_init_simple(adc_simple_callback callback, unsigned long ports)
 	ADC_Data.callback = callback;
 	
 	// configure I/O pins in digital or analogic
-	AD1PCFGH = ~((unsigned short)(ports >> 16));
-	AD1PCFGL = ~((unsigned short)(ports));
+	AD1PCFGH = ~((unsigned short)(inputs >> 16));
+	AD1PCFGL = ~((unsigned short)(inputs));
 	// ADC is off
 	// Discontinue module operation when device enters Idle mode
 	// DMA conf bits ignored
@@ -86,6 +117,14 @@ void adc1_init_simple(adc_simple_callback callback, unsigned long ports)
 	AD1CON1bits.ADON = 1;
 }
 
+/**
+	\brief Request a conversion on a specific channel.
+	
+	The user must call adc1_init_simple prior to this function.
+	
+	\param	channel
+			physical input to convert (AN0..AN31)
+*/
 void adc1_start_simple_conversion(int channel)
 {
 	// Select channel
@@ -94,6 +133,16 @@ void adc1_start_simple_conversion(int channel)
 	AD1CON1bits.ASAM = 1;
 }
 
+
+//--------------------------
+// Interrupt service routine
+//--------------------------
+
+/**
+	\brief	ADC 1 Interrupt Service Routine.
+ 
+	Call the user-defined function.
+*/
 void _ISR  _ADC1Interrupt(void)
 {
 	// Call user-defined function with result of conversion
