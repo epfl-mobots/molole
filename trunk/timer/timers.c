@@ -98,9 +98,9 @@
 #define TIMER_32B_MODE						1
 
 /** Maximum reachable timing with a 16-bits timer. The 256 factor is the maximum prescaler of the timer. */
-#define TIMER_16B_MAX_TIME_NS				((unsigned long long)(MOLOLE_CLOCK_TCY_PIC*256*0x0000ffff))
+#define TIMER_16B_MAX_TIME_NS				((unsigned long long)(CLOCK_TCY_PIC*256*0x0000ffff))
 /** Maximum reachable timing with a 32-bits timer. The 256 factor is the maximum prescaler of the timer. */
-#define TIMER_32B_MAX_TIME_NS				((unsigned long long)(MOLOLE_CLOCK_TCY_PIC*256*0xffffffff))
+#define TIMER_32B_MAX_TIME_NS				((unsigned long long)(CLOCK_TCY_PIC*256*0xffffffff))
 
 //-----------------------
 // Structures definitions
@@ -282,18 +282,18 @@ int timer_set_period(int id, unsigned long int sample_time, int unit)
 		m_set_32bits_mode(id, TIMER_16B_MODE);
 		
 		// control the range validity
-		if ((real_sample_time < MOLOLE_CLOCK_TCY_PIC) || (real_sample_time > TIMER_16B_MAX_TIME_NS))
+		if ((real_sample_time < CLOCK_TCY_PIC) || (real_sample_time > TIMER_16B_MAX_TIME_NS))
 			return TIMER_ERROR_SAMPLE_TIME_NOT_IN_RANGE;
 		
 		// compute the prescaler
-		for (prescaler=0; real_sample_time > ((unsigned long long)MOLOLE_CLOCK_TCY_PIC * 0x0000ffffULL * (unsigned long long)prescaler_value[prescaler]); prescaler++)
+		for (prescaler=0; real_sample_time > ((unsigned long long)CLOCK_TCY_PIC * 0x0000ffffULL * (unsigned long long)prescaler_value[prescaler]); prescaler++)
 			;
 		
 		// set the prescaler
 		m_set_prescaler(id, prescaler);
 		
 		// compute the period value
-		period = real_sample_time / ((unsigned long long)MOLOLE_CLOCK_TCY_PIC * (unsigned long long)prescaler_value[prescaler]);
+		period = real_sample_time / ((unsigned long long)CLOCK_TCY_PIC * (unsigned long long)prescaler_value[prescaler]);
 		
 		// set the period value
 		m_set_period_16b(id, (unsigned short)period);
@@ -305,18 +305,18 @@ int timer_set_period(int id, unsigned long int sample_time, int unit)
 		m_set_32bits_mode(id, TIMER_32B_MODE);
 		
 		// control the range validity
-		if ((real_sample_time < MOLOLE_CLOCK_TCY_PIC) || (real_sample_time > TIMER_32B_MAX_TIME_NS))
+		if ((real_sample_time < CLOCK_TCY_PIC) || (real_sample_time > TIMER_32B_MAX_TIME_NS))
 			return TIMER_ERROR_SAMPLE_TIME_NOT_IN_RANGE;
 		
 		// compute the prescaler
-		for (prescaler=0; real_sample_time > ((unsigned long long)MOLOLE_CLOCK_TCY_PIC * 0x0000ffffULL * (unsigned long long)prescaler_value[prescaler]); prescaler++)
+		for (prescaler=0; real_sample_time > ((unsigned long long)CLOCK_TCY_PIC * 0x0000ffffULL * (unsigned long long)prescaler_value[prescaler]); prescaler++)
 			;
 		
 		// set the prescaler
 		m_set_prescaler(id, prescaler);
 		
 		// compute the period value
-		period = real_sample_time / ((unsigned long long)MOLOLE_CLOCK_TCY_PIC * (unsigned long long)prescaler_value[prescaler]);
+		period = real_sample_time / ((unsigned long long)CLOCK_TCY_PIC * (unsigned long long)prescaler_value[prescaler]);
 		
 		// set the period value
 		m_set_period_32b(id, (unsigned long)period);

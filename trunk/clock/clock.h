@@ -34,28 +34,28 @@
 // Clock constants
 
 /** The dsPIC33 internal oscillator is rated at 7.37 MHz. */
-#define MOLOLE_CLOCK_FIN		7.37e6
+#define CLOCK_FIN			7.37e6
 /** PLL prescaler N1 */
-#define MOLOLE_CLOCK_N1			2.
+#define CLOCK_N1			6
 /** PLL multiplication factor */
-#define MOLOLE_CLOCK_M			130.
+#define CLOCK_M				130
 /**	PLL postscaler N2 */
-#define MOLOLE_CLOCK_N2			6.
+#define CLOCK_N2			2
 /**	PLL output frequency.  fosc = fin*M/(N1*N2). */
-#define MOLOLE_CLOCK_FOSC 		((MOLOLE_CLOCK_M/(MOLOLE_CLOCK_N1*MOLOLE_CLOCK_N2))*MOLOLE_CLOCK_FIN)
+#define CLOCK_FOSC 			((float)(CLOCK_M / (float)(CLOCK_N1 * CLOCK_N2)) * CLOCK_FIN)
 /** The instruction cycle frequency is half of the PLL frequency	fcy = fosc/2. */
-#define MOLOLE_CLOCK_FCY		(MOLOLE_CLOCK_FOSC / 2.)
+#define CLOCK_FCY			(CLOCK_FOSC / 2.)
 /**	Number of CPU cycles in a millisecond */
-#define MOLOLE_CLOCK_MILLISEC  	(MOLOLE_CLOCK_FCY/1.0e3)
+#define CLOCK_MILLISEC  	(CLOCK_FCY / 1.0e3)
 /**	Number of CPU cycles in a microsecond */
-#define MOLOLE_CLOCK_MICROSEC  	(MOLOLE_CLOCK_FCY/1.0e6)
+#define CLOCK_MICROSEC  	(CLOCK_FCY / 1.0e6)
 /**	Number of CPU cycles in a nanosecond */
-#define MOLOLE_CLOCK_NANOSEC   	(MOLOLE_CLOCK_FCY/1.0e9)
+#define CLOCK_NANOSEC   	(CLOCK_FCY / 1.0e9)
 /**	Duration of 1 CPU cycle, in [ns] */
-#define	MOLOLE_CLOCK_TCY_PIC	(1e9/MOLOLE_CLOCK_FCY)
+#define	CLOCK_TCY_PIC		(1e9 / CLOCK_FCY)
 
 // Functions, doc in the .c
 
-void clock_init_pll(void);
+void clock_init_internal_rc(void);
 
 #endif
