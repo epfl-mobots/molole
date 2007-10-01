@@ -173,9 +173,9 @@ static void m_set_period_32b(int id, unsigned long period);
 	\param	id
 			The timer can be one of the 16-bits timer (TIMER1 -> TIMER9) or one of the 32-bits timer (TIMER23 -> TIMER89)
 	\param 	sample_time
-			The period of the timer, expressed in the unit defined by the <i>unit</i> parameter
+			The period of the timer, expressed in the unit defined by the \e unit parameter
 	\param 	unit
-			Time base of the <i>sample_time</i> parameter. Possible values are:
+			Time base of the \e sample_time parameter. Possible values are:
 			- 0 : second
 			- 3 : millisecond
 			- 6 : microsecond
@@ -233,15 +233,13 @@ void timer_init(int id, unsigned long int arg_sample_time, int unit)
 	\param	id
 			The timer can be one of the 16-bits timer (TIMER1 -> TIMER9) or one of the 32-bits timer (TIMER23 -> TIMER89)
 	\param 	sample_time
-			The period of the timer, expressed in the unit defined by the <i>unit</i> parameter
+			The period of the timer, expressed in the unit defined by the \e unit parameter
 	\param 	unit
-			Time base of the <i>sample_time</i> parameter. Possible values are:
-			<ul>
-				<li>0 : second</li>
-				<li>3 : millisecond</li>
-				<li>6 : microsecond</li>
-				<li>9 : nanosecond</li>
-			</ul>
+			Time base of the \e sample_time parameter. Possible values are:
+			- 0 : second
+			- 3 : millisecond
+			- 6 : microsecond
+			- 9 : nanosecond
 	
 	\return
 	TIMER_NO_ERROR on success, or a value from timer_return_values describing the error.
@@ -474,10 +472,8 @@ void timer_reset(int id)
 			The timer can be one of the 16-bits timer (TIMER1 -> TIMER9) or one of the 32-bits timer (TIMER23 -> TIMER89)
 	\param	clock_source
 			The parameter can be one of the two following constants:
-			<ul>
-				<li>TIMER_INTERNAL_CLOCK</li>
-				<li>TIMER_EXTERNAL_CLOCK</li>
-			</ul>
+			- TIMER_INTERNAL_CLOCK
+			- TIMER_EXTERNAL_CLOCK
 	
 	\return	
 	TIMER_NO_ERROR on success, or a value from timer_return_values describing the error
@@ -695,10 +691,8 @@ void timer_disable_interrupt(int id)
 
 	\param	mode
 			The parameter can be one of the two following constants:
-			<ul>
-				<li>TIMER_16B_MODE</li>
-				<li>TIMER_32B_MODE</li>
-			</ul>
+			- TIMER_16B_MODE
+			- TIMER_32B_MODE
 
 	\note For a timer in 32-bits mode, only the configuration register associated with
 	the even timer (T2CON, T4CON, T6CON, T8CON) is taken into account.
@@ -735,12 +729,10 @@ void m_set_32bits_mode(int id, char mode)
 
 	\param	prescaler
 			Prescaler value. Can be one of the following:
-			<ul>
-				<li>0: 1:1</li>
-				<li>1: 1:8</li>
-				<li>2: 1:64</li>
-				<li>3: 1:256</li>
-			</ul>
+			- 0: 1:1
+			- 1: 1:8
+			- 2: 1:64
+			- 3: 1:256
  
 	\note For a timer in 32-bits mode, only the configuration register associated with
 	the even timer (T2CON, T4CON, T6CON, T8CON) is taken into account.
@@ -859,7 +851,7 @@ void _ISR _T1Interrupt(void)
 	// function must exist because this interrupt is enabled
 	timers[0].callback();
 	
-	_T1IF=0;
+	_T1IF = 0;
 }
 
 /**
@@ -872,7 +864,7 @@ void _ISR _T2Interrupt(void)
 	// function must exist because this interrupt is enabled
 	timers[1].callback();
 	
-	_T2IF=0;
+	_T2IF = 0;
 }
 
 /**
@@ -885,7 +877,7 @@ void _ISR _T3Interrupt(void)
 	// function must exist because this interrupt is enabled
 	timers[2].callback();
 	
-	_T3IF=0;
+	_T3IF = 0;
 }
 
 /**
@@ -898,7 +890,7 @@ void _ISR _T4Interrupt(void)
 	// function must exist because this interrupt is enabled
 	timers[3].callback();
 	
-	_T4IF=0;
+	_T4IF = 0;
 }
 
 /**
@@ -911,7 +903,7 @@ void _ISR _T5Interrupt(void)
 	// function must exist because this interrupt is enabled
 	timers[4].callback();
 	
-	_T5IF=0;
+	_T5IF = 0;
 }
 
 /**
@@ -924,7 +916,7 @@ void _ISR _T6Interrupt(void)
 	// function must exist because this interrupt is enabled
 	timers[5].callback();
 	
-	_T6IF=0;
+	_T6IF = 0;
 }
 
 /**
@@ -937,7 +929,7 @@ void _ISR _T7Interrupt(void)
 	// function must exist because this interrupt is enabled
 	timers[6].callback();
 	
-	_T7IF=0;
+	_T7IF = 0;
 }
 
 /**
@@ -950,7 +942,7 @@ void _ISR _T8Interrupt(void)
 	// function must exist because this interrupt is enabled
 	timers[7].callback();
 	
-	_T8IF=0;
+	_T8IF = 0;
 }
 
 /**
@@ -963,5 +955,5 @@ void _ISR _T9Interrupt(void)
 	// function must exist because this interrupt is enabled
 	timers[8].callback();
 	
-	_T9IF=0;
+	_T9IF = 0;
 }
