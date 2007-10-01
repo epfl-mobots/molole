@@ -65,17 +65,20 @@ static struct
 	
 	\param	callback
 			Pointer to a function that will be called when conversion is completed.
+	\param 	priority
+			Interrupt priority, from 1 (lowest priority) to 7 (highest priority)
 	\param	inputs
 			Bitfield that specify which physical input to use (AN0..AN31).
 			1 put pins in analogic, 0 in digital.
 */
-void adc1_init_simple(adc_simple_callback callback, unsigned long inputs)
+void adc1_init_simple(adc_simple_callback callback, int priority, unsigned long inputs)
 {
 	// Turn off ADC Module
 	AD1CON1bits.ADON = 0;
 	
 	// Setup callback
 	ADC_Data.callback = callback;
+	_AD1IP = priority;
 	
 	// configure I/O pins in digital or analogic
 	AD1PCFGH = ~((unsigned short)(inputs >> 16));

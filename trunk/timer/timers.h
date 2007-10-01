@@ -97,7 +97,7 @@ void timer_set_clock_source(int id, int clock_source);
 
 void timer_use_gated_time_accumulation(int id, bool enable);
 
-void timer_enable_interrupt(int id, int priority, timer_callback callback);
+void timer_enable_interrupt(int id, timer_callback callback, int priority);
 
 void timer_disable_interrupt(int id);
 

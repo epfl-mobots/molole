@@ -564,15 +564,15 @@ void timer_use_gated_time_accumulation(int id, bool enable)
 	
 	\param	id
 			The timer can be one of the 16-bits timer (TIMER1 -> TIMER9) or one of the 32-bits timer (TIMER23 -> TIMER89)
-	\param 	priority
-			Interrupt priority, from 1 (lowest priority) to 7 (highest priority)
 	\param 	callback
 			Pointer to a function that will be called upon interrupt
+	\param 	priority
+			Interrupt priority, from 1 (lowest priority) to 7 (highest priority)
 	
 	\return	
 	TIMER_NO_ERROR on success, or a value from timer_return_values describing the error
 */
-void timer_enable_interrupt(int id, int priority, timer_callback callback)
+void timer_enable_interrupt(int id, timer_callback callback, int priority)
 {
 	// test the validity of the timer identifier
 	if(id < TIMER1 || id > TIMER89)
