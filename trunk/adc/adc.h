@@ -33,7 +33,7 @@
 #include "../types/types.h"
 
 /** ADC callback when conversion is completed */
-typedef void(*adc_simple_callback)(int value);
+typedef void(*adc_simple_callback)(int channel, int value);
 
 
 // Functions, doc in the .c

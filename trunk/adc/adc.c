@@ -51,6 +51,7 @@
 static struct
 {
 	adc_simple_callback callback; /**< function to call upon conversion complete interrupt, 0 if none */
+	int simple_channel; /**< channel on which last simple conversion was performed */
 } ADC_Data = { 0 };
 
 
@@ -126,6 +127,7 @@ void adc1_start_simple_conversion(int channel)
 {
 	// Select channel
 	AD1CHS0bits.CH0SA = channel;
+	ADC_Data.simple_channel = channel;
 	// Start sampling
 	AD1CON1bits.ASAM = 1;
 }
@@ -143,7 +145,7 @@ void adc1_start_simple_conversion(int channel)
 void _ISR  _ADC1Interrupt(void)
 {
 	// Call user-defined function with result of conversion
-	ADC_Data.callback(ADC1BUF0);
+	ADC_Data.callback(ADC_Data.simple_channel, ADC1BUF0);
 	// Clear ADC 1 interrupt flag
 	_AD1IF = 0;
 } 
