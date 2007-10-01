@@ -31,15 +31,16 @@
 #define _MOLOLE_ERROR_H
 
 /** Callback when an error occurs */
-typedef void(*error_callback)(const char * file, const char * line, int id, int arg);
+typedef void(*error_callback)(const char * file, int line, int id, void* arg);
 
 // Macros, to get file and line
 
-#define ERROR(id, arg) error_report(__FILE__, __LINE__, id, arg)
+/** Report an error, alongside the file name and line number and return */
+#define ERROR(id, arg) { error_report(__FILE__, __LINE__, id, arg); return; }
 
 // Functions, doc in the .c
 
-void error_report(const char * file, const char * line, int id, int arg);
+void error_report(const char * file, int line, int id, void*arg);
 
 void error_register_callback(error_callback callback);
 

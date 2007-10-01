@@ -35,7 +35,7 @@
 // Structures definitions
 //-----------------------
 
-static void error_default_handler(const char * file, const char * line, int id, int arg);
+static void error_default_handler(const char * file, int line, int id, void* arg);
 
 /** error management library data */
 static struct
@@ -48,12 +48,12 @@ static struct
 // Exported functions
 //-------------------
 
-static void error_default_handler(const char * file, const char * line, int id, int arg)
+static void error_default_handler(const char * file, int line, int id, void* arg)
 {
 	// do nothing
 }
 
-void error_report(const char * file, const char * line, int id, int arg)
+void error_report(const char * file, int line, int id, void* arg)
 {
 	Error_Data.callback(file, line, id, arg);
 }

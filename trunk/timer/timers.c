@@ -26,56 +26,58 @@
 
 /** \file
 	\brief Implementation of the wrapper around dsPIC33 Timers.
+	\ingroup timers
 */
 
 //--------------------
 // Usage documentation
 //--------------------
 
-/**	
-	<h2>Introduction</h2>
+/**
+	\defgroup timers
 	
-	This library allows the user to easily configure and use the 9 16-bits timers of the
-	dsPIC33 microcontroller's family. The 16-bits timers can also be used 2 by 2
+	\section Introduction
+	
+	This module allows the programmer configure and use the 9 16-bits timers of the
+	dsPIC33 microcontroller's family in a convenient way.
+	Some 16-bits timers can also be used 2 by 2
 	(TIMER2 + TIMER3, TIMER4 + TIMER5, TIMER6 + TIMER7, TIMER8 + TIMER9), which allows up to
 	4 32-bits timers. The management of the 16-bits / 32-bits timers is totally transparent,
 	preventing the user to configure an already in-use timer.
 	
-	<h2>Limits</h2>
+	\section Limits
 	
 	With a cycle frequency of 40 MHz, the maximum reachable timings are as follow:
-	<ul>
-		<li>16-bits timers : 419 ms</li>
-		<li>32-bits timers : 27'487 s</li>
-	</ul>
+	- 16-bits timers : 419 ms
+	- 32-bits timers : 27'487 s
 	
-	<h2>Timer set-up</h2>
+	\section Usage
 	
 	You can configure one of the 16-bits timer (TIMER1 -> TIMER9), or one of the 32-bits timer (TIMER23 -> TIMER89).
 	The configuration process is: initializing the timer with the desired timing, optionally defining an interrupt routine,
 	and finally launch the timer.
 	
 	\code
-	if (timer_init(TIMER1, 400, 6)!=TIMER_NO_ERROR)		// 400 us
-		return 1;		// error !!!
+	timer_init(TIMER1, 400, 6)!=TIMER_NO_ERROR)		// 400 us
 	
 	timer_enable_interrupt(TIMER1, 1, int_timer1);		// int_timer1 is a void ...(void) function
 	
 	timer_set_enabled(TIMER1, true);					// start
 	\endcode
 	
-	The return value of the timer_init() function determines if the initialization process is correctly completed.
-		You can test if a timer is available, with the function timer_is_free().
+	You can test if a timer is available with the function timer_is_free().
 	
-	<h2>Known bugs on MPLAB SIM</h2>
+	All functions cast errors using the \ref error "error reporting mechanism"
+	
+	\section Bugs Known bugs
+	
+	\subsection SIM MPLAB SIM
 	
 	The following problems occurs when using the MPLAB SIM simulator (the library is working fine on the real microcontrollers):
-	<ul>
-		<li>TIMER6: timer_enable_interrupt() don't modify the IEC2.T6IE register ! So the interruption is never fired...</li>
-		<li>TIMER9: everything is ok (register IEC3.T9IE = 1), the timer normally counts, but the flag IFS3bits.T9IF is never set !
-			The interruption is never fired ! If we set the flag by hand, we enter in the interruption...</li>
-		<li>TIMER67 and TIMER89: same problem as TIMER9</li>
-	</ul>
+	- TIMER6: timer_enable_interrupt() don't modify the IEC2.T6IE register ! So the interruption is never fired...
+	- TIMER9: everything is ok (register IEC3.T9IE = 1), the timer normally counts, but the flag IFS3bits.T9IF is never set !
+	  The interruption is never fired ! If we set the flag by hand, we enter in the interruption...
+	- TIMER67 and TIMER89: same problem as TIMER9
 
 */
 
@@ -87,6 +89,7 @@
 
 #include "timers.h"
 #include "../clock/clock.h"
+#include "../error/error.h"
 
 //------------
 // Definitions
@@ -173,29 +176,27 @@ static void m_set_period_32b(int id, unsigned long period);
 			The period of the timer, expressed in the unit defined by the <i>unit</i> parameter
 	\param 	unit
 			Time base of the <i>sample_time</i> parameter. Possible values are:
-			<ul>
-				<li>0 : second</li>
-				<li>3 : millisecond</li>
-				<li>6 : microsecond</li>
-				<li>9 : nanosecond</li>
-			</ul>
+			- 0 : second
+			- 3 : millisecond
+			- 6 : microsecond
+			- 9 : nanosecond
 	
 	\return
 	TIMER_NO_ERROR on success, or a value from timer_return_values describing the error.
 	
 	\note	Use timer_release() when you don't need a timer anymore, so that someone else can use it !
 */
-int timer_init(int id, unsigned long int arg_sample_time, int unit)
+void timer_init(int id, unsigned long int arg_sample_time, int unit)
 {
 	int index;
 	
 	// test the validity of the timer identifier
 	if (id < TIMER1 || id > TIMER89)
-		return TIMER_ERROR_INVALIDE_TIMER_ID;
+		ERROR(TIMER_ERROR_INVALIDE_TIMER_ID, &id)
 		
 	// test that the timer is free
 	if (!timers[timer_id_to_index(id)].is_free)
-		return TIMER_ERROR_ALREADY_IN_USE;
+		ERROR(TIMER_ERROR_ALREADY_IN_USE, &id)
 	
 	// disable timer interrupt
 	timer_disable_interrupt(id);
@@ -221,8 +222,6 @@ int timer_init(int id, unsigned long int arg_sample_time, int unit)
 	{
 		timers[index].is_32bits = 0;
 	}
-	
-	return TIMER_NO_ERROR;
 }
 
 
@@ -249,7 +248,7 @@ int timer_init(int id, unsigned long int arg_sample_time, int unit)
 	
 	\note	Automatically reset the timer's counter.
 */
-int timer_set_period(int id, unsigned long int sample_time, int unit)
+void timer_set_period(int id, unsigned long int sample_time, int unit)
 {
 	unsigned long long real_sample_time = 0;
 	unsigned long long period = 0;
@@ -260,15 +259,15 @@ int timer_set_period(int id, unsigned long int sample_time, int unit)
 
 	// test the validity of the timer identifier
 	if (id < TIMER1 || id > TIMER89)
-		return TIMER_ERROR_INVALIDE_TIMER_ID;
+		ERROR(TIMER_ERROR_INVALIDE_TIMER_ID, &id)
 		
 	// is the timer initialized ?
 	if (!timers[timer_id_to_index(id)].is_initialized)
-		return TIMER_ERROR_NOT_INITIALIZED;
+		ERROR(TIMER_ERROR_NOT_INITIALIZED, &id)
 		
 	// only unit 0,3,6,9 ok
 	if (!(unit == 0 || unit == 3 || unit == 6 || unit == 9))
-		return TIMER_ERROR_INVALIDE_UNIT;
+		ERROR(TIMER_ERROR_INVALIDE_UNIT, &unit)
 	
 	// compute sample time in ns
 	real_sample_time = sample_time;
@@ -283,7 +282,7 @@ int timer_set_period(int id, unsigned long int sample_time, int unit)
 		
 		// control the range validity
 		if ((real_sample_time < CLOCK_TCY_PIC) || (real_sample_time > TIMER_16B_MAX_TIME_NS))
-			return TIMER_ERROR_SAMPLE_TIME_NOT_IN_RANGE;
+			ERROR(TIMER_ERROR_SAMPLE_TIME_NOT_IN_RANGE, &real_sample_time)
 		
 		// compute the prescaler
 		for (prescaler=0; real_sample_time > ((unsigned long long)CLOCK_TCY_PIC * 0x0000ffffULL * (unsigned long long)prescaler_value[prescaler]); prescaler++)
@@ -306,7 +305,7 @@ int timer_set_period(int id, unsigned long int sample_time, int unit)
 		
 		// control the range validity
 		if ((real_sample_time < CLOCK_TCY_PIC) || (real_sample_time > TIMER_32B_MAX_TIME_NS))
-			return TIMER_ERROR_SAMPLE_TIME_NOT_IN_RANGE;
+			ERROR(TIMER_ERROR_SAMPLE_TIME_NOT_IN_RANGE, &real_sample_time)
 		
 		// compute the prescaler
 		for (prescaler=0; real_sample_time > ((unsigned long long)CLOCK_TCY_PIC * 0x0000ffffULL * (unsigned long long)prescaler_value[prescaler]); prescaler++)
@@ -324,8 +323,6 @@ int timer_set_period(int id, unsigned long int sample_time, int unit)
 
 	// Reset the timer counter
 	timer_reset(id);
-	
-	return TIMER_NO_ERROR;
 }
 
 
@@ -338,13 +335,13 @@ int timer_set_period(int id, unsigned long int sample_time, int unit)
 	\return	
 	TIMER_NO_ERROR on success, or a value from timer_return_values describing the error
 */
-int timer_release(int id)
+void timer_release(int id)
 {
 	int index;
 	
 	// test the validity of the timer identifier
 	if(id < TIMER1 || id > TIMER89)
-		return TIMER_ERROR_INVALIDE_TIMER_ID;
+		ERROR(TIMER_ERROR_INVALIDE_TIMER_ID, &id)
 	
 	index = timer_id_to_index(id);
 	timers[index].is_initialized = 0;
@@ -354,8 +351,6 @@ int timer_release(int id)
 		// 32 bits timers consume two slots, free the other too
 		timers[index + 1].is_free = 1;
 	}
-	
-	return TIMER_NO_ERROR;
 }
 
 
@@ -387,15 +382,15 @@ bool timer_is_free(int id)
 	\return	
 	TIMER_NO_ERROR on success, or a value from timer_return_values describing the error
 */
-int timer_set_enabled(int id, bool enabled)
+void timer_set_enabled(int id, bool enabled)
 {
 	// test the validity of the timer identifier
 	if (id < TIMER1 || id > TIMER89)
-		return TIMER_ERROR_INVALIDE_TIMER_ID;
+		ERROR(TIMER_ERROR_INVALIDE_TIMER_ID, &id)
 		
 	// is the timer initialized ?
 	if (!timers[timer_id_to_index(id)].is_initialized)
-		return TIMER_ERROR_NOT_INITIALIZED;
+		ERROR(TIMER_ERROR_NOT_INITIALIZED, &id)
 	
 	switch (id)
 	{
@@ -422,8 +417,6 @@ int timer_set_enabled(int id, bool enabled)
 		case TIMER9:	T9CONbits.TON = enabled;
 			break;
 	}
-	
-	return TIMER_NO_ERROR;
 }
 
 
@@ -438,11 +431,11 @@ int timer_set_enabled(int id, bool enabled)
 	\return	
 	TIMER_NO_ERROR on success, or a value from timer_return_values describing the error
 */
-int timer_reset(int id)
+void timer_reset(int id)
 {
 	// test the validity of the timer identifier
 	if (id < TIMER1 || id > TIMER89)
-		return TIMER_ERROR_INVALIDE_TIMER_ID;
+		ERROR(TIMER_ERROR_INVALIDE_TIMER_ID, &id)
 		
 	switch (id)
 	{
@@ -469,8 +462,6 @@ int timer_reset(int id)
 		case TIMER9:	TMR9 = 0;
 			break;
 	}
-	
-	return TIMER_NO_ERROR;
 }
 
 
@@ -491,11 +482,11 @@ int timer_reset(int id)
 	\return	
 	TIMER_NO_ERROR on success, or a value from timer_return_values describing the error
 */
-int timer_set_clock_source(int id, int clock_source)
+void timer_set_clock_source(int id, int clock_source)
 {
 	// test the validity of the timer identifier
 	if (id < TIMER1 || id > TIMER89)
-		return TIMER_ERROR_INVALIDE_TIMER_ID;
+		ERROR(TIMER_ERROR_INVALIDE_TIMER_ID, &id)
 	
 	switch (id)
 	{
@@ -522,8 +513,6 @@ int timer_set_clock_source(int id, int clock_source)
 		case TIMER9:	T9CONbits.TCS = clock_source;
 			break;
 	}
-	
-	return TIMER_NO_ERROR;
 }
 
 
@@ -540,11 +529,11 @@ int timer_set_clock_source(int id, int clock_source)
 	\return	
 	TIMER_NO_ERROR on success, or a value from timer_return_values describing the error
 */
-int timer_set_gate_time_accumulation(int id, char mode)
+void timer_set_gate_time_accumulation(int id, char mode)
 {
 	// test the validity of the timer identifier
 	if(id < TIMER1 || id > TIMER89)
-		return TIMER_ERROR_INVALIDE_TIMER_ID;
+		ERROR(TIMER_ERROR_INVALIDE_TIMER_ID, &id)
 		
 	switch (id)
 	{
@@ -571,8 +560,6 @@ int timer_set_gate_time_accumulation(int id, char mode)
 		case TIMER9:	T9CONbits.TGATE = mode;
 			break;
 	}
-	
-	return TIMER_NO_ERROR;
 }
 
 
@@ -589,11 +576,11 @@ int timer_set_gate_time_accumulation(int id, char mode)
 	\return	
 	TIMER_NO_ERROR on success, or a value from timer_return_values describing the error
 */
-int timer_enable_interrupt(int id, int priority, timer_callback callback)
+void timer_enable_interrupt(int id, int priority, timer_callback callback)
 {
 	// test the validity of the timer identifier
 	if(id < TIMER1 || id > TIMER89)
-		return TIMER_ERROR_INVALIDE_TIMER_ID;
+		ERROR(TIMER_ERROR_INVALIDE_TIMER_ID, &id)
 	
 	timers[timer_id_to_index(id)].callback = callback;
 	
@@ -649,8 +636,6 @@ int timer_enable_interrupt(int id, int priority, timer_callback callback)
 			_T9IE = 1;
 			break;
 	}
-	
-	return TIMER_NO_ERROR;
 }
 
 
@@ -663,11 +648,11 @@ int timer_enable_interrupt(int id, int priority, timer_callback callback)
 	\return	
 	TIMER_NO_ERROR on success, or a value from timer_return_values describing the error
 */
-int timer_disable_interrupt(int id)
+void timer_disable_interrupt(int id)
 {
 	// test the validity of the timer identifier
 	if(id < TIMER1 || id > TIMER89)
-		return TIMER_ERROR_INVALIDE_TIMER_ID;
+		ERROR(TIMER_ERROR_INVALIDE_TIMER_ID, &id)
 	
 	switch(id)
 	{
@@ -694,8 +679,6 @@ int timer_disable_interrupt(int id)
 		case TIMER9:	_T9IE = 0;		_T9IF = 0;
 			break;
 	}
-	
-	return TIMER_NO_ERROR;
 }
 
 
