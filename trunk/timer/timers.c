@@ -198,16 +198,6 @@ void timer_init(int id, unsigned long int arg_sample_time, int unit)
 	if (!timers[timer_id_to_index(id)].is_free)
 		ERROR(TIMER_ERROR_ALREADY_IN_USE, &id)
 	
-	// disable timer interrupt
-	timer_disable_interrupt(id);
-
-	// set the period
-	timer_set_period(id, arg_sample_time, unit);
-
-	// By default, set to internal clock source, without gated time accumulation
-	timer_set_clock_source(id, TIMER_CLOCK_INTERNAL);
-	timer_use_gated_time_accumulation(id, false);
-	
 	// init ok !
 	index = timer_id_to_index(id);
 	timers[index].is_initialized = 1;
@@ -222,6 +212,16 @@ void timer_init(int id, unsigned long int arg_sample_time, int unit)
 	{
 		timers[index].is_32bits = 0;
 	}
+	
+	// disable timer interrupt
+	timer_disable_interrupt(id);
+
+	// set the period
+	timer_set_period(id, arg_sample_time, unit);
+
+	// By default, set to internal clock source, without gated time accumulation
+	timer_set_clock_source(id, TIMER_CLOCK_INTERNAL);
+	timer_use_gated_time_accumulation(id, false);	
 }
 
 
@@ -525,7 +525,7 @@ void timer_set_clock_source(int id, int clock_source)
 	\return	
 	TIMER_NO_ERROR on success, or a value from timer_return_values describing the error
 */
-void timer_set_gate_time_accumulation(int id, char mode)
+void timer_use_gated_time_accumulation(int id, bool enable)
 {
 	// test the validity of the timer identifier
 	if(id < TIMER1 || id > TIMER89)
@@ -533,27 +533,27 @@ void timer_set_gate_time_accumulation(int id, char mode)
 		
 	switch (id)
 	{
-		case TIMER1:	T1CONbits.TGATE = mode;
+		case TIMER1:	T1CONbits.TGATE = enable;
 			break;
 		case TIMER2:
-		case TIMER23:	T2CONbits.TGATE = mode;
+		case TIMER23:	T2CONbits.TGATE = enable;
 			break;
-		case TIMER3:	T3CONbits.TGATE = mode;
+		case TIMER3:	T3CONbits.TGATE = enable;
 			break;
 		case TIMER4:
-		case TIMER45:	T4CONbits.TGATE = mode;
+		case TIMER45:	T4CONbits.TGATE = enable;
 			break;
-		case TIMER5:	T5CONbits.TGATE = mode;
+		case TIMER5:	T5CONbits.TGATE = enable;
 			break;
 		case TIMER6:
-		case TIMER67:	T6CONbits.TGATE = mode;
+		case TIMER67:	T6CONbits.TGATE = enable;
 			break;
-		case TIMER7:	T7CONbits.TGATE = mode;
+		case TIMER7:	T7CONbits.TGATE = enable;
 			break;
 		case TIMER8:
-		case TIMER89:	T8CONbits.TGATE = mode;
+		case TIMER89:	T8CONbits.TGATE = enable;
 			break;
-		case TIMER9:	T9CONbits.TGATE = mode;
+		case TIMER9:	T9CONbits.TGATE = enable;
 			break;
 	}
 }
