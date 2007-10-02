@@ -71,8 +71,11 @@ static struct
 	\param	inputs
 			Bitfield that specify which physical input to use (AN0..AN31).
 			1 put pins in analogic, 0 in digital.
+	\param	sample_time
+			Sample time, from 0 to 31, in number of ADC Internal RC Clock cycle
+
 */
-void adc1_init_simple(adc_simple_callback callback, int priority, unsigned long inputs)
+void adc1_init_simple(adc_simple_callback callback, int priority, unsigned long inputs, int sample_time)
 {
 	// Turn off ADC Module
 	AD1CON1bits.ADON = 0;
@@ -96,8 +99,8 @@ void adc1_init_simple(adc_simple_callback callback, int priority, unsigned long 
 	AD1CON2bits.BUFM = 0;		// Always starts filling the buffer from the start address.
 	AD1CON2bits.ALTS = 0;		// Always uses channel input selects for Sample A
 	
-	AD1CON3bits.ADRC = 1;		// ADC Internal RC Clock
-	AD1CON3bits.SAMC = 31;		// Auto Sample Time bits SAMC*TAD
+	AD1CON3bits.ADRC = 1;		// ADC Internal RC Clock: TAD == ADC Internal RC Clock cycle
+	AD1CON3bits.SAMC = sample_time;	// Auto Sample Time bits sample_time*TAD
 	AD1CON3bits.ADCS = 0;		// ADC Convertion Clock selection bits (ADCS+1)*TCY=TAD
 	
 	// No input to scan yet

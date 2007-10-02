@@ -38,7 +38,7 @@ typedef void(*adc_simple_callback)(int channel, int value);
 
 // Functions, doc in the .c
 
-void adc1_init_simple(adc_simple_callback callback, int priority, unsigned long inputs);
+void adc1_init_simple(adc_simple_callback callback, int priority, unsigned long inputs, int sample_time);
 
 void adc1_start_simple_conversion(int channel);
 
