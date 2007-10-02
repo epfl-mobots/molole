@@ -130,6 +130,7 @@ void adc1_init_simple(adc_simple_callback callback, int priority, unsigned long 
 */
 void adc1_start_simple_conversion(int channel)
 {
+	// If a conversion is already in progress, throw an error
 	if (ADC_Data.simple_channel >= 0)
 		ERROR(ADC_ERROR_CONVERSION_IN_PROGRESS, &ADC_Data.simple_channel)
 	

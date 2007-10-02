@@ -562,6 +562,8 @@ void timer_use_gated_time_accumulation(int id, bool enable)
 /**
 	\brief	Enable the timer's interrupt.
 	
+	Continue timer operation in Idle mode (but discontinue it in Sleep mode).
+	
 	\param	id
 			The timer can be one of the 16-bits timer (TIMER1 -> TIMER9) or one of the 32-bits timer (TIMER23 -> TIMER89)
 	\param 	callback
@@ -580,53 +582,66 @@ void timer_enable_interrupt(int id, timer_callback callback, int priority)
 	
 	timers[timer_id_to_index(id)].callback = callback;
 	
+	// TxCONbits.TSIDL = 0;		Continue operation in IDLE mode
+	// _TxIP					Interrupt priority
+	// _TxIF					Clear interrupt flag
+	// _TxIE					Enable interrupt
 	switch(id)
 	{
 		case TIMER1:
+			T1CONbits.TSIDL = 0;
 			_T1IP = priority;
 			_T1IF = 0;
 			_T1IE = 1;
 			break;
 		case TIMER2:
+			T2CONbits.TSIDL = 0;
 			_T2IP = priority;
 			_T2IF = 0;
 			_T2IE = 1;
 			break;
 		case TIMER23:
 		case TIMER3:
+			T3CONbits.TSIDL = 0;
 			_T3IP = priority;
 			_T3IF = 0;
 			_T3IE = 1;
 			break;
 		case TIMER4:
+			T4CONbits.TSIDL = 0;
 			_T4IP = priority;
 			_T4IF = 0;
 			_T4IE = 1;
 			break;
 		case TIMER45:
 		case TIMER5:
+			T5CONbits.TSIDL = 0;
 			_T5IP = priority;
 			_T5IF = 0;
 			_T5IE = 1;
 			break;
 		case TIMER6:
+			T6CONbits.TSIDL = 0;
 			_T6IP = priority;
 			_T6IF = 0;
 			_T6IE = 1;
 			break;
 		case TIMER67:
 		case TIMER7:
+			T7CONbits.TSIDL = 0;
 			_T7IP = priority;
 			_T7IF = 0;
 			_T7IE = 1;
 			break;
 		case TIMER8:
+			T8CONbits.TSIDL = 0;
 			_T8IP = priority;
 			_T8IF = 0;
 			_T8IE = 1;
 			break;
 		case TIMER89:
 		case TIMER9:
+			T9CONbits.TSIDL = 0;
 			_T9IP = priority;
 			_T9IF = 0;
 			_T9IE = 1;
@@ -637,6 +652,8 @@ void timer_enable_interrupt(int id, timer_callback callback, int priority)
 
 /**
 	\brief	Disable the timer's interrupt.
+	
+	Discontinue timer operation in Idle mode and in Sleep mode.
 	
 	\param	id
 			The timer can be one of the 16-bits timer (TIMER1 -> TIMER9) or one of the 32-bits timer (TIMER23 -> TIMER89)
@@ -650,29 +667,59 @@ void timer_disable_interrupt(int id)
 	if(id < TIMER1 || id > TIMER89)
 		ERROR(TIMER_ERROR_INVALIDE_TIMER_ID, &id)
 	
+	// _TxIE					Disable interrupt
+	// _TxIF					Clear interrupt flag
+	// TxCONbits.TSIDL = 1;		Discontinue operation in IDLE mode
 	switch(id)
 	{
-		case TIMER1:	_T1IE = 0;		_T1IF = 0;
+		case TIMER1:
+			_T1IE = 0;
+			_T1IF = 0;
+			T1CONbits.TSIDL = 1;
 			break;
-		case TIMER2:	_T2IE = 0;		_T2IF = 0;
+		case TIMER2:
+			_T2IE = 0;
+			_T2IF = 0;
+			T2CONbits.TSIDL = 1;
 			break;
 		case TIMER23:
-		case TIMER3:	_T3IE = 0;		_T3IF = 0;
+		case TIMER3:
+			_T3IE = 0;
+			_T3IF = 0;
+			T3CONbits.TSIDL = 1;
 			break;
-		case TIMER4:	_T4IE = 0;		_T4IF = 0;
+		case TIMER4:
+			_T4IE = 0;
+			_T4IF = 0;
+			T4CONbits.TSIDL = 1;
 			break;
 		case TIMER45:
-		case TIMER5:	_T5IE = 0;		_T5IF = 0;
+		case TIMER5:
+			_T5IE = 0;
+			_T5IF = 0;
+			T5CONbits.TSIDL = 1;
 			break;
-		case TIMER6:	_T6IE = 0;		_T6IF = 0;
+		case TIMER6:
+			_T6IE = 0;
+			_T6IF = 0;
+			T6CONbits.TSIDL = 1;
 			break;
 		case TIMER67:
-		case TIMER7:	_T7IE = 0;		_T7IF = 0;
+		case TIMER7:
+			_T7IE = 0;
+			_T7IF = 0;
+			T7CONbits.TSIDL = 1;
 			break;
-		case TIMER8:	_T8IE = 0;		_T8IF = 0;
+		case TIMER8:
+			_T8IE = 0;
+			_T8IF = 0;
+			T8CONbits.TSIDL = 1;
 			break;
 		case TIMER89:
-		case TIMER9:	_T9IE = 0;		_T9IF = 0;
+		case TIMER9:
+			_T9IE = 0;
+			_T9IF = 0;
+			T9CONbits.TSIDL = 1;
 			break;
 	}
 }
