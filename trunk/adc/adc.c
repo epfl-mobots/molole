@@ -78,6 +78,8 @@ static struct
 */
 void adc1_init_simple(adc_simple_callback callback, int priority, unsigned long inputs, int sample_time)
 {
+	int i;
+	
 	// Turn off ADC Module
 	AD1CON1bits.ADON = 0;
 	
@@ -118,6 +120,11 @@ void adc1_init_simple(adc_simple_callback callback, int priority, unsigned long 
 	
 	// Turn on ADC Module
 	AD1CON1bits.ADON = 1;
+	
+	// Wait 20 us, at 40 MIPS == 800 instructions
+	i = 800/3;
+	while (--i)
+		Nop();
 }
 
 /**
