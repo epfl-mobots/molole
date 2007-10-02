@@ -32,6 +32,15 @@
 
 #include "../types/types.h"
 
+/* Timers library defines */
+
+/** Errors ADC can throw */
+enum adc_errors
+{
+	ADC_ERROR_BASE = 0x0200,
+	ADC_ERROR_CONVERSION_IN_PROGRESS,	/**< A conversion is already in progress */
+};
+
 /** ADC callback when conversion is completed */
 typedef void(*adc_simple_callback)(int channel, int value);
 

@@ -42,6 +42,7 @@
 #include <p33fxxxx.h>
 
 #include "adc.h"
+#include "../error/error.h"
 
 //-----------------------
 // Structures definitions
@@ -52,7 +53,7 @@ static struct
 {
 	adc_simple_callback callback; /**< function to call upon conversion complete interrupt, 0 if none */
 	int simple_channel; /**< channel on which last simple conversion was performed */
-} ADC_Data = { 0 };
+} ADC_Data = { 0, -1 };
 
 
 //-------------------
@@ -129,6 +130,9 @@ void adc1_init_simple(adc_simple_callback callback, int priority, unsigned long 
 */
 void adc1_start_simple_conversion(int channel)
 {
+	if (ADC_Data.simple_channel >= 0)
+		ERROR(ADC_ERROR_CONVERSION_IN_PROGRESS, &ADC_Data.simple_channel)
+	
 	// Select channel
 	AD1CHS0bits.CH0SA = channel;
 	ADC_Data.simple_channel = channel;
@@ -148,8 +152,13 @@ void adc1_start_simple_conversion(int channel)
 */
 void _ISR  _ADC1Interrupt(void)
 {
+	// Conversion is completed, mark it as such
+	int channel = ADC_Data.simple_channel;
+	ADC_Data.simple_channel = -1;
+	
 	// Call user-defined function with result of conversion
-	ADC_Data.callback(ADC_Data.simple_channel, ADC1BUF0);
+	ADC_Data.callback(channel, ADC1BUF0);
+	
 	// Clear ADC 1 interrupt flag
 	_AD1IF = 0;
 } 
