@@ -97,7 +97,8 @@ void adc1_init_simple(adc_simple_callback callback, int priority, unsigned long 
 	AD1CON2bits.ALTS = 0;		// Always uses channel input selects for Sample A
 	
 	AD1CON3bits.ADRC = 1;		// ADC Internal RC Clock
-	AD1CON3bits.SAMC = 1;		// Auto Sample Time bits 1 TAD
+	AD1CON3bits.SAMC = 31;		// Auto Sample Time bits SAMC*TAD
+	AD1CON3bits.ADCS = 0;		// ADC Convertion Clock = ADCS+1*TAD
 	
 	// No input to scan yet
 	AD1CSSH = 0x0000;
