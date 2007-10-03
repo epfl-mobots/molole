@@ -79,7 +79,7 @@ The following problems occurs when using the MPLAB SIM simulator (the library is
 /*@{*/
 
 /** \file
-	\brief Implementation of the wrapper around dsPIC33 Timers.
+	Implementation of the wrapper around dsPIC33 Timers.
 */
 
 //---------
@@ -167,7 +167,7 @@ static void m_set_period_32b(int id, unsigned long period);
 //-------------------
 
 /**
-	\brief 	Initialize a timer, before you can use it.
+	Initialize a timer, before you can use it.
 	
 	This function initializes the timer, defines its period and reserves it, avoiding someone else to use it.
 	
@@ -227,7 +227,7 @@ void timer_init(int id, unsigned long int arg_sample_time, int unit)
 
 
 /**
-	\brief	Set the period of a timer.
+	Set the period of a timer.
 	
 	The timer must already be initialized with timer_init() !
 	
@@ -326,7 +326,7 @@ void timer_set_period(int id, unsigned long int sample_time, int unit)
 
 
 /**
-	\brief	Release the timer, so that someone else can use it.
+	Release the timer, so that someone else can use it.
 	
 	\param	id
 			The timer can be one of the 16-bits timer (TIMER1 -> TIMER9) or one of the 32-bits timer (TIMER23 -> TIMER89)
@@ -354,7 +354,7 @@ void timer_release(int id)
 
 
 /**
-	\brief	Returns if a timer is available for use
+	Returns if a timer is available for use
 
 	\param	id
 			The timer can be one of the 16-bits timer (TIMER1 -> TIMER9) or one of the 32-bits timer (TIMER23 -> TIMER89)
@@ -369,7 +369,7 @@ bool timer_is_free(int id)
 
 
 /**
-	\brief	Enable / disable the timer
+	Enable / disable the timer
 	
 	Timer is not released, even if enabled is false.
 	
@@ -420,7 +420,7 @@ void timer_set_enabled(int id, bool enabled)
 
 
 /**
-	\brief 	Reset the counter of the timer.
+	Reset the counter of the timer.
 	
 	 This is useful if you want to restart the timer.
 	
@@ -465,7 +465,7 @@ void timer_reset(int id)
 
 
 /**
-	\brief	Set the clock source for the timer
+	Set the clock source for the timer
 	
 	This function is useful if you want to use an external clock source, on the T1CK pin (rising edge).
 	
@@ -514,9 +514,9 @@ void timer_set_clock_source(int id, int clock_source)
 
 
 /**
-	\brief Enable / disable the gated time accumulation
+	Enable / disable the gated time accumulation
 	
-	Enable / disable the gated time accumulation. This option is meaningful only when using the internal oscillator !
+	This option is meaningful only when using the internal oscillator !
 	
 	\param	id
 			The timer can be one of the 16-bits timer (TIMER1 -> TIMER9) or one of the 32-bits timer (TIMER23 -> TIMER89)
@@ -561,7 +561,7 @@ void timer_use_gated_time_accumulation(int id, bool enable)
 
 
 /**
-	\brief	Enable the timer's interrupt.
+	Enable the timer's interrupt.
 	
 	Continue timer operation in Idle mode (but discontinue it in Sleep mode).
 	
@@ -652,7 +652,7 @@ void timer_enable_interrupt(int id, timer_callback callback, int priority)
 
 
 /**
-	\brief	Disable the timer's interrupt.
+	Disable the timer's interrupt.
 	
 	Discontinue timer operation in Idle mode and in Sleep mode.
 	
@@ -732,7 +732,7 @@ void timer_disable_interrupt(int id)
 //-----------------------------------
 
 /**
-	\brief	Set the timer in 16-bits or 32-bits mode.
+	Set the timer in 16-bits or 32-bits mode.
 	
 	\param	id
 			The timer can be one of the 16-bits timer (TIMER1 -> TIMER9) or one of the 32-bits timer (TIMER23 -> TIMER89)
@@ -770,7 +770,7 @@ void m_set_32bits_mode(int id, char mode)
 
 
 /**
-	\brief	Set the prescaler register of the timer.
+	Set the prescaler register of the timer.
 
 	\param	id
 			The timer can be one of the 16-bits timer (TIMER1 -> TIMER9) or one of the 32-bits timer (TIMER23 -> TIMER89)
@@ -816,7 +816,7 @@ void m_set_prescaler(int id, unsigned int prescaler)
 
 
 /**
-	\brief	Set the period register of a 16-bits timer.
+	Set the period register of a 16-bits timer.
 	
 	\param	id
 			The timer can be one of the 16-bits timer (TIMER1 -> TIMER9) or one of the 32-bits timer (TIMER23 -> TIMER89)
@@ -851,7 +851,7 @@ void m_set_period_16b(int id, unsigned short period)
 
 
 /**
-	\brief	Set the period register of a 32-bits timer.
+	Set the period register of a 32-bits timer.
 
 	To do this, the period register of the 2 corresponding 16-bits timers has to be set.
 
@@ -890,7 +890,7 @@ void m_set_period_32b(int id, unsigned long period)
 //--------------------------
 
 /**
-	\brief	Timer 1 Interrupt Service Routine.
+	Timer 1 Interrupt Service Routine.
  
 	Call the user-defined function.
 */
@@ -903,7 +903,7 @@ void _ISR _T1Interrupt(void)
 }
 
 /**
-	\brief	Timer 2 Interrupt Service Routine.
+	Timer 2 Interrupt Service Routine.
 
 	Call the user-defined function.
 */
@@ -916,7 +916,7 @@ void _ISR _T2Interrupt(void)
 }
 
 /**
-	\brief	Timer 3 Interrupt Service Routine.
+	Timer 3 Interrupt Service Routine.
  
 	Call the user-defined function.
 */
@@ -929,7 +929,7 @@ void _ISR _T3Interrupt(void)
 }
 
 /**
-	\brief	Timer 4 Interrupt Service Routine.
+	Timer 4 Interrupt Service Routine.
  
 	Call the user-defined function.
 */
@@ -942,7 +942,7 @@ void _ISR _T4Interrupt(void)
 }
 
 /**
-	\brief	Timer 5 Interrupt Service Routine.
+	Timer 5 Interrupt Service Routine.
  
 	Call the user-defined function.
 */
@@ -955,7 +955,7 @@ void _ISR _T5Interrupt(void)
 }
 
 /**
-	\brief	Timer 6 Interrupt Service Routine.
+	Timer 6 Interrupt Service Routine.
  
 	Call the user-defined function.
 */
@@ -968,7 +968,7 @@ void _ISR _T6Interrupt(void)
 }
 
 /**
-	\brief	Timer 7 Interrupt Service Routine.
+	Timer 7 Interrupt Service Routine.
  
 	Call the user-defined function.
 */
@@ -981,7 +981,7 @@ void _ISR _T7Interrupt(void)
 }
 
 /**
-	\brief	Timer 8 Interrupt Service Routine.
+	Timer 8 Interrupt Service Routine.
  
 	Call the user-defined function.
 */
@@ -994,7 +994,7 @@ void _ISR _T8Interrupt(void)
 }
 
 /**
-	\brief	Timer 9 Interrupt Service Routine.
+	Timer 9 Interrupt Service Routine.
  
 	Call the user-defined function.
 */

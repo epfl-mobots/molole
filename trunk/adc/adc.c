@@ -35,7 +35,7 @@
 /*@{*/
 
 /** \file
-	\brief Implementation of the wrapper around dsPIC33 ADC.
+	Implementation of the wrapper around dsPIC33 ADC.
 */
 
 //------------
@@ -64,7 +64,7 @@ static struct
 //-------------------
 
 /**
-	\brief Initialize ADC1 for simple input conversion.
+	Initialize ADC1 for simple input conversion.
 	
 	The converter is put in 12 bits / single conversion mode and callback is called when conversion is completed.
 	
@@ -131,7 +131,7 @@ void adc1_init_simple(adc_simple_callback callback, int priority, unsigned long 
 }
 
 /**
-	\brief Request a conversion on a specific channel.
+	Request a conversion on a specific channel.
 	
 	The user must call adc1_init_simple prior to this function.
 	
@@ -157,7 +157,7 @@ void adc1_start_simple_conversion(int channel)
 //--------------------------
 
 /**
-	\brief	ADC 1 Interrupt Service Routine.
+	ADC 1 Interrupt Service Routine.
  
 	Call the user-defined function.
 */
