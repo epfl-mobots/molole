@@ -34,52 +34,54 @@
 //--------------------
 
 /**
-	\defgroup timers
-	
-	\section Introduction
-	
-	This module allows the programmer configure and use the 9 16-bits timers of the
-	dsPIC33 microcontroller's family in a convenient way.
-	Some 16-bits timers can also be used 2 by 2
-	(TIMER2 + TIMER3, TIMER4 + TIMER5, TIMER6 + TIMER7, TIMER8 + TIMER9), which allows up to
-	4 32-bits timers. The management of the 16-bits / 32-bits timers is totally transparent,
-	preventing the user to configure an already in-use timer.
-	
-	\section Limits
-	
-	With a cycle frequency of 40 MHz, the maximum reachable timings are as follow:
-	- 16-bits timers : 419 ms
-	- 32-bits timers : 27'487 s
-	
-	\section Usage
-	
-	You can configure one of the 16-bits timer (TIMER1 -> TIMER9), or one of the 32-bits timer (TIMER23 -> TIMER89).
-	The configuration process is: initializing the timer with the desired timing, optionally defining an interrupt routine,
-	and finally launch the timer.
-	
-	\code
-	timer_init(TIMER1, 400, 6)!=TIMER_NO_ERROR)		// 400 us
-	
-	timer_enable_interrupt(TIMER1, 1, int_timer1);		// int_timer1 is a void ...(void) function
-	
-	timer_set_enabled(TIMER1, true);					// start
-	\endcode
-	
-	You can test if a timer is available with the function timer_is_free().
-	
-	All functions cast errors using the \ref error "error reporting mechanism"
-	
-	\section Bugs Known bugs
-	
-	\subsection SIM MPLAB SIM
-	
-	The following problems occurs when using the MPLAB SIM simulator (the library is working fine on the real microcontrollers):
-	- TIMER6: timer_enable_interrupt() don't modify the IEC2.T6IE register ! So the interruption is never fired...
-	- TIMER9: everything is ok (register IEC3.T9IE = 1), the timer normally counts, but the flag IFS3bits.T9IF is never set !
-	  The interruption is never fired ! If we set the flag by hand, we enter in the interruption...
-	- TIMER67 and TIMER89: same problem as TIMER9
+
+\defgroup timers
+
+\section Introduction
+
+This module allows the programmer configure and use the 9 16-bits timers of the
+dsPIC33 microcontroller's family in a convenient way.
+Some 16-bits timers can also be used 2 by 2
+(TIMER2 + TIMER3, TIMER4 + TIMER5, TIMER6 + TIMER7, TIMER8 + TIMER9), which allows up to
+4 32-bits timers. The management of the 16-bits / 32-bits timers is totally transparent,
+preventing the user to configure an already in-use timer.
+
+\section Limits
+
+With a cycle frequency of 40 MHz, the maximum reachable timings are as follow:
+- 16-bits timers : 419 ms
+- 32-bits timers : 27'487 s
+
+\section Usage
+
+You can configure one of the 16-bits timer (TIMER1 -> TIMER9), or one of the 32-bits timer (TIMER23 -> TIMER89).
+The configuration process is: initializing the timer with the desired timing, optionally defining an interrupt routine,
+and finally launch the timer.
+
+\code
+timer_init(TIMER1, 400, 6)						// 400 us
+
+timer_enable_interrupt(TIMER1, 1, int_timer1);	// int_timer1 is a void ...(void) function
+
+timer_set_enabled(TIMER1, true);				// start
+\endcode
+
+You can test if a timer is available with the function timer_is_free().
+
+All functions cast errors using the \ref error "error reporting mechanism"
+
+\section Bugs Known bugs
+
+\subsection SIM MPLAB SIM
+
+The following problems occurs when using the MPLAB SIM simulator (the library is working fine on the real microcontrollers):
+- TIMER6: timer_enable_interrupt() don't modify the IEC2.T6IE register ! So the interruption is never fired...
+- TIMER9: everything is ok (register IEC3.T9IE = 1), the timer normally counts, but the flag IFS3bits.T9IF is never set !
+	The interruption is never fired ! If we set the flag by hand, we enter in the interruption...
+- TIMER67 and TIMER89: same problem as TIMER9
 
 */
+/*@{*/
 
 //---------
 // Includes
@@ -692,7 +694,7 @@ void timer_disable_interrupt(int id)
 			_T4IE = 0;
 			_T4IF = 0;
 			T4CONbits.TSIDL = 1;
-			break;
+			break;  
 		case TIMER45:
 		case TIMER5:
 			_T5IE = 0;
@@ -1004,3 +1006,5 @@ void _ISR _T9Interrupt(void)
 	
 	_T9IF = 0;
 }
+
+/*@}*/

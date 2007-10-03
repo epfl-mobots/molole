@@ -28,6 +28,8 @@
 	\brief A wrapper around dsPIC33 Timers.
 	\ingroup timers
 */
+/**\addtogroup timers*/
+/*@{*/
 
 #ifndef _MOLOLE_TIMERS_H
 #define _MOLOLE_TIMERS_H
@@ -100,5 +102,7 @@ void timer_use_gated_time_accumulation(int id, bool enable);
 void timer_enable_interrupt(int id, timer_callback callback, int priority);
 
 void timer_disable_interrupt(int id);
+
+/*@}*/
 
 #endif
