@@ -24,12 +24,12 @@
 	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-/** \file
-	\brief A wrapper around dsPIC33 Timers.
-	\ingroup timers
-*/
 /**\addtogroup timers*/
 /*@{*/
+
+/** \file
+	\brief A wrapper around dsPIC33 Timers.
+*/
 
 #ifndef _MOLOLE_TIMERS_H
 #define _MOLOLE_TIMERS_H

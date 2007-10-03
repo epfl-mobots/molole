@@ -24,8 +24,12 @@
 	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+/**\addtogroup clock*/
+/*@{*/
+
 /** \file
-	\brief Molole clock configuration and constants.
+	\brief Clock configuration and constants.
+	
 */
 
 #ifndef _MOLOLE_CLOCK_H
@@ -57,5 +61,7 @@
 // Functions, doc in the .c
 
 void clock_init_internal_rc(void);
+
+/*@}*/
 
 #endif

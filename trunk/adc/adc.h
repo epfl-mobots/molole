@@ -23,6 +23,9 @@
 	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+/**\addtogroup adc*/
+/*@{*/
+
 /** \file
 	\brief A wrapper around dsPIC33 ADC.
 */
@@ -50,5 +53,7 @@ typedef void(*adc_simple_callback)(int channel, int value);
 void adc1_init_simple(adc_simple_callback callback, int priority, unsigned long inputs, int sample_time);
 
 void adc1_start_simple_conversion(int channel);
+
+/*@}*/
 
 #endif

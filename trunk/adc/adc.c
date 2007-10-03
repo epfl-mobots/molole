@@ -23,10 +23,6 @@
 	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-/** \file
-	\brief Implementation of the wrapper around dsPIC33 ADC.
-*/
-
 //--------------------
 // Usage documentation
 //--------------------
@@ -35,6 +31,11 @@
 	\defgroup adc
 	
 	This very simple wrapper ease the usage of the ADC converter.
+*/
+/*@{*/
+
+/** \file
+	\brief Implementation of the wrapper around dsPIC33 ADC.
 */
 
 //------------
@@ -171,5 +172,8 @@ void _ISR  _ADC1Interrupt(void)
 	
 	// Clear ADC 1 interrupt flag
 	_AD1IF = 0;
-} 
+}
+
+/*@}*/
+
 

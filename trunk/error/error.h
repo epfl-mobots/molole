@@ -23,6 +23,9 @@
 	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+/**\addtogroup error*/
+/*@{*/
+
 /** \file
 	\brief An error management library for callback-based assertions
 */
@@ -43,5 +46,7 @@ typedef void(*error_callback)(const char * file, int line, int id, void* arg);
 void error_report(const char * file, int line, int id, void*arg);
 
 void error_register_callback(error_callback callback);
+
+/*@}*/
 
 #endif

@@ -23,6 +23,20 @@
 	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+//--------------------
+// Usage documentation
+//--------------------
+
+/**
+	\defgroup error
+	
+	A simple error management library for callback-based assertions.
+*/
+/*@{*/
+
+/** \file
+	\brief Implementation of the error management library for callback-based assertions
+*/
 
 
 //------------
@@ -62,3 +76,5 @@ void error_register_callback(error_callback callback)
 {
 	Error_Data.callback = callback;
 }
+
+/*@}*/

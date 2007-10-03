@@ -24,8 +24,19 @@
 	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+//--------------------
+// Usage documentation
+//--------------------
+
+/**
+	\defgroup clock
+	
+	Clock configuration and constants.
+*/
+/*@{*/
+
 /** \file
-	\brief Implementation of the wrapper around dsPIC33 ADC.
+	\brief Implementation of clock configuration.
 */
 
 //------------
@@ -73,3 +84,5 @@ void clock_init_internal_rc(void)
 	while(OSCCONbits.LOCK!=1)
 		{};
 }
+
+/*@}*/

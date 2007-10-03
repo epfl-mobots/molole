@@ -26,6 +26,17 @@
 #ifndef _MOLOLE_TYPES_H
 #define _MOLOLE_TYPES_H
 
+/**
+	\defgroup types
+	
+	Some additional basic datatypes
+*/
+/*@{*/
+
+/** \file
+	\brief Definition of some additional basic datatypes.
+*/
+
 //! Boolean type for convenience
 typedef int bool;
 
@@ -35,5 +46,7 @@ enum bool_literals
 	false = 0,
 	true = 1
 };
+
+/*@}*/
 
 #endif

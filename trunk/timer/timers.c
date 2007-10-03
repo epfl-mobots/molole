@@ -24,11 +24,6 @@
 	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-/** \file
-	\brief Implementation of the wrapper around dsPIC33 Timers.
-	\ingroup timers
-*/
-
 //--------------------
 // Usage documentation
 //--------------------
@@ -82,6 +77,10 @@ The following problems occurs when using the MPLAB SIM simulator (the library is
 
 */
 /*@{*/
+
+/** \file
+	\brief Implementation of the wrapper around dsPIC33 Timers.
+*/
 
 //---------
 // Includes
