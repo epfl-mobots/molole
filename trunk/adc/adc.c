@@ -145,7 +145,7 @@ void adc1_start_simple_conversion(int channel)
 	AD1CHS0bits.CH0SA = channel;
 	ADC_Data.simple_channel = channel;
 	// Start sampling
-	AD1CON1bits.ASAM = 1;
+	AD1CON1bits.SAMP= 1;
 }
 
 
