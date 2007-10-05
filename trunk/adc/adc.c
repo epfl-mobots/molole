@@ -94,7 +94,7 @@ void adc1_init_simple(adc_simple_callback callback, int priority, unsigned long 
 	AD1PCFGH = ~((unsigned short)(inputs >> 16));
 	AD1PCFGL = ~((unsigned short)(inputs));
 	
-	AD1CON1bits.ADSIDL = 1;		// Discontinue module operation when device enters Idle mode
+	AD1CON1bits.ADSIDL = 0;		// Continue module operation in Idle mode
 	AD1CON1bits.AD12B = 1;		// 12-bit, 1-channel ADC operation
 	AD1CON1bits.FORM = 0;		// Integer (DOUT = 0000 dddd dddd dddd)
 	AD1CON1bits.SSRC = 7;		// Internal counter ends sampling and starts conversion (auto-convert)
