@@ -110,17 +110,14 @@ The following problems occurs when using the MPLAB SIM simulator (the library is
 // Structures definitions
 //-----------------------
 
-/** The struct for timer implementation data */
-typedef struct
+/** The structs for timer implementation data */
+static struct
 {
 	timer_callback callback; /**< function to call upon interrupt, 0 if none */
 	unsigned is_free:1; /**< true if timer is available for allocation */
 	unsigned is_initialized:1; /**< true if timer can receive command */
 	unsigned is_32bits:1; /**< true if timer is 32 bits */
-} Timer_Data;
-
-/** Timer wrapper data */
-static Timer_Data timers[9] =
+} Timer_Data[9] =
 {
 	{ 0, 1, 0, 0},
 	{ 0, 1, 0, 0},
@@ -196,22 +193,22 @@ void timer_init(int id, unsigned long int arg_sample_time, int unit)
 		ERROR(TIMER_ERROR_INVALIDE_TIMER_ID, &id)
 		
 	// test that the timer is free
-	if (!timers[timer_id_to_index(id)].is_free)
+	if (!Timer_Data[timer_id_to_index(id)].is_free)
 		ERROR(TIMER_ERROR_ALREADY_IN_USE, &id)
 	
 	// init ok !
 	index = timer_id_to_index(id);
-	timers[index].is_initialized = 1;
-	timers[index].is_free = 0;
+	Timer_Data[index].is_initialized = 1;
+	Timer_Data[index].is_free = 0;
 	if (timer_id_to_32bits(id))
 	{
 		// 32 bits timers consume two slots
-		timers[index + 1].is_free = 0;
-		timers[index].is_32bits = 1;
+		Timer_Data[index + 1].is_free = 0;
+		Timer_Data[index].is_32bits = 1;
 	}
 	else
 	{
-		timers[index].is_32bits = 0;
+		Timer_Data[index].is_32bits = 0;
 	}
 	
 	// disable timer interrupt
@@ -261,7 +258,7 @@ void timer_set_period(int id, unsigned long int sample_time, int unit)
 		ERROR(TIMER_ERROR_INVALIDE_TIMER_ID, &id)
 		
 	// is the timer initialized ?
-	if (!timers[timer_id_to_index(id)].is_initialized)
+	if (!Timer_Data[timer_id_to_index(id)].is_initialized)
 		ERROR(TIMER_ERROR_NOT_INITIALIZED, &id)
 		
 	// only unit 0,3,6,9 ok
@@ -343,12 +340,12 @@ void timer_release(int id)
 		ERROR(TIMER_ERROR_INVALIDE_TIMER_ID, &id)
 	
 	index = timer_id_to_index(id);
-	timers[index].is_initialized = 0;
-	timers[index].is_free = 1;
+	Timer_Data[index].is_initialized = 0;
+	Timer_Data[index].is_free = 1;
 	if (timer_id_to_32bits(id))
 	{
 		// 32 bits timers consume two slots, free the other too
-		timers[index + 1].is_free = 1;
+		Timer_Data[index + 1].is_free = 1;
 	}
 }
 
@@ -364,7 +361,7 @@ void timer_release(int id)
  */
 bool timer_is_free(int id)
 {
-	return timers[timer_id_to_index(id)].is_free;
+	return Timer_Data[timer_id_to_index(id)].is_free;
 }
 
 
@@ -388,7 +385,7 @@ void timer_set_enabled(int id, bool enabled)
 		ERROR(TIMER_ERROR_INVALIDE_TIMER_ID, &id)
 		
 	// is the timer initialized ?
-	if (!timers[timer_id_to_index(id)].is_initialized)
+	if (!Timer_Data[timer_id_to_index(id)].is_initialized)
 		ERROR(TIMER_ERROR_NOT_INITIALIZED, &id)
 	
 	switch (id)
@@ -581,7 +578,7 @@ void timer_enable_interrupt(int id, timer_callback callback, int priority)
 	if(id < TIMER1 || id > TIMER89)
 		ERROR(TIMER_ERROR_INVALIDE_TIMER_ID, &id)
 	
-	timers[timer_id_to_index(id)].callback = callback;
+	Timer_Data[timer_id_to_index(id)].callback = callback;
 	
 	// TxCONbits.TSIDL = 0;		Continue operation in IDLE mode
 	// _TxIP					Interrupt priority
@@ -897,7 +894,7 @@ void m_set_period_32b(int id, unsigned long period)
 void _ISR _T1Interrupt(void)
 {
 	// function must exist because this interrupt is enabled
-	timers[0].callback();
+	Timer_Data[0].callback();
 	
 	_T1IF = 0;
 }
@@ -910,7 +907,7 @@ void _ISR _T1Interrupt(void)
 void _ISR _T2Interrupt(void)
 {
 	// function must exist because this interrupt is enabled
-	timers[1].callback();
+	Timer_Data[1].callback();
 	
 	_T2IF = 0;
 }
@@ -923,7 +920,7 @@ void _ISR _T2Interrupt(void)
 void _ISR _T3Interrupt(void)
 {
 	// function must exist because this interrupt is enabled
-	timers[2].callback();
+	Timer_Data[2].callback();
 	
 	_T3IF = 0;
 }
@@ -936,7 +933,7 @@ void _ISR _T3Interrupt(void)
 void _ISR _T4Interrupt(void)
 {
 	// function must exist because this interrupt is enabled
-	timers[3].callback();
+	Timer_Data[3].callback();
 	
 	_T4IF = 0;
 }
@@ -949,7 +946,7 @@ void _ISR _T4Interrupt(void)
 void _ISR _T5Interrupt(void)
 {
 	// function must exist because this interrupt is enabled
-	timers[4].callback();
+	Timer_Data[4].callback();
 	
 	_T5IF = 0;
 }
@@ -962,7 +959,7 @@ void _ISR _T5Interrupt(void)
 void _ISR _T6Interrupt(void)
 {
 	// function must exist because this interrupt is enabled
-	timers[5].callback();
+	Timer_Data[5].callback();
 	
 	_T6IF = 0;
 }
@@ -975,7 +972,7 @@ void _ISR _T6Interrupt(void)
 void _ISR _T7Interrupt(void)
 {
 	// function must exist because this interrupt is enabled
-	timers[6].callback();
+	Timer_Data[6].callback();
 	
 	_T7IF = 0;
 }
@@ -988,7 +985,7 @@ void _ISR _T7Interrupt(void)
 void _ISR _T8Interrupt(void)
 {
 	// function must exist because this interrupt is enabled
-	timers[7].callback();
+	Timer_Data[7].callback();
 	
 	_T8IF = 0;
 }
@@ -1001,7 +998,7 @@ void _ISR _T8Interrupt(void)
 void _ISR _T9Interrupt(void)
 {
 	// function must exist because this interrupt is enabled
-	timers[8].callback();
+	Timer_Data[8].callback();
 	
 	_T9IF = 0;
 }
