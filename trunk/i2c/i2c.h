@@ -26,6 +26,13 @@
 #ifndef _MOLOLE_I2C_H
 #define _MOLOLE_I2C_H
 
+/** \addtogroup i2c */
+/*@{*/
+
+/** \file
+	I2C slave and master wrappers definitions
+*/
+
 /** I2C callback for status change */
 typedef void(*i2c_status_callback)();
 
@@ -48,5 +55,7 @@ void i2c_init_slave(
 );
 
 void i2c_init_master(int priority);
+
+/*@}*/
 
 #endif

@@ -28,7 +28,7 @@
 //--------------------
 
 /**
-	\defgroup error
+	\defgroup error Error
 	
 	A simple error management library for callback-based assertions.
 */
@@ -62,16 +62,25 @@ static struct
 // Exported functions
 //-------------------
 
+/**
+	If no handler is configured, any error call this function which does nothing and return.
+*/
 static void error_default_handler(const char * file, int line, int id, void* arg)
 {
 	// do nothing
 }
 
+/**
+	Call the error handler.
+*/
 void error_report(const char * file, int line, int id, void* arg)
 {
 	Error_Data.callback(file, line, id, arg);
 }
 
+/**
+	Register a pointer to an error handling, replacing the previous one.
+*/
 void error_register_callback(error_callback callback)
 {
 	Error_Data.callback = callback;

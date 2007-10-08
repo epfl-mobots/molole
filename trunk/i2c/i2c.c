@@ -23,6 +23,22 @@
 	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+//--------------------
+// Usage documentation
+//--------------------
+
+/**
+	\defgroup i2c I2C
+	
+	Wrappers around I2C slave and master, with a callback oriented interface.
+*/
+/*@{*/
+
+/** \file
+	Implementation of functions common to wrappers around I2C slave and master.
+*/
+
+
 //------------
 // Definitions
 //------------
@@ -31,6 +47,18 @@
 
 #include "i2c.h"
 
+
+//-------------------
+// Exported functions
+//-------------------
+
+/**
+	Init I2C subsystem, put SCL and SDA pins in I2C mode.
+	
+	Required prior to i2c_init_slave() or i2c_init_master().
+	
+	\param address I2C address of the module
+*/
 void i2c_init(unsigned char address)
 {
 	I2C1ADD = address;				// Set the module address defined in the program
@@ -53,5 +81,5 @@ void i2c_init(unsigned char address)
 	I2C1STATbits.I2COV = 0;			// clear Overflow flag
 }
 
-
+/*@}*/
 

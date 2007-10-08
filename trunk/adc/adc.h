@@ -23,17 +23,17 @@
 	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-/**\addtogroup adc*/
+#ifndef _MOLOLE_ADC_H
+#define _MOLOLE_ADC_H
+
+#include "../types/types.h"
+
+/** \addtogroup adc */
 /*@{*/
 
 /** \file
 	\brief A wrapper around dsPIC33 ADC.
 */
-
-#ifndef _MOLOLE_ADC_H
-#define _MOLOLE_ADC_H
-
-#include "../types/types.h"
 
 /* Timers library defines */
 

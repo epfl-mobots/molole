@@ -29,7 +29,7 @@
 //--------------------
 
 /**
-	\defgroup clock
+	\defgroup clock Clock
 	
 	Clock configuration and constants.
 */

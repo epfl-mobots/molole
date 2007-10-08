@@ -28,7 +28,7 @@
 //--------------------
 
 /**
-	\defgroup adc
+	\defgroup adc ADC
 	
 	This very simple wrapper ease the usage of the ADC converter.
 */

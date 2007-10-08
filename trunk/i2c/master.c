@@ -25,6 +25,9 @@
 
 #include "i2c.h"
 
+/**
+	I2C Master yet to implement
+*/
 void i2c_init_master(int priority)
 {
 /*	I2C1BRG = ((int)((FCY/FSCLI2CBUS)-1.0));	// Set the baud rate for master mode

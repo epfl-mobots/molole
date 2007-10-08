@@ -27,7 +27,7 @@
 #define _MOLOLE_TYPES_H
 
 /**
-	\defgroup types
+	\defgroup types Types
 	
 	Some additional basic datatypes
 */

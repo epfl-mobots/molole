@@ -30,7 +30,7 @@
 
 /**
 
-\defgroup timers
+\defgroup timers Timers
 
 \section Introduction
 
@@ -173,7 +173,7 @@ static void m_set_period_32b(int id, unsigned long period);
 	
 	\param	id
 			The timer can be one of the 16-bits timer (TIMER1 -> TIMER9) or one of the 32-bits timer (TIMER23 -> TIMER89)
-	\param 	sample_time
+	\param 	arg_sample_time
 			The period of the timer, expressed in the unit defined by the \e unit parameter
 	\param 	unit
 			Time base of the \e sample_time parameter. Possible values are:
@@ -375,7 +375,7 @@ bool timer_is_free(int id)
 	
 	\param	id
 			The timer can be one of the 16-bits timer (TIMER1 -> TIMER9) or one of the 32-bits timer (TIMER23 -> TIMER89)
-	\param	mode
+	\param	enabled
 			True to enable timer, false to disable it
 	
 	\return	

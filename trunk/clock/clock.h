@@ -24,16 +24,16 @@
 	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-/**\addtogroup clock*/
+#ifndef _MOLOLE_CLOCK_H
+#define _MOLOLE_CLOCK_H
+
+/** \addtogroup clock */
 /*@{*/
 
 /** \file
 	\brief Clock configuration and constants.
 	
 */
-
-#ifndef _MOLOLE_CLOCK_H
-#define _MOLOLE_CLOCK_H
 
 // Clock constants
 

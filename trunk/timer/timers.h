@@ -24,17 +24,17 @@
 	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-/**\addtogroup timers*/
+#ifndef _MOLOLE_TIMERS_H
+#define _MOLOLE_TIMERS_H
+
+#include "../types/types.h"
+
+/** \addtogroup timers */
 /*@{*/
 
 /** \file
 	\brief A wrapper around dsPIC33 Timers.
 */
-
-#ifndef _MOLOLE_TIMERS_H
-#define _MOLOLE_TIMERS_H
-
-#include "../types/types.h"
 
 /* Timers library defines */
 

@@ -23,15 +23,15 @@
 	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-/**\addtogroup error*/
+#ifndef _MOLOLE_ERROR_H
+#define _MOLOLE_ERROR_H
+
+/** \addtogroup error */
 /*@{*/
 
 /** \file
 	\brief An error management library for callback-based assertions
 */
-
-#ifndef _MOLOLE_ERROR_H
-#define _MOLOLE_ERROR_H
 
 /** Callback when an error occurs */
 typedef void(*error_callback)(const char * file, int line, int id, void* arg);

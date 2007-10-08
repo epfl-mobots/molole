@@ -23,6 +23,17 @@
 	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+//--------------------
+// Usage documentation
+//--------------------
+
+/** \addtogroup i2c */
+/*@{*/
+
+/** \file
+	Implementation of the wrapper around I2C slave.
+*/
+
 
 //------------
 // Definitions
@@ -33,19 +44,39 @@
 #include "i2c.h"
 #include "../error/error.h"
 
+
 //-----------------------
 // Structures definitions
 //-----------------------
 
-/** I2C wrapper data */
+/** I2C slave wrapper data */
 static struct
 {
 	i2c_status_callback message_from_master_callback; /**< function to call upon new write message */
 	i2c_status_callback message_to_master_callback; /**< function to call upon new read message */
 	i2c_set_data_callback data_from_master_callback; /**< function to call with data from master */
 	i2c_get_data_callback data_to_master_callback; /**< function to call with data to master */
-} IC2_Data = { 0, 0, 0, 0 };
+} IC2_Slave_Data = { 0, 0, 0, 0 };
 
+
+//-------------------
+// Exported functions
+//-------------------
+
+/**
+	Init I2C slave subsystem.
+	
+	\param	message_from_master_callback
+			function to call upon new write message
+	\param	message_to_master_callback
+			function to call upon new read message
+	\param	data_from_master_callback
+			function to call with data from master
+	\param	data_to_master_callback
+			function to call with data to master
+	\param 	priority
+			Interrupt priority, from 1 (lowest priority) to 7 (highest priority)
+*/
 void i2c_init_slave(
 	i2c_status_callback message_from_master_callback,
 	i2c_status_callback message_to_master_callback,
@@ -55,17 +86,26 @@ void i2c_init_slave(
 )
 {
 	// Store callback functions
-	IC2_Data.message_from_master_callback = message_from_master_callback;
-	IC2_Data.message_to_master_callback = message_to_master_callback;
-	IC2_Data.data_from_master_callback = data_from_master_callback;
-	IC2_Data.data_to_master_callback = data_to_master_callback;
+	IC2_Slave_Data.message_from_master_callback = message_from_master_callback;
+	IC2_Slave_Data.message_to_master_callback = message_to_master_callback;
+	IC2_Slave_Data.data_from_master_callback = data_from_master_callback;
+	IC2_Slave_Data.data_to_master_callback = data_to_master_callback;
 	
 	_SI2C1IF = 0;				// clear the slave interrupt
 	_SI2C1IP = priority;   		// set the slave interrupt priority
 	_SI2C1IE = 1;				// enable the slave interruptt
 }
 
+
+//--------------------------
 // Interrupt service routine
+//--------------------------
+
+/**
+	I2C 1 Interrupt Service Routine.
+ 
+	Call the state-specific user-defined function.
+*/
 void _ISR _SI2C1Interrupt(void)
 {
 	if (I2C1STATbits.D_A)
@@ -76,7 +116,7 @@ void _ISR _SI2C1Interrupt(void)
 			// to master cycle, check stat bit
 			if (!I2C1STATbits.ACKSTAT)
 			{
-				I2C1TRN = IC2_Data.data_to_master_callback(); // Write data
+				I2C1TRN = IC2_Slave_Data.data_to_master_callback(); // Write data
 				I2C1CONbits.SCLREL = 1;				// Release clock
 			}
 		}
@@ -87,7 +127,7 @@ void _ISR _SI2C1Interrupt(void)
 			{
 				unsigned char data = I2C1RCV;		// Read data
 				I2C1CONbits.SCLREL = 1;				// Release clock
-				IC2_Data.data_from_master_callback(data);
+				IC2_Slave_Data.data_from_master_callback(data);
 			}
 		}
 	}
@@ -97,16 +137,18 @@ void _ISR _SI2C1Interrupt(void)
 		if (I2C1STATbits.R_W)
 		{
 			// to master cycle
-			IC2_Data.message_to_master_callback();
-			I2C1TRN = IC2_Data.data_to_master_callback(); // Write data
+			IC2_Slave_Data.message_to_master_callback();
+			I2C1TRN = IC2_Slave_Data.data_to_master_callback(); // Write data
 			I2C1CONbits.SCLREL = 1;				// Release clock
 		}
 		else
 		{
 			// from master cycle
-			IC2_Data.message_from_master_callback();
+			IC2_Slave_Data.message_from_master_callback();
 		}
 	}
 	
 	_SI2C1IF = 0;				// Clear Slave interrupt flag
 }
+
+/*@}*/
