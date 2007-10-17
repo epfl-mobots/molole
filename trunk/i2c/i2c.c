@@ -64,7 +64,7 @@ void i2c_init(unsigned char address)
 	I2C1ADD = address;				// Set the module address defined in the program
 	I2C1CONbits.I2CEN = 1;			// Enables the I2C module and configures the SDA and SCL pins as serial port pins
 	I2C1CONbits.I2CSIDL = 0;		// Continue module operation in idle mode
-	I2C1CONbits.SCLREL = 0;			// Release SCLx clock
+	I2C1CONbits.SCLREL = 1;			// Release SCLx clock
 	I2C1CONbits.IPMIEN = 0;			// Only acknowledge own address
 	I2C1CONbits.A10M = 0;			// 7bit slave address
 	I2C1CONbits.DISSLW = 1;			// Slew rate control disabled (enable for 400kHz operation!)
@@ -77,8 +77,6 @@ void i2c_init(unsigned char address)
 	I2C1CONbits.PEN = 0;			// STOP condition not in progress
 	I2C1CONbits.RSEN = 0;			// Repeated START condition not in progress
 	I2C1CONbits.SEN = 0;			// START condition not in progress
-
-	I2C1STATbits.I2COV = 0;			// clear Overflow flag
 }
 
 /*@}*/
