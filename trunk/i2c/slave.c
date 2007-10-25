@@ -49,6 +49,14 @@
 // Structures definitions
 //-----------------------
 
+enum I2C_State
+{
+	I2C_IDLE,
+	I2C_TO_MASTER,
+	I2C_FROM_MASTER,
+	I2C_END_TO_MASTER
+};	
+
 /** I2C slave wrapper data */
 static struct
 {
@@ -56,8 +64,8 @@ static struct
 	i2c_status_callback message_to_master_callback; /**< function to call upon new read message */
 	i2c_set_data_callback data_from_master_callback; /**< function to call with data from master */
 	i2c_get_data_callback data_to_master_callback; /**< function to call with data to master */
-} IC2_Slave_Data = { 0, 0, 0, 0 };
-
+	int state; /**< transmission direction */
+} IC2_Slave_Data = { 0, 0, 0, 0, I2C_IDLE };
 
 //-------------------
 // Exported functions
@@ -96,6 +104,17 @@ void i2c_init_slave(
 	_SI2C1IE = 1;				// enable the slave interruptt
 }
 
+/**
+	Force I2C internal state machine to return to IDLE,
+	This can be useful, for instance after an electric problem
+	on the bus.
+*/
+void i2c_slave_return_to_idle()
+{
+	IC2_Slave_Data.state = I2C_IDLE;
+}	
+
+
 
 //--------------------------
 // Interrupt service routine
@@ -108,44 +127,54 @@ void i2c_init_slave(
 */
 void _ISR _SI2C1Interrupt(void)
 {
-	if (I2C1STATbits.D_A)
+	unsigned char data;
+	bool return_to_idle;
+	
+	// no interrupt is generated at the end of cycle,
+	// nor all way to detect beginning of cycle are buggy
+	// and do not behave as the doc predicts
+	if (IC2_Slave_Data.state == I2C_IDLE)
 	{
-		// last transfer was data
 		if (I2C1STATbits.R_W)
 		{
-			// to master cycle, check stat bit
-			if (!I2C1STATbits.ACKSTAT)
-			{
-				I2C1TRN = IC2_Slave_Data.data_to_master_callback(); // Write data
-				I2C1CONbits.SCLREL = 1;				// Release clock
-			}
+			IC2_Slave_Data.state = I2C_TO_MASTER;
+			IC2_Slave_Data.message_to_master_callback();
 		}
 		else
 		{
-			// from master cycle, check if data is present in the buffer
-			if (I2C1STATbits.RBF)
-			{
-				unsigned char data = I2C1RCV;		// Read data
-				I2C1CONbits.SCLREL = 1;				// Release clock
-				IC2_Slave_Data.data_from_master_callback(data);
-			}
+			IC2_Slave_Data.state = I2C_FROM_MASTER;
+			IC2_Slave_Data.message_from_master_callback();
+			_SI2C1IF = 0;										// Clear Slave interrupt flag
+			return;
 		}
 	}
-	else
+	
+	switch (IC2_Slave_Data.state)
 	{
-		// last transfer was address
-		if (I2C1STATbits.R_W)
+		case I2C_TO_MASTER:
 		{
-			// to master cycle
-			IC2_Slave_Data.message_to_master_callback();
-			I2C1TRN = IC2_Slave_Data.data_to_master_callback(); // Write data
-			I2C1CONbits.SCLREL = 1;				// Release clock
-		}
-		else
+			if (IC2_Slave_Data.data_to_master_callback(&data))
+				IC2_Slave_Data.state = I2C_END_TO_MASTER;
+			I2C1TRN = data; 									// Write data
+			I2C1CONbits.SCLREL = 1;								// Release clock
+		}					
+		break;
+		
+		case I2C_FROM_MASTER:
 		{
-			// from master cycle
-			IC2_Slave_Data.message_from_master_callback();
+			data = I2C1RCV;										// Read data
+			if (IC2_Slave_Data.data_from_master_callback(data))
+				IC2_Slave_Data.state = I2C_IDLE;
 		}
+		break;
+		
+		case I2C_END_TO_MASTER:
+		IC2_Slave_Data.state = I2C_IDLE;
+		I2C1CONbits.SCLREL = 1;									// Release clock
+		break;
+		
+		default:
+		break;
 	}
 	
 	_SI2C1IF = 0;				// Clear Slave interrupt flag

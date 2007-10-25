@@ -26,6 +26,8 @@
 #ifndef _MOLOLE_I2C_H
 #define _MOLOLE_I2C_H
 
+#include "../types/types.h"
+
 /** \addtogroup i2c */
 /*@{*/
 
@@ -36,11 +38,13 @@
 /** I2C callback for status change */
 typedef void(*i2c_status_callback)();
 
-/** I2C callback when a data is available */
-typedef void(*i2c_set_data_callback)(unsigned char data);
+/** I2C callback when a data is available.
+	Return true if more end of message, false otherwise. */
+typedef bool (*i2c_set_data_callback)(unsigned char data);
 
-/** I2C callback when a data must be returned */
-typedef unsigned char(*i2c_get_data_callback)();
+/** I2C callback when a data must be returned
+	Return true if more end of message, false otherwise. */
+typedef bool (*i2c_get_data_callback)(unsigned char* data);
 
 // Functions, doc in the .c
 
@@ -53,6 +57,8 @@ void i2c_init_slave(
 	i2c_get_data_callback data_to_master_callback,
 	int priority
 );
+
+void i2c_slave_return_to_idle(void);
 
 void i2c_init_master(int priority);
 
