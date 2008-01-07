@@ -175,7 +175,7 @@ void uart_2_init(unsigned long baud_rate, uart_byte_received byte_received_callb
 	// Setup interrupts
 	_U2RXIF = 0;			// clear the reception interrupt
 	_U2RXIP = priority;   	// set the reception interrupt priority
-	_U1RXIE = 1;			// enable the reception interrupt
+	_U2RXIE = 1;			// enable the reception interrupt
 	
 	_U2TXIF = 0;			// clear the transmission interrupt
 	_U2TXIP = priority;   	// set the transmission interrupt priority
