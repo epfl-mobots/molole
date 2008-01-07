@@ -39,7 +39,7 @@
 enum pwm_errors
 {
 	PWM_ERROR_BASE = 0x0300,
-	PWM_ERROR_INVALIDE_PWM_ID,			/**< The desired pwm does not exists. */
+	PWM_ERROR_INVALIDE_PWM_ID,			/**< The desired PWM does not exists. */
 	PWM_ERROR_INVALIDE_PRESCALER,		/**< The specified prescaler value is invalid. */
 	PWM_ERROR_INVALIDE_MODE,			/**< The specified time base mode is invalid. */
 };
