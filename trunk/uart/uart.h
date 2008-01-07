@@ -46,6 +46,7 @@ typedef bool (*uart_byte_transmitted)(int uart_id, unsigned char* data);
 
 void uart_1_init(
 	unsigned long baud_rate,
+	bool hardware_flow_control,
 	uart_byte_received byte_received_callback,
 	uart_byte_transmitted byte_transmitted_callback,
 	int priority
@@ -55,6 +56,7 @@ bool uart_1_transmit_byte(unsigned char data);
 
 void uart_2_init(
 	unsigned long baud_rate,
+	bool hardware_flow_control,
 	uart_byte_received byte_received_callback,
 	uart_byte_transmitted byte_transmitted_callback,
 	int priority

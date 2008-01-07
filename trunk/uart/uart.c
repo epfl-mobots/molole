@@ -82,7 +82,7 @@ UART_Data UART_2_Data;
 	\param 	priority
 			Interrupt priority, from 1 (lowest priority) to 7 (highest priority)
 */
-void uart_1_init(unsigned long baud_rate, uart_byte_received byte_received_callback, uart_byte_transmitted byte_transmitted_callback, int priority)
+void uart_1_init(unsigned long baud_rate, bool hardware_flow_control, uart_byte_received byte_received_callback, uart_byte_transmitted byte_transmitted_callback, int priority)
 {
 	// Store callback functions
 	UART_1_Data.byte_received_callback = byte_received_callback;
@@ -105,6 +105,10 @@ void uart_1_init(unsigned long baud_rate, uart_byte_received byte_received_callb
 	U1MODEbits.STSEL = 0;	// 1-stop bit
 	U1MODEbits.PDSEL = 0;	// No Parity, 8-data bits
 	U1MODEbits.ABAUD = 0;	// Autobaud Disabled
+	if (hardware_flow_control)
+		U1MODEbits.UEN = 2;	// Do hardware flow control. Use RTS and CTS, but not use BCLK
+	else
+		U1MODEbits.UEN = 0;	// Do not do any hardware flow control. RTS and CTS are left as GPIO
 	
 	// Setup interrupts
 	_U1RXIF = 0;			// clear the reception interrupt
@@ -148,7 +152,7 @@ bool uart_1_transmit_byte(unsigned char data)
 	\param 	priority
 			Interrupt priority, from 1 (lowest priority) to 7 (highest priority)
 */
-void uart_2_init(unsigned long baud_rate, uart_byte_received byte_received_callback, uart_byte_transmitted byte_transmitted_callback, int priority)
+void uart_2_init(unsigned long baud_rate, bool hardware_flow_control, uart_byte_received byte_received_callback, uart_byte_transmitted byte_transmitted_callback, int priority)
 {
 	// Store callback functions
 	UART_2_Data.byte_received_callback = byte_received_callback;
@@ -171,6 +175,10 @@ void uart_2_init(unsigned long baud_rate, uart_byte_received byte_received_callb
 	U2MODEbits.STSEL = 0;	// 1-stop bit
 	U2MODEbits.PDSEL = 0;	// No Parity, 8-data bits
 	U2MODEbits.ABAUD = 0;	// Autobaud Disabled
+	if (hardware_flow_control)
+		U2MODEbits.UEN = 2;	// Do hardware flow control. Use RTS and CTS, but not use BCLK
+	else
+		U2MODEbits.UEN = 0;	// Do not do any hardware flow control. RTS and CTS are left as GPIO
 	
 	// Setup interrupts
 	_U2RXIF = 0;			// clear the reception interrupt
