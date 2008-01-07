@@ -53,7 +53,15 @@ void uart_1_init(
 
 bool uart_1_transmit_byte(unsigned char data);
 
-//void uart_2_init(int baud_rate, int priority);
+void uart_2_init(
+	unsigned long baud_rate,
+	uart_byte_received byte_received_callback,
+	uart_byte_transmitted byte_transmitted_callback,
+	int priority
+);
+
+bool uart_2_transmit_byte(unsigned char data);
+
 
 /*@}*/
 
