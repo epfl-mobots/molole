@@ -31,6 +31,57 @@
 	\defgroup uart UART
 	
 	Wrappers around UART, with a callback oriented interface.
+	
+	\section Usage
+	
+	The following codes echos incoming data on both UARTs:
+\code
+// for Idle()
+#include <p33fxxxx.h>
+// use several molole libraries
+#include <types/types.h>
+#include <error/error.h>
+#include <uart/uart.h>
+#include <clock/clock.h>
+
+// functions for callbacks
+void uart1_byte_received(int uart_id, unsigned char data)
+{
+	uart_1_transmit_byte(data);
+}
+
+bool uart1_byte_transmitted(int uart_id, unsigned char* data)
+{
+	return false;
+}
+
+void uart2_byte_received(int uart_id, unsigned char data)
+{
+	uart_2_transmit_byte(data);
+}
+
+bool uart2_byte_transmitted(int uart_id, unsigned char* data)
+{
+	return false;
+}
+
+int main(void)
+{
+	// initialise clocks
+	clock_init_internal_rc();
+	
+	// initialise both UART at 115200, no flow control
+	uart_1_init(115200, false, uart1_byte_received, uart1_byte_transmitted, 1);
+	uart_2_init(115200, false, uart2_byte_received, uart2_byte_transmitted, 1);
+	
+	// sleep
+	while(1) 
+	{
+		Idle();	// do nothing
+	}
+	return 0;
+}
+\endcode
 */
 /*@{*/
 
@@ -72,6 +123,8 @@ UART_Data UART_2_Data;
 
 /**
 	Init UART 1 subsystem.
+	
+	The parameters are 8 bits, 1 stop bit, no parity.
 	
 	\param	baud_rate
 			baud rate in bps

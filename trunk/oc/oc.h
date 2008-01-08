@@ -52,14 +52,14 @@ enum oc_timer_source
 /** Available Output Compare modes */
 enum oc_modes
 {
-	OC_DISABLED = 0,					/**< Module Disabled. Output Compare module is disabled. This is not a valid mode to set, call oc_disable instead. */
-	OC_ACTIVE_LOW_ONE_SHOT,				/**< Active Low One-Shot mode. Initialize OCx pin low, compare event forces OCx pin high. */
-	OC_ACTIVE_HIGH_ONE_SHOT,			/**< Active High One-Shot mode. Initialize OCx pin high, compare event forces OCx pin low. */
-	OC_TOGGLE,							/**< Toggle mode. Compare event toggles OCx pin. */
-	OC_DELAYED_ONE_SHOT,				/**< Delayed One-Shot mode. Initialize OCx pin low, generate single output pulse on OCx pin. */
-	OC_CONTINUOUS_PULSE,				/**< Continuous Pulse mode. Initialize OCx pin low, generate continuous output pulses on OCx pin. */
-	OC_PWM_NO_FAULT_PROTECTION,			/**< PWM mode without fault protection. PWM mode on OCx, Fault pin is disabled. */
-	OC_PWM_WITH_FAULT_PROTECTION		/**< PWM mode with fault protection. PWM mode on OCx, Fault pin is enabled */
+	OC_DISABLED = 0,					/**< Module Disabled; Output Compare module is disabled; This is not a valid mode to set, call oc_disable instead. */
+	OC_ACTIVE_LOW_ONE_SHOT,				/**< Active Low One-Shot mode; Initialize OCx pin low, compare event forces OCx pin high. */
+	OC_ACTIVE_HIGH_ONE_SHOT,			/**< Active High One-Shot mode; Initialize OCx pin high, compare event forces OCx pin low. */
+	OC_TOGGLE,							/**< Toggle mode; Compare event toggles OCx pin. */
+	OC_DELAYED_ONE_SHOT,				/**< Delayed One-Shot mode; Initialize OCx pin low, generate single output pulse on OCx pin. */
+	OC_CONTINUOUS_PULSE,				/**< Continuous Pulse mode; Initialize OCx pin low, generate continuous output pulses on OCx pin. */
+	OC_PWM_NO_FAULT_PROTECTION,			/**< PWM mode without fault protection; PWM mode on OCx, Fault pin is disabled. */
+	OC_PWM_WITH_FAULT_PROTECTION		/**< PWM mode with fault protection; PWM mode on OCx, Fault pin is enabled */
 };
 
 // Functions, doc in the .c

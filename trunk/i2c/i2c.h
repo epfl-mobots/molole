@@ -39,11 +39,11 @@
 typedef void(*i2c_status_callback)();
 
 /** I2C callback when a data is available.
-	Return true if more end of message, false otherwise. */
+	Return true if end of message, false otherwise. */
 typedef bool (*i2c_set_data_callback)(unsigned char data);
 
-/** I2C callback when a data must be returned
-	Return true if more end of message, false otherwise. */
+/** I2C callback when a data must be returned.
+	Return true if end of message, false otherwise. */
 typedef bool (*i2c_get_data_callback)(unsigned char* data);
 
 // Functions, doc in the .c

@@ -31,6 +31,8 @@
 	\defgroup oc Output Compare
 	
 	Wrapper around Output Compare, with a callback oriented interface.
+	
+	The Output Compare interrupts are not supported, but the timers one are, through the \ref timers library.
 */
 /*@{*/
 
@@ -49,9 +51,22 @@
 #include "../error/error.h"
 #include "../timer/timers.h"
 
-// TODO: interrupt
+// TODO if necessary: interrupt
+
 // if timer enabled, disable it
 
+/**
+	Enable an Output Compare.
+	
+	If timer source is enabled, this function disables it.
+	
+	\param	oc_id
+			Identifier of the Output Compare, from 0 to 7.
+	\param	source
+			Timer providing clock to the output compare. Must be \ref OC_TIMER2 or \ref OC_TIMER3.
+	\param	mode
+			Mode of this Output Compare. Must be one of \ref oc_modes but not \ref OC_DISABLED.
+*/
 void oc_enable(int oc_id, int source, int mode)
 {
 	if ((source < 0) || (mode > 1))
@@ -81,6 +96,12 @@ void oc_enable(int oc_id, int source, int mode)
 	}
 }
 
+/**
+	Disable an Output Compare.
+	
+	\param	oc_id
+			Identifier of the Output Compare, from 0 to 7.
+*/
 void oc_disable(int oc_id)
 {
 	switch (oc_id)
@@ -97,6 +118,16 @@ void oc_disable(int oc_id)
 	}
 }
 
+/**
+	Set the register values of an Output Compare.
+
+	\param	oc_id
+			Identifier of the Output Compare, from 0 to 7.
+	\param	primary
+			Output Compare register, named OCxR in the documentation.
+	\param	secondary
+			Secondary Output Compare register, named OCxRS in the documentation.
+*/
 void oc_set_value(int oc_id, unsigned primary, unsigned secondary)
 {
 	switch (oc_id)

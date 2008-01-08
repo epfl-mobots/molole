@@ -112,7 +112,7 @@ void i2c_init_slave(
 void i2c_slave_return_to_idle()
 {
 	I2C_Slave_Data.state = I2C_IDLE;
-}	
+}
 
 
 
@@ -128,7 +128,6 @@ void i2c_slave_return_to_idle()
 void _ISR _SI2C1Interrupt(void)
 {
 	unsigned char data;
-	bool return_to_idle;
 	
 	// no interrupt is generated at the end of cycle,
 	// nor all way to detect beginning of cycle are buggy

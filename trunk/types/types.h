@@ -43,8 +43,8 @@ typedef int bool;
 //! Boolean literals for convenience
 enum bool_literals
 {
-	false = 0,
-	true = 1
+	false = 0,	//!< truth literal
+	true = 1	//!< false literal
 };
 
 /*@}*/
