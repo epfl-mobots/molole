@@ -39,10 +39,21 @@
 enum pwm_errors
 {
 	PWM_ERROR_BASE = 0x0300,
-	PWM_ERROR_INVALIDE_PWM_ID,			/**< The desired PWM does not exists. */
-	PWM_ERROR_INVALIDE_PRESCALER,		/**< The specified prescaler value is invalid. */
-	PWM_ERROR_INVALIDE_MODE,			/**< The specified time base mode is invalid. */
+	PWM_ERROR_INVALID_PWM_ID,			/**< The desired PWM does not exists. */
+	PWM_ERROR_INVALID_PRESCALER,		/**< The specified prescaler value is invalid. */
+	PWM_ERROR_INVALID_RANGE,			/**< The specified range for period, duty, or Special Event Trigger value is invalid. */
+	PWM_ERROR_INVALID_MODE,				/**< The specified time base mode is invalid. */
+	PWM_ERROR_INVALID_SEV_DIRECTION,	/**< The specified Special Event Trigger direction is invalid. */
+	PWM_ERROR_INVALID_SEV_POSTSCALE		/**< The specified Special Event Trigger postscale is invalid. */
 };
+
+/** PWM direction of Special Event Trigger */
+enum pwm_sev_directions
+{
+	PWM_SEV_UP = 0,						/**< A Special Event Trigger will occur when the PWM time base is counting up */
+	PWM_SEV_DOWN 						/**< A Special Event Trigger will occur when the PWM time base is counting down */
+};
+
 
 /** Valid prescaler values */
 enum pwm_prescaler_values
@@ -71,7 +82,7 @@ void pwm_init(int prescaler, unsigned period, int mode);
 void pwm_enable(int pwm_id);
 void pwm_disable(int pwm_id);
 void pwm_set_duty(int pwm_id, unsigned duty);
-
+void pwm_set_special_event_trigger(int direction, int postscale, unsigned value);
 
 /*@}*/
 

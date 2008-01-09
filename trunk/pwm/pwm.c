@@ -50,14 +50,26 @@
 #include "pwm.h"
 #include "../error/error.h"
 
-// prescaler 1:1, 1:4, 1:16, 1:64
+/**
+	Init the PWM subsystem.
+	
+	\param	prescaler
+			Prescaler of FCY. Must be one of pwm_prescaler_values.
+	\param	period
+			PWM period (0..32767)
+	\param	mode
+			PWM time base modes. Must be one of pwm_time_base_modes.
+*/
 void pwm_init(int prescaler, unsigned period, int mode)
 {
 	if (mode > 3)
-		ERROR(PWM_ERROR_INVALIDE_MODE, &mode);
+		ERROR(PWM_ERROR_INVALID_MODE, &mode);
 	
 	if (prescaler > 3)
-		ERROR(PWM_ERROR_INVALIDE_PRESCALER, &prescaler);
+		ERROR(PWM_ERROR_INVALID_PRESCALER, &prescaler);
+	
+	if (period > 32676)
+		ERROR(PWM_ERROR_INVALID_RANGE, &period);
 	
 	PTPER = period;						// PWM period
 	PTCONbits.PTCKPS = prescaler;		// PWM Time Base Input Clock Prescale
@@ -65,11 +77,6 @@ void pwm_init(int prescaler, unsigned period, int mode)
 	PTCONbits.PTSIDL = 0;				// PWM time base runs in CPU Idle mode
 	PTCONbits.PTEN = 1;					// Enable PWM Time Base Timer
 }
-
-// TODO: implement timer interface
-// 	// Trig the ADC with the special event
-// 	SEVTCMP = PTPER;			// Conversion in the middle of the high (or low) side of the PWM (for the Up/Down counting mode)
-// 	PWMCON2bits.SEVOPS = 0xF;	// Special Event Trigger Postscaler = 16 -> don't useful to trig the ADC too fast !
 
 
 /*
@@ -89,6 +96,12 @@ void pwm_disable_interrupt()
 }
 */
 
+/**
+	Enables a PWM.
+	
+	\param	pwm_id
+			Identifier of the PWM (0..7)
+*/
 void pwm_enable(int pwm_id)
 {
 	// L and H pins are set to PWM in complimentary output
@@ -98,10 +111,16 @@ void pwm_enable(int pwm_id)
 		case 1: PWMCON1bits.PEN2L = 1; PWMCON1bits.PEN2H = 1; PWMCON1bits.PMOD2 = 0; break;
 		case 2: PWMCON1bits.PEN3L = 1; PWMCON1bits.PEN3H = 1; PWMCON1bits.PMOD3 = 0; break;
 		case 3: PWMCON1bits.PEN4L = 1; PWMCON1bits.PEN4H = 1; PWMCON1bits.PMOD4 = 0; break;
-		default: ERROR(PWM_ERROR_INVALIDE_PWM_ID, &pwm_id);
+		default: ERROR(PWM_ERROR_INVALID_PWM_ID, &pwm_id);
 	}
 }
 
+/**
+	Disables a PWM.
+	
+	\param	pwm_id
+			Identifier of the PWM (0..7)
+*/
 void pwm_disable(int pwm_id)
 {
 	// L and H pins are to GPIO
@@ -111,20 +130,65 @@ void pwm_disable(int pwm_id)
 		case 1: PWMCON1bits.PEN2L = 0; PWMCON1bits.PEN2H = 0; break;
 		case 2: PWMCON1bits.PEN3L = 0; PWMCON1bits.PEN3H = 0; break;
 		case 3: PWMCON1bits.PEN4L = 0; PWMCON1bits.PEN4H = 0; break;
-		default: ERROR(PWM_ERROR_INVALIDE_PWM_ID, &pwm_id);
+		default: ERROR(PWM_ERROR_INVALID_PWM_ID, &pwm_id);
 	}
 }
 
+/**
+	Set the duty of a PWM.
+	
+	\param	pwm_id
+			Identifier of the PWM (0..7)
+	\param	duty
+			Duty cycle (0..32767)
+*/
+
 void pwm_set_duty(int pwm_id, unsigned duty)
 {
+	if (duty > 32676)
+		ERROR(PWM_ERROR_INVALID_RANGE, &duty);
+		
 	switch (pwm_id)
 	{
 		case 0: PDC1 = duty; break;
 		case 1: PDC2 = duty; break;
 		case 2: PDC3 = duty; break;
 		case 3: PDC4 = duty; break;
-		default: ERROR(PWM_ERROR_INVALIDE_PWM_ID, &pwm_id);
+		default: ERROR(PWM_ERROR_INVALID_PWM_ID, &pwm_id);
 	}
+}
+
+/**
+	Setup analog-to-digital conversion (adc) synchronization with PWM.
+	
+	When PWM reaches a specific value and direction, a counter is incremented.
+	When this counter reaches (postscale+1), the adc starts.
+	
+	This function does not perform adc setup.
+	
+	\param	direction
+			On which direction of counting to compare, PWM_SEV_UP or PWM_SEV_DOWN
+	\param	postscale
+			The conversion is started each (postscale+1) (parameter is 0..15, corresponding to a 1:1 to 1:16 postscale)
+	\param	value
+			Value to compare (0.. 32767)
+*/
+void pwm_set_special_event_trigger(int direction, int postscale, unsigned value)
+{
+	if ((direction < 0) || (direction > 1))
+		ERROR(PWM_ERROR_INVALID_SEV_DIRECTION, &direction);
+	
+	if ((direction < 0) || (direction > 15))
+		ERROR(PWM_ERROR_INVALID_SEV_POSTSCALE, &postscale);
+	
+	if (value > 32676)
+		ERROR(PWM_ERROR_INVALID_RANGE, &value);
+	
+	SEVTCMPbits.SEVTDIR = direction;
+	SEVTCMPbits.SEVTCMP = value;
+	PWMCON2bits.SEVOPS = postscale;
+	
+	// TODO: set or check ADC, for instance: AD1CON1bits.SSRC
 }
 
 /*@}*/
