@@ -30,7 +30,9 @@
 
 /**
 
-\defgroup timers Timers
+\defgroup timer Timer
+
+A wrapper around dsPIC33 Timers.
 
 \section Introduction
 
@@ -49,7 +51,7 @@ With a cycle frequency of 40 MHz, the maximum reachable timings are as follow:
 
 \section Usage
 
-You can configure one of the 16-bits timer (TIMER1 -> TIMER9), or one of the 32-bits timer (TIMER23 -> TIMER89).
+You can configure one of the 16-bits timer (\ref TIMER1 -> \ref TIMER9), or one of the 32-bits timer (\ref TIMER23 -> \ref TIMER89).
 The configuration process is: initializing the timer with the desired timing, optionally defining an interrupt routine,
 and finally launch the timer.
 
@@ -70,10 +72,10 @@ All functions cast errors using the \ref error "error reporting mechanism"
 \subsection SIM MPLAB SIM
 
 The following problems occurs when using the MPLAB SIM simulator (the library is working fine on the real microcontrollers):
-- TIMER6: timer_enable_interrupt() don't modify the IEC2.T6IE register ! So the interruption is never fired...
-- TIMER9: everything is ok (register IEC3.T9IE = 1), the timer normally counts, but the flag IFS3bits.T9IF is never set !
+- \ref TIMER6: timer_enable_interrupt() don't modify the IEC2.T6IE register ! So the interruption is never fired...
+- \ref TIMER9: everything is ok (register IEC3.T9IE = 1), the timer normally counts, but the flag IFS3bits.T9IF is never set !
 	The interruption is never fired ! If we set the flag by hand, we enter in the interruption...
-- TIMER67 and TIMER89: same problem as TIMER9
+- \ref TIMER67 and \ref TIMER89: same problem as TIMER9
 
 */
 /*@{*/
@@ -96,14 +98,14 @@ The following problems occurs when using the MPLAB SIM simulator (the library is
 // Definitions
 //------------
 
-/** m_set_32_bits_mode parameter. Enable 16-bits timer mode */
+/** m_set_32_bits_mode parameter; Enable 16-bits timer mode */
 #define TIMER_16B_MODE						0
-/** m_set_32_bits_mode parameter. Enable 32-bits timer mode */
+/** m_set_32_bits_mode parameter; Enable 32-bits timer mode */
 #define TIMER_32B_MODE						1
 
-/** Maximum reachable timing with a 16-bits timer. The 256 factor is the maximum prescaler of the timer. */
+/** Maximum reachable timing with a 16-bits timer; The 256 factor is the maximum prescaler of the timer. */
 #define TIMER_16B_MAX_TIME_NS				((unsigned long long)clock_get_cycle_duration() * 0x0000ffff00ULL)
-/** Maximum reachable timing with a 32-bits timer. The 256 factor is the maximum prescaler of the timer. */
+/** Maximum reachable timing with a 32-bits timer; The 256 factor is the maximum prescaler of the timer. */
 #define TIMER_32B_MAX_TIME_NS				((unsigned long long)clock_get_cycle_duration() * 0xffffffff00ULL)
 
 //-----------------------
@@ -169,7 +171,7 @@ static void m_set_period_32b(int id, unsigned long period);
 	This function initializes the timer, defines its period and reserves it, avoiding someone else to use it.
 	
 	\param	id
-			The timer can be one of the 16-bits timer (TIMER1 -> TIMER9) or one of the 32-bits timer (TIMER23 -> TIMER89)
+			The timer can be one of the 16-bits timer (\ref TIMER1 -> \ref TIMER9) or one of the 32-bits timer (\ref TIMER23 -> \ref TIMER89)
 	\param 	arg_sample_time
 			The period of the timer, expressed in the unit defined by the \e unit parameter
 	\param 	unit
@@ -187,7 +189,7 @@ void timer_init(int id, unsigned long int arg_sample_time, int unit)
 	
 	// test the validity of the timer identifier
 	if (id < TIMER1 || id > TIMER89)
-		ERROR(TIMER_ERROR_INVALIDE_TIMER_ID, &id)
+		ERROR(TIMER_ERROR_INVALID_TIMER_ID, &id)
 		
 	// test that the timer is free
 	if (!Timer_Data[timer_id_to_index(id)].is_free)
@@ -226,7 +228,7 @@ void timer_init(int id, unsigned long int arg_sample_time, int unit)
 	The timer must already be initialized with timer_init() !
 	
 	\param	id
-			The timer can be one of the 16-bits timer (TIMER1 -> TIMER9) or one of the 32-bits timer (TIMER23 -> TIMER89)
+			The timer can be one of the 16-bits timer (\ref TIMER1 -> \ref TIMER9) or one of the 32-bits timer (\ref TIMER23 -> \ref TIMER89)
 	\param 	sample_time
 			The period of the timer, expressed in the unit defined by the \e unit parameter
 	\param 	unit
@@ -249,7 +251,7 @@ void timer_set_period(int id, unsigned long int sample_time, int unit)
 
 	// test the validity of the timer identifier
 	if (id < TIMER1 || id > TIMER89)
-		ERROR(TIMER_ERROR_INVALIDE_TIMER_ID, &id)
+		ERROR(TIMER_ERROR_INVALID_TIMER_ID, &id)
 		
 	// is the timer initialized ?
 	if (!Timer_Data[timer_id_to_index(id)].is_initialized)
@@ -257,7 +259,7 @@ void timer_set_period(int id, unsigned long int sample_time, int unit)
 		
 	// only unit 0,3,6,9 ok
 	if (!(unit == 0 || unit == 3 || unit == 6 || unit == 9))
-		ERROR(TIMER_ERROR_INVALIDE_UNIT, &unit)
+		ERROR(TIMER_ERROR_INVALID_UNIT, &unit)
 	
 	// compute sample time in ns
 	real_sample_time = sample_time;
@@ -320,7 +322,7 @@ void timer_set_period(int id, unsigned long int sample_time, int unit)
 	Release the timer, so that someone else can use it.
 	
 	\param	id
-			The timer can be one of the 16-bits timer (TIMER1 -> TIMER9) or one of the 32-bits timer (TIMER23 -> TIMER89).
+			The timer can be one of the 16-bits timer (\ref TIMER1 -> \ref TIMER9) or one of the 32-bits timer (\ref TIMER23 -> \ref TIMER89).
 */
 void timer_release(int id)
 {
@@ -328,7 +330,7 @@ void timer_release(int id)
 	
 	// test the validity of the timer identifier
 	if(id < TIMER1 || id > TIMER89)
-		ERROR(TIMER_ERROR_INVALIDE_TIMER_ID, &id)
+		ERROR(TIMER_ERROR_INVALID_TIMER_ID, &id)
 	
 	index = timer_id_to_index(id);
 	Timer_Data[index].is_initialized = 0;
@@ -345,7 +347,7 @@ void timer_release(int id)
 	Return wether a timer is available for use
 
 	\param	id
-			The timer can be one of the 16-bits timer (TIMER1 -> TIMER9) or one of the 32-bits timer (TIMER23 -> TIMER89).
+			The timer can be one of the 16-bits timer (\ref TIMER1 -> \ref TIMER9) or one of the 32-bits timer (\ref TIMER23 -> \ref TIMER89).
 
 	\return
 	true is timer is free, false if it is already used and not available
@@ -359,7 +361,7 @@ bool timer_is_free(int id)
 	Enable a timer
 
 	\param	id
-			The timer can be one of the 16-bits timer (TIMER1 -> TIMER9) or one of the 32-bits timer (TIMER23 -> TIMER89).
+			The timer can be one of the 16-bits timer (\ref TIMER1 -> \ref TIMER9) or one of the 32-bits timer (\ref TIMER23 -> \ref TIMER89).
 */
 void timer_enable(int id)
 {
@@ -372,7 +374,7 @@ void timer_enable(int id)
 	The timer is not released, even if enabled is false.
 
 	\param	id
-			The timer can be one of the 16-bits timer (TIMER1 -> TIMER9) or one of the 32-bits timer (TIMER23 -> TIMER89).
+			The timer can be one of the 16-bits timer (\ref TIMER1 -> \ref TIMER9) or one of the 32-bits timer (\ref TIMER23 -> \ref TIMER89).
 */
 void timer_disable(int id)
 {
@@ -385,7 +387,7 @@ void timer_disable(int id)
 	Timer is not released, even if enabled is false.
 	
 	\param	id
-			The timer can be one of the 16-bits timer (TIMER1 -> TIMER9) or one of the 32-bits timer (TIMER23 -> TIMER89).
+			The timer can be one of the 16-bits timer (\ref TIMER1 -> \ref TIMER9) or one of the 32-bits timer (\ref TIMER23 -> \ref TIMER89).
 	\param	enabled
 			True to enable timer, false to disable it.
 */
@@ -393,7 +395,7 @@ void timer_set_enabled(int id, bool enabled)
 {
 	// test the validity of the timer identifier
 	if (id < TIMER1 || id > TIMER89)
-		ERROR(TIMER_ERROR_INVALIDE_TIMER_ID, &id)
+		ERROR(TIMER_ERROR_INVALID_TIMER_ID, &id)
 		
 	// is the timer initialized ?
 	if (!Timer_Data[timer_id_to_index(id)].is_initialized)
@@ -431,13 +433,13 @@ void timer_set_enabled(int id, bool enabled)
 	Set the value of the counter of a timer.
 	
 	\param	id
-			The timer can be one of the 16-bits timer (TIMER1 -> TIMER9) or one of the 32-bits timer (TIMER23 -> TIMER89).
+			The timer can be one of the 16-bits timer (\ref TIMER1 -> \ref TIMER9) or one of the 32-bits timer (\ref TIMER23 -> \ref TIMER89).
 */
 void timer_set_value(int id, unsigned long value)
 {
 	// test the validity of the timer identifier
 	if (id < TIMER1 || id > TIMER89)
-		ERROR(TIMER_ERROR_INVALIDE_TIMER_ID, &id)
+		ERROR(TIMER_ERROR_INVALID_TIMER_ID, &id)
 		
 	switch (id)
 	{
@@ -461,7 +463,7 @@ void timer_set_value(int id, unsigned long value)
 	Returns the value of the counter of a timer.
 	
 	\param	id
-			The timer can be one of the 16-bits timer (TIMER1 -> TIMER9) or one of the 32-bits timer (TIMER23 -> TIMER89).
+			The timer can be one of the 16-bits timer (\ref TIMER1 -> \ref TIMER9) or one of the 32-bits timer (\ref TIMER23 -> \ref TIMER89).
 	\return
 			The value of the counter of the requested timer.
 */
@@ -469,7 +471,7 @@ unsigned long timer_get_value(int id)
 {
 	// test the validity of the timer identifier
 	if (id < TIMER1 || id > TIMER89)
-		ERROR_RET_0(TIMER_ERROR_INVALIDE_TIMER_ID, &id)
+		ERROR_RET_0(TIMER_ERROR_INVALID_TIMER_ID, &id)
 	
 	switch (id)
 	{
@@ -496,17 +498,17 @@ unsigned long timer_get_value(int id)
 	This function is useful if you want to use an external clock source, on the T1CK pin (rising edge).
 	
 	\param	id
-			The timer can be one of the 16-bits timer (TIMER1 -> TIMER9) or one of the 32-bits timer (TIMER23 -> TIMER89).
+			The timer can be one of the 16-bits timer (\ref TIMER1 -> \ref TIMER9) or one of the 32-bits timer (\ref TIMER23 -> \ref TIMER89).
 	\param	clock_source
 			The parameter can be one of the two following constants:
-			- TIMER_INTERNAL_CLOCK
-			- TIMER_EXTERNAL_CLOCK
+			- \ref TIMER_CLOCK_INTERNAL
+			- \ref TIMER_CLOCK_EXTERNAL
 */
 void timer_set_clock_source(int id, int clock_source)
 {
 	// test the validity of the timer identifier
 	if (id < TIMER1 || id > TIMER89)
-		ERROR(TIMER_ERROR_INVALIDE_TIMER_ID, &id)
+		ERROR(TIMER_ERROR_INVALID_TIMER_ID, &id)
 	
 	switch (id)
 	{
@@ -542,7 +544,7 @@ void timer_set_clock_source(int id, int clock_source)
 	This option is meaningful only when using the internal oscillator !
 	
 	\param	id
-			The timer can be one of the 16-bits timer (TIMER1 -> TIMER9) or one of the 32-bits timer (TIMER23 -> TIMER89).
+			The timer can be one of the 16-bits timer (\ref TIMER1 -> \ref TIMER9) or one of the 32-bits timer (\ref TIMER23 -> \ref TIMER89).
 	\param	enable
 			True to enable gated time accumulation.
 */
@@ -550,7 +552,7 @@ void timer_use_gated_time_accumulation(int id, bool enable)
 {
 	// test the validity of the timer identifier
 	if(id < TIMER1 || id > TIMER89)
-		ERROR(TIMER_ERROR_INVALIDE_TIMER_ID, &id)
+		ERROR(TIMER_ERROR_INVALID_TIMER_ID, &id)
 		
 	switch (id)
 	{
@@ -586,7 +588,7 @@ void timer_use_gated_time_accumulation(int id, bool enable)
 	Continue timer operation in Idle mode (but discontinue it in Sleep mode).
 	
 	\param	id
-			The timer can be one of the 16-bits timer (TIMER1 -> TIMER9) or one of the 32-bits timer (TIMER23 -> TIMER89).
+			The timer can be one of the 16-bits timer (\ref TIMER1 -> \ref TIMER9) or one of the 32-bits timer (\ref TIMER23 -> \ref TIMER89).
 	\param 	callback
 			Pointer to a function that will be called upon interrupt
 	\param 	priority
@@ -596,7 +598,7 @@ void timer_enable_interrupt(int id, timer_callback callback, int priority)
 {
 	// test the validity of the timer identifier
 	if(id < TIMER1 || id > TIMER89)
-		ERROR(TIMER_ERROR_INVALIDE_TIMER_ID, &id)
+		ERROR(TIMER_ERROR_INVALID_TIMER_ID, &id)
 	
 	Timer_Data[timer_id_to_index(id)].callback = callback;
 	
@@ -674,13 +676,13 @@ void timer_enable_interrupt(int id, timer_callback callback, int priority)
 	Discontinue timer operation in Idle mode and in Sleep mode.
 	
 	\param	id
-			The timer can be one of the 16-bits timer (TIMER1 -> TIMER9) or one of the 32-bits timer (TIMER23 -> TIMER89).
+			The timer can be one of the 16-bits timer (\ref TIMER1 -> \ref TIMER9) or one of the 32-bits timer (\ref TIMER23 -> \ref TIMER89).
 */
 void timer_disable_interrupt(int id)
 {
 	// test the validity of the timer identifier
 	if(id < TIMER1 || id > TIMER89)
-		ERROR(TIMER_ERROR_INVALIDE_TIMER_ID, &id)
+		ERROR(TIMER_ERROR_INVALID_TIMER_ID, &id)
 	
 	// _TxIE					Disable interrupt
 	// _TxIF					Clear interrupt flag
@@ -749,7 +751,7 @@ void timer_disable_interrupt(int id)
 	Set a timer in 16-bits or 32-bits mode.
 	
 	\param	id
-			The timer can be one of the 16-bits timer (TIMER1 -> TIMER9) or one of the 32-bits timer (TIMER23 -> TIMER89).
+			The timer can be one of the 16-bits timer (\ref TIMER1 -> \ref TIMER9) or one of the 32-bits timer (\ref TIMER23 -> \ref TIMER89).
 
 	\param	mode
 			The parameter can be one of the two following constants:
@@ -787,7 +789,7 @@ void m_set_32bits_mode(int id, char mode)
 	Set the prescaler register of a timer.
 
 	\param	id
-			The timer can be one of the 16-bits timer (TIMER1 -> TIMER9) or one of the 32-bits timer (TIMER23 -> TIMER89)
+			The timer can be one of the 16-bits timer (\ref TIMER1 -> \ref TIMER9) or one of the 32-bits timer (\ref TIMER23 -> \ref TIMER89)
 
 	\param	prescaler
 			Prescaler value. Can be one of the following:
@@ -833,7 +835,7 @@ void m_set_prescaler(int id, unsigned int prescaler)
 	Set the period register of a 16-bits timer.
 	
 	\param	id
-			The timer can be one of the 16-bits timer (TIMER1 -> TIMER9) or one of the 32-bits timer (TIMER23 -> TIMER89)
+			The timer can be one of the 16-bits timer (\ref TIMER1 -> \ref TIMER9) or one of the 32-bits timer (\ref TIMER23 -> \ref TIMER89)
 
 	\param	period
 			Value of the period. Can be any number between 0x0000 and 0xFFFF.
@@ -870,7 +872,7 @@ void m_set_period_16b(int id, unsigned short period)
 	To do this, the period register of the 2 corresponding 16-bits timers has to be set.
 
 	\param	id
-			The timer can be one of the 16-bits timer (TIMER1 -> TIMER9) or one of the 32-bits timer (TIMER23 -> TIMER89)
+			The timer can be one of the 16-bits timer (\ref TIMER1 -> \ref TIMER9) or one of the 32-bits timer (\ref TIMER23 -> \ref TIMER89)
 
 	\param	period
 			Value of the period. Can be any number between 0x0000 and 0xFFFFFFFF.

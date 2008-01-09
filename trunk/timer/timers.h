@@ -29,7 +29,7 @@
 
 #include "../types/types.h"
 
-/** \addtogroup timers */
+/** \addtogroup timer */
 /*@{*/
 
 /** \file
@@ -45,8 +45,8 @@ enum timer_errors
 	TIMER_ERROR_SAMPLE_TIME_NOT_IN_RANGE,	/**< The required timing is not possible (see the Limits paragraph) above */
 	TIMER_ERROR_ALREADY_IN_USE,				/**< The desired timer (one 16-bits or 2 16-bits timers for a 32-bits timer) is already in use ! */
 	TIMER_ERROR_NOT_INITIALIZED,			/**< The desired timer is not initialized. Call timer_init() first. */
-	TIMER_ERROR_INVALIDE_TIMER_ID,			/**< The desired timer is not available. */
-	TIMER_ERROR_INVALIDE_UNIT,				/**< The unit parameter, passed to timer_init(), is not valid */
+	TIMER_ERROR_INVALID_TIMER_ID,			/**< The desired timer is not available. */
+	TIMER_ERROR_INVALID_UNIT,				/**< The unit parameter, passed to timer_init(), is not valid */
 };
 
 /** Source of clock for timers */
