@@ -23,8 +23,8 @@
 	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef _MOLOLE_PWM_H
-#define _MOLOLE_PWM_H
+#ifndef _MOLOLE_OC_H
+#define _MOLOLE_OC_H
 
 /** \addtogroup oc */
 /*@{*/
