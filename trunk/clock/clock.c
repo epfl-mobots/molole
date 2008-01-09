@@ -31,7 +31,15 @@
 /**
 	\defgroup clock Clock
 	
-	Clock configuration and constants.
+	Clock configuration.
+	
+	You must call either clock_init_internal_rc_40(), clock_init_internal_rc_30(), or
+	clock_init_internal_rc_from_n1_m_n2() with valid values for n1, m, and n2 prior
+	to use any peripheral.
+	
+	\section Usage
+	
+	Please refer to dsPIC33F Family Reference Manual Section 7 for more details.
 */
 /*@{*/
 
@@ -43,36 +51,48 @@
 // Definitions
 //------------
 
+// Clock constants
+
+
+
 #include <p33fxxxx.h>
 
 #include "clock.h"
 
-// TODO: module documentation
-/*  Defines all the timing related constants.
-*
-*	This file defines the following timing related constants:
-*  <ul>
-*		<li> Internal oscillator frequency </li>
-*		<li> PLL parameters, in order to get an oscillator frequency of 80 MHz (cylce frequency of 40 MHz) </li>
-*		<li> Duration constants (ms, us, ns) </li>
-*	</ul>
-*  
-*	This file is mainly used by the timers library (timers.h), and the PLL initialization routine.
-*/
+
+//-----------------------
+// Structures definitions
+//-----------------------
+
+/** Pre-computed clock constants */
+static struct 
+{
+	unsigned long fcy; /**< instruction cycle frequency */
+} Clock_Data;
+
 
 //-------------------
 // Exported functions
 //-------------------
 
 /**
-	\brief Initialize PLL from constants for operations on internal RC (constants are for 40 MHz)
+	Initialize PLL for operations on internal RC with specified values.
+	
+	\param	n1
+			PLL prescaler
+	\param	m
+			PLL multiplier
+	\param	n2
+			PLL postscaler
 */
-void clock_init_internal_rc(void)
+void clock_init_internal_rc_from_n1_m_n2(unsigned n1, unsigned m, unsigned n2)
 {
-	// Setup PLL constants from defines
-	_PLLPRE = CLOCK_N1 - 2;
-	_PLLDIV = CLOCK_M - 2;
-	switch (CLOCK_N2)
+	// The dsPIC33 internal oscillator is rated at 7.37 MHz.
+	const unsigned long fin = 7370000;
+	
+	_PLLPRE = n1 - 2;
+	_PLLDIV = m - 2;
+	switch (n2)
 	{
 		case 2: _PLLPOST = 0; break;
 		case 4: _PLLPOST = 1; break;
@@ -83,6 +103,44 @@ void clock_init_internal_rc(void)
 	// Wait for PLL to lock
 	while(OSCCONbits.LOCK!=1)
 		{};
+	
+	// Compute cycle frequency
+	unsigned long fosc = (fin * (unsigned long)m) / ((unsigned long)n1 * (unsigned long)n2);
+	Clock_Data.fcy = fosc / 2;
+}
+
+/**
+	Initialize PLL for operations on internal RC for 30 MHz
+*/
+void clock_init_internal_rc_30()
+{
+	// TODO: add correct values.
+	clock_init_internal_rc_from_n1_m_n2(6, 130, 2);
+}
+
+
+/**
+	Initialize PLL for operations on internal RC for 40 MHz
+*/
+void clock_init_internal_rc_40()
+{
+	clock_init_internal_rc_from_n1_m_n2(6, 130, 2);
+}
+
+/**
+	Returns the duration of one CPU cycle, in ns
+/*/
+unsigned long clock_get_cycle_duration()
+{
+	return 1000000000 / Clock_Data.fcy;
+}
+
+/**
+	Returns the frequency of CPU cycles, in Hz
+*/
+unsigned long clock_get_cycle_frequency()
+{
+	return Clock_Data.fcy;
 }
 
 /*@}*/

@@ -111,10 +111,10 @@ typedef struct
 } UART_Data;
 
 /** data for UART 1 wrapper */
-UART_Data UART_1_Data;
+static UART_Data UART_1_Data;
 
 /** data for UART 2 wrapper */
-UART_Data UART_2_Data;
+static UART_Data UART_2_Data;
 
 
 //-------------------
@@ -141,17 +141,23 @@ void uart_1_init(unsigned long baud_rate, bool hardware_flow_control, uart_byte_
 	UART_1_Data.byte_received_callback = byte_received_callback;
 	UART_1_Data.byte_transmitted_callback = byte_transmitted_callback;
 	
+	
 	// Setup baud rate
+	/*
+	UART high speed mode is buggy on current dsPIC 33, see erratas for details
 	if (baud_rate <= CLOCK_FCY / 16)
 	{
 		U1MODEbits.BRGH = 0;// Low Speed mode
-		U1BRG = (((unsigned long)CLOCK_FCY)/baud_rate) / 16 - 1;
+		U1BRG = (clock_get_cycle_frequency() / baud_rate) / 16 - 1;
 	}
 	else
 	{
 		U1MODEbits.BRGH = 1;// High Speed mode
-		U1BRG = ((unsigned long)CLOCK_FCY) / (4*baud_rate) - 1;
+		U1BRG = clock_get_cycle_frequency() / (4*baud_rate) - 1;
 	}
+	*/
+	U1MODEbits.BRGH = 0;	// Low Speed mode
+	U1BRG = (clock_get_cycle_frequency()/baud_rate) / 16 - 1;
 	
 	// Setup other parameters
 	U1MODEbits.USIDL = 0;	// Continue module operation in idle mode
@@ -212,16 +218,21 @@ void uart_2_init(unsigned long baud_rate, bool hardware_flow_control, uart_byte_
 	UART_2_Data.byte_transmitted_callback = byte_transmitted_callback;
 	
 	// Setup baud rate
-	if (baud_rate <= CLOCK_FCY / 16)
+	/*
+	UART high speed mode is buggy on current dsPIC 33, see erratas for details
+	if (baud_rate <= clock_get_cycle_frequency() / 16)
 	{
 		U2MODEbits.BRGH = 0;// Low Speed mode
-		U2BRG = (((unsigned long)CLOCK_FCY)/baud_rate) / 16 - 1;
+		U2BRG = (clock_get_cycle_frequency() / baud_rate) / 16 - 1;
 	}
 	else
 	{
 		U2MODEbits.BRGH = 1;// High Speed mode
-		U2BRG = ((unsigned long)CLOCK_FCY) / (4*baud_rate) - 1;
+		U2BRG = clock_get_cycle_frequency() / (4*baud_rate) - 1;
 	}
+	*/
+	U2MODEbits.BRGH = 0;	// Low Speed mode
+	U2BRG = (clock_get_cycle_frequency()/baud_rate) / 16 - 1;
 	
 	// Setup other parameters
 	U2MODEbits.USIDL = 0;	// Continue module operation in idle mode
