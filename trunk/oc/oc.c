@@ -69,7 +69,7 @@
 */
 void oc_enable(int oc_id, int source, int mode)
 {
-	if ((source < 0) || (mode > 1))
+	if ((source < 0) || (source > 1))
 		ERROR(OC_ERROR_INVALIDE_SOURCE, &source);
 	
 	if ((mode == OC_DISABLED) || (mode > 7))
