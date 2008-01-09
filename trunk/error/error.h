@@ -41,6 +41,9 @@ typedef void(*error_callback)(const char * file, int line, int id, void* arg);
 /** Report an error, alongside the file name and line number and return */
 #define ERROR(id, arg) { error_report(__FILE__, __LINE__, id, arg); return; }
 
+/** Report an error, alongside the file name and line number and return 0 */
+#define ERROR_RET_0(id, arg) { error_report(__FILE__, __LINE__, id, arg); return 0; }
+
 // Functions, doc in the .c
 
 void error_report(const char * file, int line, int id, void*arg);

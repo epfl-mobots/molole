@@ -139,7 +139,7 @@ int timer_id_to_index(int id)
 		return (id - TIMER23) * 2 + 1;
 }
 
-/** Return if timer is 32 bits for a specific id, assumed to be in correct range */
+/** Return wether a timer is 32 bits for a specific id, assumed to be in correct range */
 bool timer_id_to_32bits(int id)
 {
 	return id > TIMER9;
@@ -164,7 +164,7 @@ static void m_set_period_32b(int id, unsigned long period);
 //-------------------
 
 /**
-	Initialize a timer, before you can use it.
+	Initialize a timer, prior to any use.
 	
 	This function initializes the timer, defines its period and reserves it, avoiding someone else to use it.
 	
@@ -178,9 +178,6 @@ static void m_set_period_32b(int id, unsigned long period);
 			- 3 : millisecond
 			- 6 : microsecond
 			- 9 : nanosecond
-	
-	\return
-	TIMER_NO_ERROR on success, or a value from timer_return_values describing the error.
 	
 	\note	Use timer_release() when you don't need a timer anymore, so that someone else can use it !
 */
@@ -238,9 +235,6 @@ void timer_init(int id, unsigned long int arg_sample_time, int unit)
 			- 3 : millisecond
 			- 6 : microsecond
 			- 9 : nanosecond
-	
-	\return
-	TIMER_NO_ERROR on success, or a value from timer_return_values describing the error.
 	
 	\note	Automatically reset the timer's counter.
 */
@@ -318,7 +312,7 @@ void timer_set_period(int id, unsigned long int sample_time, int unit)
 	}
 
 	// Reset the timer counter
-	timer_reset(id);
+	timer_set_value(id, 0);
 }
 
 
@@ -326,10 +320,7 @@ void timer_set_period(int id, unsigned long int sample_time, int unit)
 	Release the timer, so that someone else can use it.
 	
 	\param	id
-			The timer can be one of the 16-bits timer (TIMER1 -> TIMER9) or one of the 32-bits timer (TIMER23 -> TIMER89)
-	
-	\return	
-	TIMER_NO_ERROR on success, or a value from timer_return_values describing the error
+			The timer can be one of the 16-bits timer (TIMER1 -> TIMER9) or one of the 32-bits timer (TIMER23 -> TIMER89).
 */
 void timer_release(int id)
 {
@@ -351,10 +342,10 @@ void timer_release(int id)
 
 
 /**
-	Returns if a timer is available for use
+	Return wether a timer is available for use
 
 	\param	id
-			The timer can be one of the 16-bits timer (TIMER1 -> TIMER9) or one of the 32-bits timer (TIMER23 -> TIMER89)
+			The timer can be one of the 16-bits timer (TIMER1 -> TIMER9) or one of the 32-bits timer (TIMER23 -> TIMER89).
 
 	\return
 	true is timer is free, false if it is already used and not available
@@ -364,19 +355,39 @@ bool timer_is_free(int id)
 	return Timer_Data[timer_id_to_index(id)].is_free;
 }
 
+/**
+	Enable a timer
+
+	\param	id
+			The timer can be one of the 16-bits timer (TIMER1 -> TIMER9) or one of the 32-bits timer (TIMER23 -> TIMER89).
+*/
+void timer_enable(int id)
+{
+	timer_set_enabled(id, true);
+}
 
 /**
-	Enable / disable the timer
+	Disable a timer
+	
+	The timer is not released, even if enabled is false.
+
+	\param	id
+			The timer can be one of the 16-bits timer (TIMER1 -> TIMER9) or one of the 32-bits timer (TIMER23 -> TIMER89).
+*/
+void timer_disable(int id)
+{
+	timer_set_enabled(id, false);
+}
+
+/**
+	Enable / disable a timer
 	
 	Timer is not released, even if enabled is false.
 	
 	\param	id
-			The timer can be one of the 16-bits timer (TIMER1 -> TIMER9) or one of the 32-bits timer (TIMER23 -> TIMER89)
+			The timer can be one of the 16-bits timer (TIMER1 -> TIMER9) or one of the 32-bits timer (TIMER23 -> TIMER89).
 	\param	enabled
-			True to enable timer, false to disable it
-	
-	\return	
-	TIMER_NO_ERROR on success, or a value from timer_return_values describing the error
+			True to enable timer, false to disable it.
 */
 void timer_set_enabled(int id, bool enabled)
 {
@@ -417,17 +428,12 @@ void timer_set_enabled(int id, bool enabled)
 
 
 /**
-	Reset the counter of the timer.
-	
-	 This is useful if you want to restart the timer.
+	Set the value of the counter of a timer.
 	
 	\param	id
-			The timer can be one of the 16-bits timer (TIMER1 -> TIMER9) or one of the 32-bits timer (TIMER23 -> TIMER89)
-	
-	\return	
-	TIMER_NO_ERROR on success, or a value from timer_return_values describing the error
+			The timer can be one of the 16-bits timer (TIMER1 -> TIMER9) or one of the 32-bits timer (TIMER23 -> TIMER89).
 */
-void timer_reset(int id)
+void timer_set_value(int id, unsigned long value)
 {
 	// test the validity of the timer identifier
 	if (id < TIMER1 || id > TIMER89)
@@ -435,46 +441,66 @@ void timer_reset(int id)
 		
 	switch (id)
 	{
-		case TIMER1:	TMR1 = 0;	
-			break;
-		case TIMER2:
-		case TIMER23:	TMR2 = 0;
-			break;
-		case TIMER3:	TMR3 = 0;
-			break;
-		case TIMER4:
-		case TIMER45:	TMR4 = 0;
-			break;
-		case TIMER5:	TMR5 = 0;
-			break;
-		case TIMER6:
-		case TIMER67:	TMR6 = 0;
-			break;
-		case TIMER7:	TMR7 = 0;
-			break;
-		case TIMER8:
-		case TIMER89:	TMR8 = 0;
-			break;
-		case TIMER9:	TMR9 = 0;
-			break;
+		case TIMER1: TMR1 = value; break;
+		case TIMER2: TMR2 = value; break;
+		case TIMER3: TMR3 = value; break;
+		case TIMER4: TMR4 = value; break;
+		case TIMER5: TMR5 = value; break;
+		case TIMER6: TMR6 = value; break;
+		case TIMER7: TMR7 = value; break;
+		case TIMER8: TMR8 = value; break;
+		case TIMER9: TMR9 = value; break;
+		case TIMER23: TMR3HLD = value >> 16; TMR2 = value & 0xffff; break;
+		case TIMER45: TMR5HLD = value >> 16; TMR4 = value & 0xffff; break;
+		case TIMER67: TMR7HLD = value >> 16; TMR6 = value & 0xffff; break;
+		case TIMER89: TMR9HLD = value >> 16; TMR8 = value & 0xffff; break;
 	}
 }
 
+/**
+	Returns the value of the counter of a timer.
+	
+	\param	id
+			The timer can be one of the 16-bits timer (TIMER1 -> TIMER9) or one of the 32-bits timer (TIMER23 -> TIMER89).
+	\return
+			The value of the counter of the requested timer.
+*/
+unsigned long timer_get_value(int id)
+{
+	// test the validity of the timer identifier
+	if (id < TIMER1 || id > TIMER89)
+		ERROR_RET_0(TIMER_ERROR_INVALIDE_TIMER_ID, &id)
+	
+	switch (id)
+	{
+		case TIMER1: return TMR1;
+		case TIMER2: return TMR2;
+		case TIMER3: return TMR3;
+		case TIMER4: return TMR4;
+		case TIMER5: return TMR5;
+		case TIMER6: return TMR6;
+		case TIMER7: return TMR7;
+		case TIMER8: return TMR8;
+		case TIMER9: return TMR9;
+		case TIMER23: return (unsigned long)TMR2 | ((unsigned long)TMR3HLD << 16);
+		case TIMER45: return (unsigned long)TMR4 | ((unsigned long)TMR5HLD << 16);
+		case TIMER67: return (unsigned long)TMR6 | ((unsigned long)TMR7HLD << 16);
+		case TIMER89: return (unsigned long)TMR8 | ((unsigned long)TMR9HLD << 16);
+	}
+	return 0;
+}
 
 /**
-	Set the clock source for the timer
+	Set the clock source for a timer
 	
 	This function is useful if you want to use an external clock source, on the T1CK pin (rising edge).
 	
 	\param	id
-			The timer can be one of the 16-bits timer (TIMER1 -> TIMER9) or one of the 32-bits timer (TIMER23 -> TIMER89)
+			The timer can be one of the 16-bits timer (TIMER1 -> TIMER9) or one of the 32-bits timer (TIMER23 -> TIMER89).
 	\param	clock_source
 			The parameter can be one of the two following constants:
 			- TIMER_INTERNAL_CLOCK
 			- TIMER_EXTERNAL_CLOCK
-	
-	\return	
-	TIMER_NO_ERROR on success, or a value from timer_return_values describing the error
 */
 void timer_set_clock_source(int id, int clock_source)
 {
@@ -516,12 +542,9 @@ void timer_set_clock_source(int id, int clock_source)
 	This option is meaningful only when using the internal oscillator !
 	
 	\param	id
-			The timer can be one of the 16-bits timer (TIMER1 -> TIMER9) or one of the 32-bits timer (TIMER23 -> TIMER89)
+			The timer can be one of the 16-bits timer (TIMER1 -> TIMER9) or one of the 32-bits timer (TIMER23 -> TIMER89).
 	\param	enable
-			True to enable gated time accumulation
-	
-	\return	
-	TIMER_NO_ERROR on success, or a value from timer_return_values describing the error
+			True to enable gated time accumulation.
 */
 void timer_use_gated_time_accumulation(int id, bool enable)
 {
@@ -558,19 +581,16 @@ void timer_use_gated_time_accumulation(int id, bool enable)
 
 
 /**
-	Enable the timer's interrupt.
+	Enable a the interrupt of a timer
 	
 	Continue timer operation in Idle mode (but discontinue it in Sleep mode).
 	
 	\param	id
-			The timer can be one of the 16-bits timer (TIMER1 -> TIMER9) or one of the 32-bits timer (TIMER23 -> TIMER89)
+			The timer can be one of the 16-bits timer (TIMER1 -> TIMER9) or one of the 32-bits timer (TIMER23 -> TIMER89).
 	\param 	callback
 			Pointer to a function that will be called upon interrupt
 	\param 	priority
 			Interrupt priority, from 1 (lowest priority) to 7 (highest priority)
-	
-	\return	
-	TIMER_NO_ERROR on success, or a value from timer_return_values describing the error
 */
 void timer_enable_interrupt(int id, timer_callback callback, int priority)
 {
@@ -649,15 +669,12 @@ void timer_enable_interrupt(int id, timer_callback callback, int priority)
 
 
 /**
-	Disable the timer's interrupt.
+	Disable the interrupt of a timer.
 	
 	Discontinue timer operation in Idle mode and in Sleep mode.
 	
 	\param	id
-			The timer can be one of the 16-bits timer (TIMER1 -> TIMER9) or one of the 32-bits timer (TIMER23 -> TIMER89)
-	
-	\return	
-	TIMER_NO_ERROR on success, or a value from timer_return_values describing the error
+			The timer can be one of the 16-bits timer (TIMER1 -> TIMER9) or one of the 32-bits timer (TIMER23 -> TIMER89).
 */
 void timer_disable_interrupt(int id)
 {
@@ -729,10 +746,10 @@ void timer_disable_interrupt(int id)
 //-----------------------------------
 
 /**
-	Set the timer in 16-bits or 32-bits mode.
+	Set a timer in 16-bits or 32-bits mode.
 	
 	\param	id
-			The timer can be one of the 16-bits timer (TIMER1 -> TIMER9) or one of the 32-bits timer (TIMER23 -> TIMER89)
+			The timer can be one of the 16-bits timer (TIMER1 -> TIMER9) or one of the 32-bits timer (TIMER23 -> TIMER89).
 
 	\param	mode
 			The parameter can be one of the two following constants:
@@ -767,7 +784,7 @@ void m_set_32bits_mode(int id, char mode)
 
 
 /**
-	Set the prescaler register of the timer.
+	Set the prescaler register of a timer.
 
 	\param	id
 			The timer can be one of the 16-bits timer (TIMER1 -> TIMER9) or one of the 32-bits timer (TIMER23 -> TIMER89)

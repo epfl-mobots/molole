@@ -91,9 +91,15 @@ void timer_set_period(int id, unsigned long int sample_time, int unit);
 
 bool timer_is_free(int id);
 
+void timer_enable(int id);
+
+void timer_disable(int id);
+
 void timer_set_enabled(int id, bool enabled);
 
-void timer_reset(int id);
+void timer_set_value(int id, unsigned long value);
+
+unsigned long timer_get_value(int id);
 
 void timer_set_clock_source(int id, int clock_source);
 
