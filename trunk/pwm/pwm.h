@@ -41,11 +41,26 @@ enum pwm_errors
 	PWM_ERROR_BASE = 0x0300,
 	PWM_ERROR_INVALID_PWM_ID,			/**< The desired PWM does not exists. */
 	PWM_ERROR_INVALID_PRESCALER,		/**< The specified prescaler value is invalid. */
+	PWM_ERROR_INVALID_POSTSCALER,		/**< The specified postscaler value is invalid. */
 	PWM_ERROR_INVALID_RANGE,			/**< The specified range for period, duty, or Special Event Trigger value is invalid. */
 	PWM_ERROR_INVALID_MODE,				/**< The specified time base mode is invalid. */
 	PWM_ERROR_INVALID_SEV_DIRECTION,	/**< The specified Special Event Trigger direction is invalid. */
 	PWM_ERROR_INVALID_SEV_POSTSCALE		/**< The specified Special Event Trigger postscale is invalid. */
 };
+
+/** Identifiers of available PWM. */
+enum pwm_identifiers
+{
+	PWM_1 = 0,			/**< PWM 1 */
+	PWM_2,				/**< PWM 2 */
+	PWM_3,				/**< PWM 3 */
+	PWM_4,				/**< PWM 4 */
+	PWM_5,				/**< PWM 5 */
+	PWM_6,				/**< PWM 6 */
+	PWM_7,				/**< PWM 7 */
+	PWM_8,				/**< PWM 8 */
+};
+
 
 /** PWM direction of Special Event Trigger */
 enum pwm_sev_directions
@@ -73,15 +88,24 @@ enum pwm_time_base_modes
 	PWM_CONTINUOUS_UP_DOWN_DOUBLE		/**< PWM time base operates in a continuous Up/Down mode with interrupts for double PWM updates */
 };
 
+/** PWM callback on interrupt */
+typedef void (*pwm_callback)();
+
 
 // Functions, doc in the .c
 
 void pwm_init(int prescaler, unsigned period, int mode);
-//void pwm_enable_interrupt(pwm_callback callback, int postscaler, int priority);
-//void pwm_disable_interrupt();
+
+void pwm_enable_interrupt(int postscaler, pwm_callback callback, int priority);
+
+void pwm_disable_interrupt();
+
 void pwm_enable(int pwm_id);
+
 void pwm_disable(int pwm_id);
+
 void pwm_set_duty(int pwm_id, unsigned duty);
+
 void pwm_set_special_event_trigger(int direction, int postscale, unsigned value);
 
 /*@}*/

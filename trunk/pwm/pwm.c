@@ -50,6 +50,12 @@
 #include "pwm.h"
 #include "../error/error.h"
 
+/** PWM wrapper data */
+static struct
+{
+	pwm_callback interrupt_callback; /**< function to call upon PWM interrupt */
+} PWM_Data = { 0 };
+
 /**
 	Init the PWM subsystem.
 	
@@ -78,23 +84,37 @@ void pwm_init(int prescaler, unsigned period, int mode)
 	PTCONbits.PTEN = 1;					// Enable PWM Time Base Timer
 }
 
-
-/*
-void pwm_enable_interrupt(pwm_callback callback, int postscaler, int priority)
+/**
+	Enable the PWM interrupt
+	
+	\param	postscale
+			The conversion is started each (postscale+1) (parameter is 0..15, corresponding to a 1:1 to 1:16 postscale)
+	\param	callback
+			Pointer to a function that will be called upon interrupt
+	\param 	priority
+			Interrupt priority, from 1 (lowest priority) to 7 (highest priority)
+*/
+void pwm_enable_interrupt(int postscaler, pwm_callback callback, int priority)
 {
-	// TODO: check invalid postscaler
+	if (postscaler < 0 || postscaler > 15)
+		ERROR(PWM_ERROR_INVALID_POSTSCALER, &postscaler);
+	
 	PTCONbits.PTOPS = postscaler;		// PWM Time Base Output Postscale
-	// TODO: implement
+	
+	PWM_Data.interrupt_callback = callback;
+	_PWMIF = 0;							// clear the PWM interrupt
+	_PWMIP = priority;   				// set the PWM interrupt priority
+	_PWMIE = 1;							// enable the PWM interrupt
 }
 
+/**
+	Disable the PWM interrupt
+*/
 void pwm_disable_interrupt()
 {
-	// TODO: implement
-// 	_PWMIP = PWM_IP;			// Set Interrupt Priority
-// 	_PWMIF = 0;					// Clear PWM Interrupt flag	
-// 	_PWMIE = 0;					// Disable PWM interrupts.
+	_PWMIE = 0;							// disable the PWM interrupt
+	_PWMIF = 0;							// clear the PWM interrupt
 }
-*/
 
 /**
 	Enables a PWM.
@@ -190,5 +210,24 @@ void pwm_set_special_event_trigger(int direction, int postscale, unsigned value)
 	
 	// TODO: set or check ADC, for instance: AD1CON1bits.SSRC
 }
+
+
+//--------------------------
+// Interrupt service routine
+//--------------------------
+
+/**
+	PWM Interrupt Service Routine.
+ 
+	Call the user-defined function.
+*/
+void _ISR _PWMInterrupt(void)
+{
+	PWM_Data.interrupt_callback();
+	
+	_PWMIF = 0;
+}
+
+// TODO: In Florient's code, this interrupt used the _ISRFAST flag
 
 /*@}*/

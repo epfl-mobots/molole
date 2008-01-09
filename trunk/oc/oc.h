@@ -43,7 +43,7 @@ enum oc_errors
 };
 
 /** Identifiers of available Output Compares. */
-enum uart_identifiers
+enum oc_identifiers
 {
 	OC_1 = 0,			/**< Output Compare 1 */
 	OC_2,				/**< Output Compare 2 */
@@ -79,7 +79,9 @@ enum oc_modes
 // Functions, doc in the .c
 
 void oc_enable(int oc_id, int source, int mode);
+
 void oc_disable(int oc_id);
+
 void oc_set_value(int oc_id, unsigned primary, unsigned secondary);
 
 /*@}*/
