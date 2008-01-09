@@ -78,20 +78,20 @@ void oc_enable(int oc_id, int source, int mode)
 	oc_disable(oc_id);
 	
 	if (source == OC_TIMER2)
-		timer_set_enabled(TIMER2, false);
+		timer_set_enabled(TIMER_2, false);
 	else
-		timer_set_enabled(TIMER3, false);
+		timer_set_enabled(TIMER_3, false);
 	
 	switch (oc_id)
 	{
-		case 0: OC1CONbits.OCM = mode; OC1CONbits.OCTSEL = source; break;
-		case 1: OC2CONbits.OCM = mode; OC2CONbits.OCTSEL = source; break;
-		case 2: OC3CONbits.OCM = mode; OC3CONbits.OCTSEL = source; break;
-		case 3: OC4CONbits.OCM = mode; OC4CONbits.OCTSEL = source; break;
-		case 4: OC5CONbits.OCM = mode; OC5CONbits.OCTSEL = source; break;
-		case 5: OC6CONbits.OCM = mode; OC6CONbits.OCTSEL = source; break;
-		case 6: OC7CONbits.OCM = mode; OC7CONbits.OCTSEL = source; break;
-		case 7: OC8CONbits.OCM = mode; OC8CONbits.OCTSEL = source; break;
+		case OC_1: OC1CONbits.OCM = mode; OC1CONbits.OCTSEL = source; break;
+		case OC_2: OC2CONbits.OCM = mode; OC2CONbits.OCTSEL = source; break;
+		case OC_3: OC3CONbits.OCM = mode; OC3CONbits.OCTSEL = source; break;
+		case OC_4: OC4CONbits.OCM = mode; OC4CONbits.OCTSEL = source; break;
+		case OC_5: OC5CONbits.OCM = mode; OC5CONbits.OCTSEL = source; break;
+		case OC_6: OC6CONbits.OCM = mode; OC6CONbits.OCTSEL = source; break;
+		case OC_7: OC7CONbits.OCM = mode; OC7CONbits.OCTSEL = source; break;
+		case OC_8: OC8CONbits.OCM = mode; OC8CONbits.OCTSEL = source; break;
 		default: ERROR(OC_ERROR_INVALIDE_OC_ID, &oc_id);
 	}
 }
@@ -106,14 +106,14 @@ void oc_disable(int oc_id)
 {
 	switch (oc_id)
 	{
-		case 0: OC1CONbits.OCM = OC_DISABLED; break;
-		case 1: OC2CONbits.OCM = OC_DISABLED; break;
-		case 2: OC3CONbits.OCM = OC_DISABLED; break;
-		case 3: OC4CONbits.OCM = OC_DISABLED; break;
-		case 4: OC5CONbits.OCM = OC_DISABLED; break;
-		case 5: OC6CONbits.OCM = OC_DISABLED; break;
-		case 6: OC7CONbits.OCM = OC_DISABLED; break;
-		case 7: OC8CONbits.OCM = OC_DISABLED; break;
+		case OC_1: OC1CONbits.OCM = OC_DISABLED; break;
+		case OC_2: OC2CONbits.OCM = OC_DISABLED; break;
+		case OC_3: OC3CONbits.OCM = OC_DISABLED; break;
+		case OC_4: OC4CONbits.OCM = OC_DISABLED; break;
+		case OC_5: OC5CONbits.OCM = OC_DISABLED; break;
+		case OC_6: OC6CONbits.OCM = OC_DISABLED; break;
+		case OC_7: OC7CONbits.OCM = OC_DISABLED; break;
+		case OC_8: OC8CONbits.OCM = OC_DISABLED; break;
 		default: ERROR(OC_ERROR_INVALIDE_OC_ID, &oc_id);
 	}
 }
@@ -132,14 +132,14 @@ void oc_set_value(int oc_id, unsigned primary, unsigned secondary)
 {
 	switch (oc_id)
 	{
-		case 0: OC1R = primary; OC1RS = secondary; break;
-		case 1: OC2R = primary; OC2RS = secondary; break;
-		case 2: OC3R = primary; OC3RS = secondary; break;
-		case 3: OC4R = primary; OC4RS = secondary; break;
-		case 4: OC5R = primary; OC5RS = secondary; break;
-		case 5: OC6R = primary; OC6RS = secondary; break;
-		case 6: OC7R = primary; OC7RS = secondary; break;
-		case 7: OC8R = primary; OC8RS = secondary; break;
+		case OC_1: OC1R = primary; OC1RS = secondary; break;
+		case OC_2: OC2R = primary; OC2RS = secondary; break;
+		case OC_3: OC3R = primary; OC3RS = secondary; break;
+		case OC_4: OC4R = primary; OC4RS = secondary; break;
+		case OC_5: OC5R = primary; OC5RS = secondary; break;
+		case OC_6: OC6R = primary; OC6RS = secondary; break;
+		case OC_7: OC7R = primary; OC7RS = secondary; break;
+		case OC_8: OC8R = primary; OC8RS = secondary; break;
 		default: ERROR(OC_ERROR_INVALIDE_OC_ID, &oc_id);
 	}
 }

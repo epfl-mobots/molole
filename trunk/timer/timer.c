@@ -39,8 +39,9 @@ A wrapper around dsPIC33 Timers.
 This module allows the programmer configure and use the 9 16-bits timers of the
 dsPIC33 microcontroller's family in a convenient way.
 Some 16-bits timers can also be used 2 by 2
-(TIMER2 + TIMER3, TIMER4 + TIMER5, TIMER6 + TIMER7, TIMER8 + TIMER9), which allows up to
-4 32-bits timers. The management of the 16-bits / 32-bits timers is totally transparent,
+(\ref TIMER_2 + \ref TIMER_3, \ref TIMER_4 + \ref TIMER_5, \ref TIMER_6 + \ref TIMER_7, \ref TIMER_8 + \ref TIMER_9), which allows up to
+4 32-bits timers (\ref TIMER_23, \ref TIMER_45, \ref TIMER_67, and \ref TIMER_89).
+The management of the 16-bits / 32-bits timers is totally transparent,
 preventing the user to configure an already in-use timer.
 
 \section Limits
@@ -51,16 +52,16 @@ With a cycle frequency of 40 MHz, the maximum reachable timings are as follow:
 
 \section Usage
 
-You can configure one of the 16-bits timer (\ref TIMER1 -> \ref TIMER9), or one of the 32-bits timer (\ref TIMER23 -> \ref TIMER89).
+You can configure one of the 16-bits timer (\ref TIMER_1 -> \ref TIMER_9), or one of the 32-bits timer (\ref TIMER_23 -> \ref TIMER_89).
 The configuration process is: initializing the timer with the desired timing, optionally defining an interrupt routine,
 and finally launch the timer.
 
 \code
-timer_init(TIMER1, 400, 6)						// 400 us
+timer_init(TIMER_1, 400, 6)						// 400 us
 
-timer_enable_interrupt(TIMER1, 1, int_timer1);	// int_timer1 is a void ...(void) function
+timer_enable_interrupt(TIMER_1, 1, int_timer1);	// int_timer1 is a void ...(void) function
 
-timer_set_enabled(TIMER1, true);				// start
+timer_set_enabled(TIMER_1, true);				// start
 \endcode
 
 You can test if a timer is available with the function timer_is_free().
@@ -72,10 +73,10 @@ All functions cast errors using the \ref error "error reporting mechanism"
 \subsection SIM MPLAB SIM
 
 The following problems occurs when using the MPLAB SIM simulator (the library is working fine on the real microcontrollers):
-- \ref TIMER6: timer_enable_interrupt() don't modify the IEC2.T6IE register ! So the interruption is never fired...
-- \ref TIMER9: everything is ok (register IEC3.T9IE = 1), the timer normally counts, but the flag IFS3bits.T9IF is never set !
+- \ref TIMER_6: timer_enable_interrupt() don't modify the IEC2.T6IE register ! So the interruption is never fired...
+- \ref TIMER_9: everything is ok (register IEC3.T9IE = 1), the timer normally counts, but the flag IFS3bits.T9IF is never set !
 	The interruption is never fired ! If we set the flag by hand, we enter in the interruption...
-- \ref TIMER67 and \ref TIMER89: same problem as TIMER9
+- \ref TIMER_67 and \ref TIMER_89: same problem as TIMER_9
 
 */
 /*@{*/
@@ -112,6 +113,8 @@ The following problems occurs when using the MPLAB SIM simulator (the library is
 // Structures definitions
 //-----------------------
 
+// TODO: we could probably optimize this by looking directly into the registers and removing redundant fields.
+
 /** The structs for timer implementation data */
 static struct
 {
@@ -135,16 +138,16 @@ static struct
 /** Return the index of timers for a specific id, assumed to be in correct range */
 int timer_id_to_index(int id)
 {
-	if (id <= TIMER9)
+	if (id <= TIMER_9)
 		return id;
 	else
-		return (id - TIMER23) * 2 + 1;
+		return (id - TIMER_23) * 2 + 1;
 }
 
 /** Return wether a timer is 32 bits for a specific id, assumed to be in correct range */
 bool timer_id_to_32bits(int id)
 {
-	return id > TIMER9;
+	return id > TIMER_9;
 }
 
 
@@ -171,7 +174,7 @@ static void m_set_period_32b(int id, unsigned long period);
 	This function initializes the timer, defines its period and reserves it, avoiding someone else to use it.
 	
 	\param	id
-			The timer can be one of the 16-bits timer (\ref TIMER1 -> \ref TIMER9) or one of the 32-bits timer (\ref TIMER23 -> \ref TIMER89)
+			The timer can be one of the 16-bits timer (\ref TIMER_1 -> \ref TIMER_9) or one of the 32-bits timer (\ref TIMER_23 -> \ref TIMER_89)
 	\param 	arg_sample_time
 			The period of the timer, expressed in the unit defined by the \e unit parameter
 	\param 	unit
@@ -188,7 +191,7 @@ void timer_init(int id, unsigned long int arg_sample_time, int unit)
 	int index;
 	
 	// test the validity of the timer identifier
-	if (id < TIMER1 || id > TIMER89)
+	if (id < TIMER_1 || id > TIMER_89)
 		ERROR(TIMER_ERROR_INVALID_TIMER_ID, &id)
 		
 	// test that the timer is free
@@ -228,7 +231,7 @@ void timer_init(int id, unsigned long int arg_sample_time, int unit)
 	The timer must already be initialized with timer_init() !
 	
 	\param	id
-			The timer can be one of the 16-bits timer (\ref TIMER1 -> \ref TIMER9) or one of the 32-bits timer (\ref TIMER23 -> \ref TIMER89)
+			The timer can be one of the 16-bits timer (\ref TIMER_1 -> \ref TIMER_9) or one of the 32-bits timer (\ref TIMER_23 -> \ref TIMER_89)
 	\param 	sample_time
 			The period of the timer, expressed in the unit defined by the \e unit parameter
 	\param 	unit
@@ -250,7 +253,7 @@ void timer_set_period(int id, unsigned long int sample_time, int unit)
 	int i;
 
 	// test the validity of the timer identifier
-	if (id < TIMER1 || id > TIMER89)
+	if (id < TIMER_1 || id > TIMER_89)
 		ERROR(TIMER_ERROR_INVALID_TIMER_ID, &id)
 		
 	// is the timer initialized ?
@@ -267,7 +270,7 @@ void timer_set_period(int id, unsigned long int sample_time, int unit)
 		real_sample_time *= 10;
 	
 	// 16 bits timer
-	if (id <= TIMER9)
+	if (id <= TIMER_9)
 	{
 		// set the 16 bits mode
 		m_set_32bits_mode(id, TIMER_16B_MODE);
@@ -322,14 +325,14 @@ void timer_set_period(int id, unsigned long int sample_time, int unit)
 	Release the timer, so that someone else can use it.
 	
 	\param	id
-			The timer can be one of the 16-bits timer (\ref TIMER1 -> \ref TIMER9) or one of the 32-bits timer (\ref TIMER23 -> \ref TIMER89).
+			The timer can be one of the 16-bits timer (\ref TIMER_1 -> \ref TIMER_9) or one of the 32-bits timer (\ref TIMER_23 -> \ref TIMER_89).
 */
 void timer_release(int id)
 {
 	int index;
 	
 	// test the validity of the timer identifier
-	if(id < TIMER1 || id > TIMER89)
+	if(id < TIMER_1 || id > TIMER_89)
 		ERROR(TIMER_ERROR_INVALID_TIMER_ID, &id)
 	
 	index = timer_id_to_index(id);
@@ -347,7 +350,7 @@ void timer_release(int id)
 	Return wether a timer is available for use
 
 	\param	id
-			The timer can be one of the 16-bits timer (\ref TIMER1 -> \ref TIMER9) or one of the 32-bits timer (\ref TIMER23 -> \ref TIMER89).
+			The timer can be one of the 16-bits timer (\ref TIMER_1 -> \ref TIMER_9) or one of the 32-bits timer (\ref TIMER_23 -> \ref TIMER_89).
 
 	\return
 	true is timer is free, false if it is already used and not available
@@ -361,7 +364,7 @@ bool timer_is_free(int id)
 	Enable a timer
 
 	\param	id
-			The timer can be one of the 16-bits timer (\ref TIMER1 -> \ref TIMER9) or one of the 32-bits timer (\ref TIMER23 -> \ref TIMER89).
+			The timer can be one of the 16-bits timer (\ref TIMER_1 -> \ref TIMER_9) or one of the 32-bits timer (\ref TIMER_23 -> \ref TIMER_89).
 */
 void timer_enable(int id)
 {
@@ -374,7 +377,7 @@ void timer_enable(int id)
 	The timer is not released, even if enabled is false.
 
 	\param	id
-			The timer can be one of the 16-bits timer (\ref TIMER1 -> \ref TIMER9) or one of the 32-bits timer (\ref TIMER23 -> \ref TIMER89).
+			The timer can be one of the 16-bits timer (\ref TIMER_1 -> \ref TIMER_9) or one of the 32-bits timer (\ref TIMER_23 -> \ref TIMER_89).
 */
 void timer_disable(int id)
 {
@@ -387,14 +390,14 @@ void timer_disable(int id)
 	Timer is not released, even if enabled is false.
 	
 	\param	id
-			The timer can be one of the 16-bits timer (\ref TIMER1 -> \ref TIMER9) or one of the 32-bits timer (\ref TIMER23 -> \ref TIMER89).
+			The timer can be one of the 16-bits timer (\ref TIMER_1 -> \ref TIMER_9) or one of the 32-bits timer (\ref TIMER_23 -> \ref TIMER_89).
 	\param	enabled
 			True to enable timer, false to disable it.
 */
 void timer_set_enabled(int id, bool enabled)
 {
 	// test the validity of the timer identifier
-	if (id < TIMER1 || id > TIMER89)
+	if (id < TIMER_1 || id > TIMER_89)
 		ERROR(TIMER_ERROR_INVALID_TIMER_ID, &id)
 		
 	// is the timer initialized ?
@@ -403,27 +406,27 @@ void timer_set_enabled(int id, bool enabled)
 	
 	switch (id)
 	{
-		case TIMER1:	T1CONbits.TON = enabled;
+		case TIMER_1:	T1CONbits.TON = enabled;
 			break;
-		case TIMER2:
-		case TIMER23:	T2CONbits.TON = enabled;
+		case TIMER_2:
+		case TIMER_23:	T2CONbits.TON = enabled;
 			break;
-		case TIMER3:	T3CONbits.TON = enabled;
+		case TIMER_3:	T3CONbits.TON = enabled;
 			break;
-		case TIMER4:
-		case TIMER45:	T4CONbits.TON = enabled;
+		case TIMER_4:
+		case TIMER_45:	T4CONbits.TON = enabled;
 			break;
-		case TIMER5:	T5CONbits.TON = enabled;
+		case TIMER_5:	T5CONbits.TON = enabled;
 			break;
-		case TIMER6:
-		case TIMER67:	T6CONbits.TON = enabled;
+		case TIMER_6:
+		case TIMER_67:	T6CONbits.TON = enabled;
 			break;
-		case TIMER7:	T7CONbits.TON = enabled;
+		case TIMER_7:	T7CONbits.TON = enabled;
 			break;
-		case TIMER8:
-		case TIMER89:	T8CONbits.TON = enabled;
+		case TIMER_8:
+		case TIMER_89:	T8CONbits.TON = enabled;
 			break;
-		case TIMER9:	T9CONbits.TON = enabled;
+		case TIMER_9:	T9CONbits.TON = enabled;
 			break;
 	}
 }
@@ -433,29 +436,28 @@ void timer_set_enabled(int id, bool enabled)
 	Set the value of the counter of a timer.
 	
 	\param	id
-			The timer can be one of the 16-bits timer (\ref TIMER1 -> \ref TIMER9) or one of the 32-bits timer (\ref TIMER23 -> \ref TIMER89).
+			The timer can be one of the 16-bits timer (\ref TIMER_1 -> \ref TIMER_9) or one of the 32-bits timer (\ref TIMER_23 -> \ref TIMER_89).
 */
 void timer_set_value(int id, unsigned long value)
 {
-	// test the validity of the timer identifier
-	if (id < TIMER1 || id > TIMER89)
-		ERROR(TIMER_ERROR_INVALID_TIMER_ID, &id)
-		
 	switch (id)
 	{
-		case TIMER1: TMR1 = value; break;
-		case TIMER2: TMR2 = value; break;
-		case TIMER3: TMR3 = value; break;
-		case TIMER4: TMR4 = value; break;
-		case TIMER5: TMR5 = value; break;
-		case TIMER6: TMR6 = value; break;
-		case TIMER7: TMR7 = value; break;
-		case TIMER8: TMR8 = value; break;
-		case TIMER9: TMR9 = value; break;
-		case TIMER23: TMR3HLD = value >> 16; TMR2 = value & 0xffff; break;
-		case TIMER45: TMR5HLD = value >> 16; TMR4 = value & 0xffff; break;
-		case TIMER67: TMR7HLD = value >> 16; TMR6 = value & 0xffff; break;
-		case TIMER89: TMR9HLD = value >> 16; TMR8 = value & 0xffff; break;
+		case TIMER_1: TMR1 = value; break;
+		case TIMER_2: TMR2 = value; break;
+		case TIMER_3: TMR3 = value; break;
+		case TIMER_4: TMR4 = value; break;
+		case TIMER_5: TMR5 = value; break;
+		case TIMER_6: TMR6 = value; break;
+		case TIMER_7: TMR7 = value; break;
+		case TIMER_8: TMR8 = value; break;
+		case TIMER_9: TMR9 = value; break;
+		case TIMER_23: TMR3HLD = value >> 16; TMR2 = value & 0xffff; break;
+		case TIMER_45: TMR5HLD = value >> 16; TMR4 = value & 0xffff; break;
+		case TIMER_67: TMR7HLD = value >> 16; TMR6 = value & 0xffff; break;
+		case TIMER_89: TMR9HLD = value >> 16; TMR8 = value & 0xffff; break;
+		default:
+			ERROR(TIMER_ERROR_INVALID_TIMER_ID, &id);
+			break;
 	}
 }
 
@@ -463,31 +465,30 @@ void timer_set_value(int id, unsigned long value)
 	Returns the value of the counter of a timer.
 	
 	\param	id
-			The timer can be one of the 16-bits timer (\ref TIMER1 -> \ref TIMER9) or one of the 32-bits timer (\ref TIMER23 -> \ref TIMER89).
+			The timer can be one of the 16-bits timer (\ref TIMER_1 -> \ref TIMER_9) or one of the 32-bits timer (\ref TIMER_23 -> \ref TIMER_89).
 	\return
 			The value of the counter of the requested timer.
 */
 unsigned long timer_get_value(int id)
 {
-	// test the validity of the timer identifier
-	if (id < TIMER1 || id > TIMER89)
-		ERROR_RET_0(TIMER_ERROR_INVALID_TIMER_ID, &id)
-	
 	switch (id)
 	{
-		case TIMER1: return TMR1;
-		case TIMER2: return TMR2;
-		case TIMER3: return TMR3;
-		case TIMER4: return TMR4;
-		case TIMER5: return TMR5;
-		case TIMER6: return TMR6;
-		case TIMER7: return TMR7;
-		case TIMER8: return TMR8;
-		case TIMER9: return TMR9;
-		case TIMER23: return (unsigned long)TMR2 | ((unsigned long)TMR3HLD << 16);
-		case TIMER45: return (unsigned long)TMR4 | ((unsigned long)TMR5HLD << 16);
-		case TIMER67: return (unsigned long)TMR6 | ((unsigned long)TMR7HLD << 16);
-		case TIMER89: return (unsigned long)TMR8 | ((unsigned long)TMR9HLD << 16);
+		case TIMER_1: return TMR1;
+		case TIMER_2: return TMR2;
+		case TIMER_3: return TMR3;
+		case TIMER_4: return TMR4;
+		case TIMER_5: return TMR5;
+		case TIMER_6: return TMR6;
+		case TIMER_7: return TMR7;
+		case TIMER_8: return TMR8;
+		case TIMER_9: return TMR9;
+		case TIMER_23: return (unsigned long)TMR2 | ((unsigned long)TMR3HLD << 16);
+		case TIMER_45: return (unsigned long)TMR4 | ((unsigned long)TMR5HLD << 16);
+		case TIMER_67: return (unsigned long)TMR6 | ((unsigned long)TMR7HLD << 16);
+		case TIMER_89: return (unsigned long)TMR8 | ((unsigned long)TMR9HLD << 16);
+		default:
+			ERROR_RET_0(TIMER_ERROR_INVALID_TIMER_ID, &id);
+			break;
 	}
 	return 0;
 }
@@ -498,7 +499,7 @@ unsigned long timer_get_value(int id)
 	This function is useful if you want to use an external clock source, on the T1CK pin (rising edge).
 	
 	\param	id
-			The timer can be one of the 16-bits timer (\ref TIMER1 -> \ref TIMER9) or one of the 32-bits timer (\ref TIMER23 -> \ref TIMER89).
+			The timer can be one of the 16-bits timer (\ref TIMER_1 -> \ref TIMER_9) or one of the 32-bits timer (\ref TIMER_23 -> \ref TIMER_89).
 	\param	clock_source
 			The parameter can be one of the two following constants:
 			- \ref TIMER_CLOCK_INTERNAL
@@ -506,33 +507,32 @@ unsigned long timer_get_value(int id)
 */
 void timer_set_clock_source(int id, int clock_source)
 {
-	// test the validity of the timer identifier
-	if (id < TIMER1 || id > TIMER89)
-		ERROR(TIMER_ERROR_INVALID_TIMER_ID, &id)
-	
 	switch (id)
 	{
-		case TIMER1:	T1CONbits.TCS = clock_source;
+		case TIMER_1:	T1CONbits.TCS = clock_source;
 			break;
-		case TIMER2:
-		case TIMER23:	T2CONbits.TCS = clock_source;
+		case TIMER_2:
+		case TIMER_23:	T2CONbits.TCS = clock_source;
 			break;
-		case TIMER3:	T3CONbits.TCS = clock_source;
+		case TIMER_3:	T3CONbits.TCS = clock_source;
 			break;
-		case TIMER4:
-		case TIMER45:	T4CONbits.TCS = clock_source;
+		case TIMER_4:
+		case TIMER_45:	T4CONbits.TCS = clock_source;
 			break;
-		case TIMER5:	T5CONbits.TCS = clock_source;
+		case TIMER_5:	T5CONbits.TCS = clock_source;
 			break;
-		case TIMER6:
-		case TIMER67:	T6CONbits.TCS = clock_source;
+		case TIMER_6:
+		case TIMER_67:	T6CONbits.TCS = clock_source;
 			break;
-		case TIMER7:	T7CONbits.TCS = clock_source;
+		case TIMER_7:	T7CONbits.TCS = clock_source;
 			break;
-		case TIMER8:
-		case TIMER89:	T8CONbits.TCS = clock_source;
+		case TIMER_8:
+		case TIMER_89:	T8CONbits.TCS = clock_source;
 			break;
-		case TIMER9:	T9CONbits.TCS = clock_source;
+		case TIMER_9:	T9CONbits.TCS = clock_source;
+			break;
+		default:
+			ERROR(TIMER_ERROR_INVALID_TIMER_ID, &id);
 			break;
 	}
 }
@@ -544,39 +544,38 @@ void timer_set_clock_source(int id, int clock_source)
 	This option is meaningful only when using the internal oscillator !
 	
 	\param	id
-			The timer can be one of the 16-bits timer (\ref TIMER1 -> \ref TIMER9) or one of the 32-bits timer (\ref TIMER23 -> \ref TIMER89).
+			The timer can be one of the 16-bits timer (\ref TIMER_1 -> \ref TIMER_9) or one of the 32-bits timer (\ref TIMER_23 -> \ref TIMER_89).
 	\param	enable
 			True to enable gated time accumulation.
 */
 void timer_use_gated_time_accumulation(int id, bool enable)
 {
-	// test the validity of the timer identifier
-	if(id < TIMER1 || id > TIMER89)
-		ERROR(TIMER_ERROR_INVALID_TIMER_ID, &id)
-		
 	switch (id)
 	{
-		case TIMER1:	T1CONbits.TGATE = enable;
+		case TIMER_1:	T1CONbits.TGATE = enable;
 			break;
-		case TIMER2:
-		case TIMER23:	T2CONbits.TGATE = enable;
+		case TIMER_2:
+		case TIMER_23:	T2CONbits.TGATE = enable;
 			break;
-		case TIMER3:	T3CONbits.TGATE = enable;
+		case TIMER_3:	T3CONbits.TGATE = enable;
 			break;
-		case TIMER4:
-		case TIMER45:	T4CONbits.TGATE = enable;
+		case TIMER_4:
+		case TIMER_45:	T4CONbits.TGATE = enable;
 			break;
-		case TIMER5:	T5CONbits.TGATE = enable;
+		case TIMER_5:	T5CONbits.TGATE = enable;
 			break;
-		case TIMER6:
-		case TIMER67:	T6CONbits.TGATE = enable;
+		case TIMER_6:
+		case TIMER_67:	T6CONbits.TGATE = enable;
 			break;
-		case TIMER7:	T7CONbits.TGATE = enable;
+		case TIMER_7:	T7CONbits.TGATE = enable;
 			break;
-		case TIMER8:
-		case TIMER89:	T8CONbits.TGATE = enable;
+		case TIMER_8:
+		case TIMER_89:	T8CONbits.TGATE = enable;
 			break;
-		case TIMER9:	T9CONbits.TGATE = enable;
+		case TIMER_9:	T9CONbits.TGATE = enable;
+			break;
+		default:
+			ERROR(TIMER_ERROR_INVALID_TIMER_ID, &id);
 			break;
 	}
 }
@@ -588,7 +587,7 @@ void timer_use_gated_time_accumulation(int id, bool enable)
 	Continue timer operation in Idle mode (but discontinue it in Sleep mode).
 	
 	\param	id
-			The timer can be one of the 16-bits timer (\ref TIMER1 -> \ref TIMER9) or one of the 32-bits timer (\ref TIMER23 -> \ref TIMER89).
+			The timer can be one of the 16-bits timer (\ref TIMER_1 -> \ref TIMER_9) or one of the 32-bits timer (\ref TIMER_23 -> \ref TIMER_89).
 	\param 	callback
 			Pointer to a function that will be called upon interrupt
 	\param 	priority
@@ -597,7 +596,7 @@ void timer_use_gated_time_accumulation(int id, bool enable)
 void timer_enable_interrupt(int id, timer_callback callback, int priority)
 {
 	// test the validity of the timer identifier
-	if(id < TIMER1 || id > TIMER89)
+	if(id < TIMER_1 || id > TIMER_89)
 		ERROR(TIMER_ERROR_INVALID_TIMER_ID, &id)
 	
 	Timer_Data[timer_id_to_index(id)].callback = callback;
@@ -608,59 +607,59 @@ void timer_enable_interrupt(int id, timer_callback callback, int priority)
 	// _TxIE					Enable interrupt
 	switch(id)
 	{
-		case TIMER1:
+		case TIMER_1:
 			T1CONbits.TSIDL = 0;
 			_T1IP = priority;
 			_T1IF = 0;
 			_T1IE = 1;
 			break;
-		case TIMER2:
+		case TIMER_2:
 			T2CONbits.TSIDL = 0;
 			_T2IP = priority;
 			_T2IF = 0;
 			_T2IE = 1;
 			break;
-		case TIMER23:
-		case TIMER3:
+		case TIMER_23:
+		case TIMER_3:
 			T3CONbits.TSIDL = 0;
 			_T3IP = priority;
 			_T3IF = 0;
 			_T3IE = 1;
 			break;
-		case TIMER4:
+		case TIMER_4:
 			T4CONbits.TSIDL = 0;
 			_T4IP = priority;
 			_T4IF = 0;
 			_T4IE = 1;
 			break;
-		case TIMER45:
-		case TIMER5:
+		case TIMER_45:
+		case TIMER_5:
 			T5CONbits.TSIDL = 0;
 			_T5IP = priority;
 			_T5IF = 0;
 			_T5IE = 1;
 			break;
-		case TIMER6:
+		case TIMER_6:
 			T6CONbits.TSIDL = 0;
 			_T6IP = priority;
 			_T6IF = 0;
 			_T6IE = 1;
 			break;
-		case TIMER67:
-		case TIMER7:
+		case TIMER_67:
+		case TIMER_7:
 			T7CONbits.TSIDL = 0;
 			_T7IP = priority;
 			_T7IF = 0;
 			_T7IE = 1;
 			break;
-		case TIMER8:
+		case TIMER_8:
 			T8CONbits.TSIDL = 0;
 			_T8IP = priority;
 			_T8IF = 0;
 			_T8IE = 1;
 			break;
-		case TIMER89:
-		case TIMER9:
+		case TIMER_89:
+		case TIMER_9:
 			T9CONbits.TSIDL = 0;
 			_T9IP = priority;
 			_T9IF = 0;
@@ -676,67 +675,66 @@ void timer_enable_interrupt(int id, timer_callback callback, int priority)
 	Discontinue timer operation in Idle mode and in Sleep mode.
 	
 	\param	id
-			The timer can be one of the 16-bits timer (\ref TIMER1 -> \ref TIMER9) or one of the 32-bits timer (\ref TIMER23 -> \ref TIMER89).
+			The timer can be one of the 16-bits timer (\ref TIMER_1 -> \ref TIMER_9) or one of the 32-bits timer (\ref TIMER_23 -> \ref TIMER_89).
 */
 void timer_disable_interrupt(int id)
 {
-	// test the validity of the timer identifier
-	if(id < TIMER1 || id > TIMER89)
-		ERROR(TIMER_ERROR_INVALID_TIMER_ID, &id)
-	
 	// _TxIE					Disable interrupt
 	// _TxIF					Clear interrupt flag
 	// TxCONbits.TSIDL = 1;		Discontinue operation in IDLE mode
 	switch(id)
 	{
-		case TIMER1:
+		case TIMER_1:
 			_T1IE = 0;
 			_T1IF = 0;
 			T1CONbits.TSIDL = 1;
 			break;
-		case TIMER2:
+		case TIMER_2:
 			_T2IE = 0;
 			_T2IF = 0;
 			T2CONbits.TSIDL = 1;
 			break;
-		case TIMER23:
-		case TIMER3:
+		case TIMER_23:
+		case TIMER_3:
 			_T3IE = 0;
 			_T3IF = 0;
 			T3CONbits.TSIDL = 1;
 			break;
-		case TIMER4:
+		case TIMER_4:
 			_T4IE = 0;
 			_T4IF = 0;
 			T4CONbits.TSIDL = 1;
 			break;  
-		case TIMER45:
-		case TIMER5:
+		case TIMER_45:
+		case TIMER_5:
 			_T5IE = 0;
 			_T5IF = 0;
 			T5CONbits.TSIDL = 1;
 			break;
-		case TIMER6:
+		case TIMER_6:
 			_T6IE = 0;
 			_T6IF = 0;
 			T6CONbits.TSIDL = 1;
 			break;
-		case TIMER67:
-		case TIMER7:
+		case TIMER_67:
+		case TIMER_7:
 			_T7IE = 0;
 			_T7IF = 0;
 			T7CONbits.TSIDL = 1;
 			break;
-		case TIMER8:
+		case TIMER_8:
 			_T8IE = 0;
 			_T8IF = 0;
 			T8CONbits.TSIDL = 1;
 			break;
-		case TIMER89:
-		case TIMER9:
+		case TIMER_89:
+		case TIMER_9:
 			_T9IE = 0;
 			_T9IF = 0;
 			T9CONbits.TSIDL = 1;
+			break;
+		default:
+			ERROR(TIMER_ERROR_INVALID_TIMER_ID, &id);
 			break;
 	}
 }
@@ -751,7 +749,7 @@ void timer_disable_interrupt(int id)
 	Set a timer in 16-bits or 32-bits mode.
 	
 	\param	id
-			The timer can be one of the 16-bits timer (\ref TIMER1 -> \ref TIMER9) or one of the 32-bits timer (\ref TIMER23 -> \ref TIMER89).
+			The timer can be one of the 16-bits timer (\ref TIMER_1 -> \ref TIMER_9) or one of the 32-bits timer (\ref TIMER_23 -> \ref TIMER_89).
 
 	\param	mode
 			The parameter can be one of the two following constants:
@@ -765,21 +763,21 @@ void m_set_32bits_mode(int id, char mode)
 {
 	switch(id)
 	{
-		case TIMER2:
-		case TIMER3:
-		case TIMER23:	T2CONbits.T32 = mode;
+		case TIMER_2:
+		case TIMER_3:
+		case TIMER_23:	T2CONbits.T32 = mode;
 			break;
-		case TIMER4:
-		case TIMER5:
-		case TIMER45:	T4CONbits.T32 = mode;
+		case TIMER_4:
+		case TIMER_5:
+		case TIMER_45:	T4CONbits.T32 = mode;
 			break;
-		case TIMER6:
-		case TIMER7:
-		case TIMER67:	T6CONbits.T32 = mode;
+		case TIMER_6:
+		case TIMER_7:
+		case TIMER_67:	T6CONbits.T32 = mode;
 			break;
-		case TIMER8:
-		case TIMER9:
-		case TIMER89:	T8CONbits.T32 = mode;
+		case TIMER_8:
+		case TIMER_9:
+		case TIMER_89:	T8CONbits.T32 = mode;
 			break;
 	}
 }
@@ -789,7 +787,7 @@ void m_set_32bits_mode(int id, char mode)
 	Set the prescaler register of a timer.
 
 	\param	id
-			The timer can be one of the 16-bits timer (\ref TIMER1 -> \ref TIMER9) or one of the 32-bits timer (\ref TIMER23 -> \ref TIMER89)
+			The timer can be one of the 16-bits timer (\ref TIMER_1 -> \ref TIMER_9) or one of the 32-bits timer (\ref TIMER_23 -> \ref TIMER_89)
 
 	\param	prescaler
 			Prescaler value. Can be one of the following:
@@ -805,27 +803,30 @@ void m_set_prescaler(int id, unsigned int prescaler)
 {
 	switch(id)
 	{
-		case TIMER1:	T1CONbits.TCKPS = prescaler;
+		case TIMER_1:	T1CONbits.TCKPS = prescaler;
 			break;
-		case TIMER2:
-		case TIMER23:	T2CONbits.TCKPS = prescaler;
+		case TIMER_2:
+		case TIMER_23:	T2CONbits.TCKPS = prescaler;
 			break;
-		case TIMER3:	T3CONbits.TCKPS = prescaler;
+		case TIMER_3:	T3CONbits.TCKPS = prescaler;
 			break;
-		case TIMER4:
-		case TIMER45:	T4CONbits.TCKPS = prescaler;
+		case TIMER_4:
+		case TIMER_45:	T4CONbits.TCKPS = prescaler;
 			break;
-		case TIMER5:	T5CONbits.TCKPS = prescaler;
+		case TIMER_5:	T5CONbits.TCKPS = prescaler;
 			break;
-		case TIMER6:
-		case TIMER67:	T6CONbits.TCKPS = prescaler;
+		case TIMER_6:
+		case TIMER_67:	T6CONbits.TCKPS = prescaler;
 			break;
-		case TIMER7:	T7CONbits.TCKPS = prescaler;
+		case TIMER_7:	T7CONbits.TCKPS = prescaler;
 			break;
-		case TIMER8:
-		case TIMER89:	T8CONbits.TCKPS = prescaler;
+		case TIMER_8:
+		case TIMER_89:	T8CONbits.TCKPS = prescaler;
 			break;
-		case TIMER9:	T9CONbits.TCKPS = prescaler;
+		case TIMER_9:	T9CONbits.TCKPS = prescaler;
+			break;
+		default:
+			ERROR(TIMER_ERROR_INVALID_TIMER_ID, &id);
 			break;
 	}
 }
@@ -835,7 +836,7 @@ void m_set_prescaler(int id, unsigned int prescaler)
 	Set the period register of a 16-bits timer.
 	
 	\param	id
-			The timer can be one of the 16-bits timer (\ref TIMER1 -> \ref TIMER9) or one of the 32-bits timer (\ref TIMER23 -> \ref TIMER89)
+			The timer can be one of the 16-bits timer (\ref TIMER_1 -> \ref TIMER_9) or one of the 32-bits timer (\ref TIMER_23 -> \ref TIMER_89)
 
 	\param	period
 			Value of the period. Can be any number between 0x0000 and 0xFFFF.
@@ -844,23 +845,26 @@ void m_set_period_16b(int id, unsigned short period)
 {
 	switch(id)
 	{
-		case TIMER1:	PR1 = period;
+		case TIMER_1:	PR1 = period;
 			break;
-		case TIMER2:	PR2 = period;
+		case TIMER_2:	PR2 = period;
 			break;
-		case TIMER3:	PR3 = period;
+		case TIMER_3:	PR3 = period;
 			break;
-		case TIMER4:	PR4 = period;
+		case TIMER_4:	PR4 = period;
 			break;
-		case TIMER5:	PR5 = period;
+		case TIMER_5:	PR5 = period;
 			break;
-		case TIMER6:	PR6 = period;
+		case TIMER_6:	PR6 = period;
 			break;
-		case TIMER7:	PR7 = period;
+		case TIMER_7:	PR7 = period;
 			break;
-		case TIMER8:	PR8 = period;
+		case TIMER_8:	PR8 = period;
 			break;
-		case TIMER9:	PR9 = period;
+		case TIMER_9:	PR9 = period;
+			break;
+		default:
+			ERROR(TIMER_ERROR_INVALID_TIMER_ID, &id);
 			break;
 	}
 }
@@ -872,7 +876,7 @@ void m_set_period_16b(int id, unsigned short period)
 	To do this, the period register of the 2 corresponding 16-bits timers has to be set.
 
 	\param	id
-			The timer can be one of the 16-bits timer (\ref TIMER1 -> \ref TIMER9) or one of the 32-bits timer (\ref TIMER23 -> \ref TIMER89)
+			The timer can be one of the 16-bits timer (\ref TIMER_1 -> \ref TIMER_9) or one of the 32-bits timer (\ref TIMER_23 -> \ref TIMER_89)
 
 	\param	period
 			Value of the period. Can be any number between 0x0000 and 0xFFFFFFFF.
@@ -881,21 +885,24 @@ void m_set_period_32b(int id, unsigned long period)
 {
 	switch(id)
 	{
-		case TIMER23:	
+		case TIMER_23:	
 			PR2 = period & 0xffff;	// LSB
 			PR3 = (period >> 16);	// MSB
 			break;
-		case TIMER45:	
+		case TIMER_45:	
 			PR4 = period & 0xffff;	// LSB
 			PR5 = (period >> 16);	// MSB
 			break;
-		case TIMER67:	
+		case TIMER_67:	
 			PR6 = period & 0xffff;	// LSB
 			PR7 = (period >> 16);	// MSB
 			break;
-		case TIMER89:	
+		case TIMER_89:	
 			PR8 = period & 0xffff;	// LSB
 			PR9 = (period >> 16);	// MSB
+			break;
+		default:
+			ERROR(TIMER_ERROR_INVALID_TIMER_ID, &id);
 			break;
 	}
 }
@@ -913,7 +920,7 @@ void m_set_period_32b(int id, unsigned long period)
 void _ISR _T1Interrupt(void)
 {
 	// function must exist because this interrupt is enabled
-	Timer_Data[0].callback();
+	Timer_Data[0].callback(TIMER_1);
 	
 	_T1IF = 0;
 }
@@ -926,7 +933,7 @@ void _ISR _T1Interrupt(void)
 void _ISR _T2Interrupt(void)
 {
 	// function must exist because this interrupt is enabled
-	Timer_Data[1].callback();
+	Timer_Data[1].callback(TIMER_2);
 	
 	_T2IF = 0;
 }
@@ -939,7 +946,10 @@ void _ISR _T2Interrupt(void)
 void _ISR _T3Interrupt(void)
 {
 	// function must exist because this interrupt is enabled
-	Timer_Data[2].callback();
+	if (Timer_Data[1].is_initialized && Timer_Data[1].is_32bits)
+		Timer_Data[2].callback(TIMER_23);
+	else
+		Timer_Data[2].callback(TIMER_3);
 	
 	_T3IF = 0;
 }
@@ -952,7 +962,7 @@ void _ISR _T3Interrupt(void)
 void _ISR _T4Interrupt(void)
 {
 	// function must exist because this interrupt is enabled
-	Timer_Data[3].callback();
+	Timer_Data[3].callback(TIMER_4);
 	
 	_T4IF = 0;
 }
@@ -965,7 +975,10 @@ void _ISR _T4Interrupt(void)
 void _ISR _T5Interrupt(void)
 {
 	// function must exist because this interrupt is enabled
-	Timer_Data[4].callback();
+	if (Timer_Data[3].is_initialized && Timer_Data[3].is_32bits)
+		Timer_Data[4].callback(TIMER_45);
+	else
+		Timer_Data[4].callback(TIMER_5);
 	
 	_T5IF = 0;
 }
@@ -978,7 +991,7 @@ void _ISR _T5Interrupt(void)
 void _ISR _T6Interrupt(void)
 {
 	// function must exist because this interrupt is enabled
-	Timer_Data[5].callback();
+	Timer_Data[5].callback(TIMER_6);
 	
 	_T6IF = 0;
 }
@@ -991,7 +1004,10 @@ void _ISR _T6Interrupt(void)
 void _ISR _T7Interrupt(void)
 {
 	// function must exist because this interrupt is enabled
-	Timer_Data[6].callback();
+	if (Timer_Data[5].is_initialized && Timer_Data[5].is_32bits)
+		Timer_Data[6].callback(TIMER_67);
+	else
+		Timer_Data[6].callback(TIMER_7);
 	
 	_T7IF = 0;
 }
@@ -1004,7 +1020,7 @@ void _ISR _T7Interrupt(void)
 void _ISR _T8Interrupt(void)
 {
 	// function must exist because this interrupt is enabled
-	Timer_Data[7].callback();
+	Timer_Data[7].callback(TIMER_8);
 	
 	_T8IF = 0;
 }
@@ -1017,7 +1033,10 @@ void _ISR _T8Interrupt(void)
 void _ISR _T9Interrupt(void)
 {
 	// function must exist because this interrupt is enabled
-	Timer_Data[8].callback();
+	if (Timer_Data[7].is_initialized && Timer_Data[7].is_32bits)
+		Timer_Data[8].callback(TIMER_89);
+	else
+		Timer_Data[8].callback(TIMER_9);
 	
 	_T9IF = 0;
 }

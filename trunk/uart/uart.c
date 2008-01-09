@@ -286,7 +286,7 @@ bool uart_2_transmit_byte(unsigned char data)
 */
 void _ISR _U1RXInterrupt(void)
 {
-	UART_1_Data.byte_received_callback(1, U1RXREG);
+	UART_1_Data.byte_received_callback(UART_1, U1RXREG);
 	
 	_U1RXIF = 0;			// Clear reception interrupt flag
 }
@@ -299,7 +299,7 @@ void _ISR _U1RXInterrupt(void)
 void _ISR _U1TXInterrupt(void)
 {
 	unsigned char data;
-	if (UART_1_Data.byte_transmitted_callback(1, &data))
+	if (UART_1_Data.byte_transmitted_callback(UART_1, &data))
 		U1TXREG = data;
 	
 	_U1TXIF = 0;			// Clear transmission interrupt flag
@@ -312,7 +312,7 @@ void _ISR _U1TXInterrupt(void)
 */
 void _ISR _U2RXInterrupt(void)
 {
-	UART_2_Data.byte_received_callback(2, U2RXREG);
+	UART_2_Data.byte_received_callback(UART_2, U2RXREG);
 	
 	_U2RXIF = 0;			// Clear reception interrupt flag
 }
@@ -325,7 +325,7 @@ void _ISR _U2RXInterrupt(void)
 void _ISR _U2TXInterrupt(void)
 {
 	unsigned char data;
-	if (UART_2_Data.byte_transmitted_callback(2, &data))
+	if (UART_2_Data.byte_transmitted_callback(UART_2, &data))
 		U2TXREG = data;
 	
 	_U2TXIF = 0;			// Clear transmission interrupt flag

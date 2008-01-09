@@ -42,6 +42,20 @@ enum oc_errors
 	OC_ERROR_INVALIDE_MODE,				/**< The specified mode is invalid. */
 };
 
+/** Identifiers of available Output Compares. */
+enum uart_identifiers
+{
+	OC_1 = 0,			/**< Output Compare 1 */
+	OC_2,				/**< Output Compare 2 */
+	OC_3,				/**< Output Compare 3 */
+	OC_4,				/**< Output Compare 4 */
+	OC_5,				/**< Output Compare 5 */
+	OC_6,				/**< Output Compare 6 */
+	OC_7,				/**< Output Compare 7 */
+	OC_8,				/**< Output Compare 8 */
+};
+
+
 /** Possible Output Compare timer sources */
 enum oc_timer_source
 {

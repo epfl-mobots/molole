@@ -60,25 +60,25 @@ enum timer_clock_source
 enum timer_identifiers
 {
 	/* 16 bits timers */
-	TIMER1							= 0,	/**< 16-bits Timer 1 */
-	TIMER2							= 1,	/**< 16-bits Timer 2 */
-	TIMER3							= 2,	/**< 16-bits Timer 3 */
-	TIMER4							= 3,	/**< 16-bits Timer 4 */
-	TIMER5							= 4,	/**< 16-bits Timer 5 */
-	TIMER6							= 5,	/**< 16-bits Timer 6 */
-	TIMER7							= 6,	/**< 16-bits Timer 7 */
-	TIMER8							= 7,	/**< 16-bits Timer 8 */
-	TIMER9							= 8,	/**< 16-bits Timer 9 */
+	TIMER_1							= 0,	/**< 16-bits Timer 1 */
+	TIMER_2							= 1,	/**< 16-bits Timer 2 */
+	TIMER_3							= 2,	/**< 16-bits Timer 3 */
+	TIMER_4							= 3,	/**< 16-bits Timer 4 */
+	TIMER_5							= 4,	/**< 16-bits Timer 5 */
+	TIMER_6							= 5,	/**< 16-bits Timer 6 */
+	TIMER_7							= 6,	/**< 16-bits Timer 7 */
+	TIMER_8							= 7,	/**< 16-bits Timer 8 */
+	TIMER_9							= 8,	/**< 16-bits Timer 9 */
 
 	/* 32 bits timers */
-	TIMER23							= 9,	/**< 32-bits timer formed of the Timer 2 + 3 */
-	TIMER45							= 10,	/**< 32-bits timer formed of the Timer 4 + 5 */
-	TIMER67							= 11,	/**< 32-bits timer formed of the Timer 6 + 7 */
-	TIMER89							= 12,	/**< 32-bits timer formed of the Timer 8 + 9 */
+	TIMER_23						= 9,	/**< 32-bits timer formed of the Timer 2 + 3 */
+	TIMER_45						= 10,	/**< 32-bits timer formed of the Timer 4 + 5 */
+	TIMER_67						= 11,	/**< 32-bits timer formed of the Timer 6 + 7 */
+	TIMER_89						= 12,	/**< 32-bits timer formed of the Timer 8 + 9 */
 };
 
 /** Timer callback on interrupt */
-typedef void(*timer_callback)(void);
+typedef void(*timer_callback)(int timer_id);
 
 
 // Functions, doc in the .c

@@ -35,6 +35,14 @@
 	UART wrapper definitions
 */
 
+/** Identifiers of available UARTs. */
+enum uart_identifiers
+{
+	UART_1 = 0,			/**< first UART */
+	UART_2				/**< second UART */
+};
+
+
 /** UART callback when a byte is received */
 typedef void (*uart_byte_received)(int uart_id, unsigned char data);
 
