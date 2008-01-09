@@ -5,7 +5,7 @@ else
 
 VPATH = $(SRCDIR)
 
-sources = timers.c
+sources = timer.c
 objects = $(patsubst %.c,%.o,$(sources))
 target = libtimer.a
 

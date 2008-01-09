@@ -90,7 +90,7 @@ The following problems occurs when using the MPLAB SIM simulator (the library is
 
 #include <p33fxxxx.h>
 
-#include "timers.h"
+#include "timer.h"
 #include "../clock/clock.h"
 #include "../error/error.h"
 

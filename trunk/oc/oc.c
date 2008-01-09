@@ -49,7 +49,7 @@
 
 #include "oc.h"
 #include "../error/error.h"
-#include "../timer/timers.h"
+#include "../timer/timer.h"
 
 // TODO if necessary: interrupt
 

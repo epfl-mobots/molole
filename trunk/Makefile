@@ -18,4 +18,4 @@ clean:
 	$(MAKE) -C i2c builddir=pic30-33fj256gp710 clean
 	$(MAKE) -C uart builddir=pic30-33fj256gp710 clean
 	$(MAKE) -C oc builddir=pic30-33fj256gp710 clean
-	$(MAKE) -C pwm builddir=pic30-33fj256mc510 cpu=33fj256mc510 prefix=pic30-elf-
+	$(MAKE) -C pwm builddir=pic30-33fj256mc510 clean
