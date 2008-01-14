@@ -1,12 +1,12 @@
 /*
 	Molole - Mobots Low Level library
 	An open source toolkit for robot programming using DsPICs
-	Copyright (C) 2006 - 2007 Florian Vaussard <Florian dot Vaussard at a3 dot epfl dot ch>
-	Copyright (C) 2008 Stephane Magnenat <stephane at magnenat dot net>
 	
-	Copyright (C) 2004-2008 Mobots group http://mobots.epfl.ch
-	Robotics system laboratory http://lsro.epfl.ch
-	EPFL Ecole polytechnique federale de Lausanne: http://www.epfl.ch
+	Copyright (C) 2007 - 2008 Stephane Magnenat <stephane at magnenat dot net>,
+	Mobots group (http://mobots.epfl.ch), Robotics system laboratory (http://lsro.epfl.ch)
+	EPFL Ecole polytechnique federale de Lausanne (http://www.epfl.ch)
+	
+	Copyright (C) 2007 Florian Vaussard <Florian dot Vaussard at a3 dot epfl dot ch>
 	
 	See AUTHORS for more details about other contributors.
 	

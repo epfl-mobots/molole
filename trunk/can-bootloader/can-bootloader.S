@@ -1,29 +1,28 @@
 /*
+	Molole - Mobots Low Level library
+	CAN bootloader for PIC 24/33
 
-CAN bootloader for PIC 24/33
-This file is part of Molole (Mobots low level library)
-Copyright (C) 2006 - 2007 Philippe Rétornaz <philippe dot retornaz at epfl dot ch>
-Copyright (C) 2007 Valentin Longchamp <valentin dot longchamp at a3 dot epfl dot ch>
-Copyright (C) 2007 Stéphane Magnenat <stephane at magnenat dot net>
-Laboratory of Robotics Systems 1 - EPFL
-
-See authors.txt in top level directory for more details about other contributors.
-
-This program is free software; you can redistribute it and/or
-modify it under the terms of the GNU General Public License
-as published by the Free Software Foundation; either version 2
-of the License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, 
-USA.
-
+	Copyright (C) 2007 - 2008 Valentin Longchamp <valentin dot longchamp at a3 dot epfl dot ch>,
+	Stephane Magnenat <stephane at magnenat dot net>,
+	Mobots group (http://mobots.epfl.ch), Robotics system laboratory (http://lsro.epfl.ch)
+	EPFL Ecole polytechnique federale de Lausanne (http://www.epfl.ch)
+	
+	Copyright (C) 2006 - 2007 Philippe Rétornaz <philippe dot retornaz at a3 dot epfl dot ch>
+	
+	See AUTHORS for more details about other contributors.
+	
+	This program is free software: you can redistribute it and/or modify
+	it under the terms of the GNU General Public License as published by
+	the Free Software Foundation, either version 3 of the License, or
+	(at your option) any later version.
+	
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
+	
+	You should have received a copy of the GNU General Public License
+	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 .include cpuinc
