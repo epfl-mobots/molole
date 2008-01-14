@@ -67,6 +67,7 @@ static struct
 	Initialize ADC1 for simple input conversion.
 	
 	The converter is put in 12 bits / single conversion mode and callback is called when conversion is completed.
+	This function does not start any conversion. Call adc1_start_simple_conversion() to start a conversion.
 	
 	\param	callback
 			Pointer to a function that will be called when conversion is completed.
