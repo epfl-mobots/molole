@@ -69,10 +69,10 @@
 void oc_enable(int oc_id, int source, int mode)
 {
 	if ((source < 0) || (source > 1))
-		ERROR(OC_ERROR_INVALIDE_SOURCE, &source);
+		ERROR(OC_ERROR_INVALID_SOURCE, &source);
 	
 	if ((mode == OC_DISABLED) || (mode > 7))
-		ERROR(OC_ERROR_INVALIDE_MODE, &mode);
+		ERROR(OC_ERROR_INVALID_MODE, &mode);
 	
 	oc_disable(oc_id);
 	
@@ -91,7 +91,7 @@ void oc_enable(int oc_id, int source, int mode)
 		case OC_6: OC6CONbits.OCM = mode; OC6CONbits.OCTSEL = source; break;
 		case OC_7: OC7CONbits.OCM = mode; OC7CONbits.OCTSEL = source; break;
 		case OC_8: OC8CONbits.OCM = mode; OC8CONbits.OCTSEL = source; break;
-		default: ERROR(OC_ERROR_INVALIDE_OC_ID, &oc_id);
+		default: ERROR(OC_ERROR_INVALID_OC_ID, &oc_id);
 	}
 }
 
@@ -113,7 +113,7 @@ void oc_disable(int oc_id)
 		case OC_6: OC6CONbits.OCM = OC_DISABLED; break;
 		case OC_7: OC7CONbits.OCM = OC_DISABLED; break;
 		case OC_8: OC8CONbits.OCM = OC_DISABLED; break;
-		default: ERROR(OC_ERROR_INVALIDE_OC_ID, &oc_id);
+		default: ERROR(OC_ERROR_INVALID_OC_ID, &oc_id);
 	}
 }
 
@@ -139,7 +139,7 @@ void oc_set_value(int oc_id, unsigned primary, unsigned secondary)
 		case OC_6: OC6R = primary; OC6RS = secondary; break;
 		case OC_7: OC7R = primary; OC7RS = secondary; break;
 		case OC_8: OC8R = primary; OC8RS = secondary; break;
-		default: ERROR(OC_ERROR_INVALIDE_OC_ID, &oc_id);
+		default: ERROR(OC_ERROR_INVALID_OC_ID, &oc_id);
 	}
 }
 

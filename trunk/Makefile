@@ -8,6 +8,7 @@ all:
 	$(MAKE) -C uart builddir=pic30-33fj256gp710 cpu=33fj256gp710 prefix=pic30-elf-
 	$(MAKE) -C oc builddir=pic30-33fj256gp710 cpu=33fj256gp710 prefix=pic30-elf-
 	$(MAKE) -C pwm builddir=pic30-33fj256mc510 cpu=33fj256mc510 prefix=pic30-elf-
+	$(MAKE) -C dma builddir=pic30-33fj256mc510 cpu=33fj256mc510 prefix=pic30-elf-
 
 clean:
 	$(MAKE) -C can-bootloader builddir=pic30-24hj128gp506 clean
@@ -19,3 +20,4 @@ clean:
 	$(MAKE) -C uart builddir=pic30-33fj256gp710 clean
 	$(MAKE) -C oc builddir=pic30-33fj256gp710 clean
 	$(MAKE) -C pwm builddir=pic30-33fj256mc510 clean
+	$(MAKE) -C dma builddir=pic30-33fj256mc510 clean

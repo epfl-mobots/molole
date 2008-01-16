@@ -117,6 +117,8 @@ void pwm_disable_interrupt()
 	_PWMIF = 0;							// clear the PWM interrupt
 }
 
+// TODO: check valid identifiers
+
 /**
 	Enables a PWM.
 	

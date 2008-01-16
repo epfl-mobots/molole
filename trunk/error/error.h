@@ -32,6 +32,14 @@
 	\brief An error management library for callback-based assertions
 */
 
+/** Generic errors anyone can throw */
+enum generic_errors
+{
+	GENERIC_ERROR_BASE = 0x0000,
+	GENERIC_ERROR_NOT_IMPLEMENTED,			/**< An not yet implemented code was called. */
+};
+
+
 /** Callback when an error occurs */
 typedef void(*error_callback)(const char * file, int line, int id, void* arg);
 

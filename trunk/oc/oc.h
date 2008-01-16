@@ -38,9 +38,9 @@
 enum oc_errors
 {
 	OC_ERROR_BASE = 0x0400,
-	OC_ERROR_INVALIDE_OC_ID,			/**< The desired Output Compare does not exists. */
-	OC_ERROR_INVALIDE_SOURCE,			/**< The specified source is invalid. */
-	OC_ERROR_INVALIDE_MODE,				/**< The specified mode is invalid. */
+	OC_ERROR_INVALID_OC_ID,			/**< The desired Output Compare does not exists. */
+	OC_ERROR_INVALID_SOURCE,			/**< The specified source is invalid. */
+	OC_ERROR_INVALID_MODE,				/**< The specified mode is invalid. */
 };
 
 /** Identifiers of available Output Compares. */

@@ -175,5 +175,3 @@ void _ISR  _ADC1Interrupt(void)
 }
 
 /*@}*/
-
-
