@@ -44,9 +44,10 @@
 #include <clock/clock.h>
 
 // functions for callbacks
-void uart1_byte_received(int uart_id, unsigned char data)
+bool uart1_byte_received(int uart_id, unsigned char data)
 {
 	uart_1_transmit_byte(data);
+	return true;
 }
 
 bool uart1_byte_transmitted(int uart_id, unsigned char* data)
@@ -54,9 +55,10 @@ bool uart1_byte_transmitted(int uart_id, unsigned char* data)
 	return false;
 }
 
-void uart2_byte_received(int uart_id, unsigned char data)
+bool uart2_byte_received(int uart_id, unsigned char data)
 {
 	uart_2_transmit_byte(data);
+	return true;
 }
 
 bool uart2_byte_transmitted(int uart_id, unsigned char* data)
@@ -81,6 +83,7 @@ int main(void)
 	return 0;
 }
 \endcode
+Note that if flow control is disabled and if data are not read in time, they are silently dropped.
 */
 /*@{*/
 
@@ -205,12 +208,11 @@ void uart_1_read_pending_data(void)
 {
 	if (UART_1_Data.user_program_busy)
 	{
-		do
+		while (U1STAbits.URXDA)
 		{
 			if (UART_1_Data.byte_received_callback(UART_1, U1RXREG) == false)
 				return;
 		}
-		while (U1STAbits.URXDA);
 		UART_1_Data.user_program_busy = false;
 	}
 }
@@ -298,12 +300,11 @@ void uart_2_read_pending_data(void)
 {
 	if (UART_2_Data.user_program_busy)
 	{
-		do
+		while (U2STAbits.URXDA)
 		{
 			if (UART_2_Data.byte_received_callback(UART_2, U2RXREG) == false)
 				return;
 		}
-		while (U2STAbits.URXDA);
 		UART_2_Data.user_program_busy = false;
 	}
 }
