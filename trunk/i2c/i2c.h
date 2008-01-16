@@ -34,6 +34,8 @@
 	I2C slave and master wrappers definitions
 */
 
+// Defines
+
 /** I2C callback for status change */
 typedef void(*i2c_status_callback)();
 

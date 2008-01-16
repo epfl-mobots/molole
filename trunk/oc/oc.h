@@ -32,6 +32,8 @@
 	Output Compare wrapper definitions
 */
 
+// Defines
+
 /** Errors Output Compare can throw */
 enum oc_errors
 {

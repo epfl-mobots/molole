@@ -34,7 +34,7 @@
 	\brief A wrapper around dsPIC33 ADC.
 */
 
-/* Timers library defines */
+// Defines
 
 /** Errors ADC can throw */
 enum adc_errors

@@ -107,13 +107,14 @@ typedef struct
 {
 	uart_byte_received byte_received_callback; /**< function to call when a new byte is received */
 	uart_byte_transmitted byte_transmitted_callback; /**< function to call when a byte has been transmitted */
+	bool user_program_busy; /**< true if user program is busy and cannot read any more data, false otherwise */
 } UART_Data;
 
 /** data for UART 1 wrapper */
-static UART_Data UART_1_Data;
+static UART_Data UART_1_Data = { 0, 0, false };
 
 /** data for UART 2 wrapper */
-static UART_Data UART_2_Data;
+static UART_Data UART_2_Data = { 0, 0, false };
 
 
 //-------------------
@@ -197,6 +198,24 @@ bool uart_1_transmit_byte(unsigned char data)
 	return true;
 }
 
+/**
+	Read pending data until there is no more data or callback returned true
+*/
+void uart_1_read_pending_data(void)
+{
+	if (UART_1_Data.user_program_busy)
+	{
+		do
+		{
+			if (UART_1_Data.byte_received_callback(UART_1, U1RXREG) == false)
+				return;
+		}
+		while (U1STAbits.URXDA);
+		UART_1_Data.user_program_busy = false;
+	}
+}
+
+
 
 /**
 	Init UART 2 subsystem.
@@ -272,6 +291,23 @@ bool uart_2_transmit_byte(unsigned char data)
 	return true;
 }
 
+/**
+	Read pending data until there is no more data or callback returned true
+*/
+void uart_2_read_pending_data(void)
+{
+	if (UART_2_Data.user_program_busy)
+	{
+		do
+		{
+			if (UART_2_Data.byte_received_callback(UART_2, U2RXREG) == false)
+				return;
+		}
+		while (U2STAbits.URXDA);
+		UART_2_Data.user_program_busy = false;
+	}
+}
+
 
 
 //--------------------------
@@ -281,11 +317,26 @@ bool uart_2_transmit_byte(unsigned char data)
 /**
 	UART 1 Reception Interrupt Service Routine.
  
-	Call the user-defined function.
+	Call the user-defined function if user program is not busy.
 */
 void _ISR _U1RXInterrupt(void)
 {
-	UART_1_Data.byte_received_callback(UART_1, U1RXREG);
+	if (!UART_1_Data.user_program_busy)
+	{
+		do
+		{
+			if (UART_1_Data.byte_received_callback(UART_1, U1RXREG) == false)
+			{
+				UART_1_Data.user_program_busy = true;
+				break;
+			}
+		}
+		while (U1STAbits.URXDA);
+	}
+	
+	// Work around for the dsPIC33 Rev. A2 Silicon Errata
+	// Clear Receive Buffer Overrun Error if any, possible despite the use of hardware handshake
+	U1STAbits.OERR = 0;
 	
 	_U1RXIF = 0;			// Clear reception interrupt flag
 }
@@ -307,11 +358,26 @@ void _ISR _U1TXInterrupt(void)
 /**
 	UART 2 Reception Interrupt Service Routine.
  
-	Call the user-defined function.
+	Call the user-defined function if user program is not busy.
 */
 void _ISR _U2RXInterrupt(void)
 {
-	UART_2_Data.byte_received_callback(UART_2, U2RXREG);
+	if (!UART_2_Data.user_program_busy)
+	{
+		do
+		{
+			if (UART_2_Data.byte_received_callback(UART_2, U2RXREG) == false)
+			{
+				UART_2_Data.user_program_busy = true;
+				break;
+			}
+		}
+		while (U2STAbits.URXDA);
+	}
+	
+	// Work around for the dsPIC33 Rev. A2 Silicon Errata
+	// Clear Receive Buffer Overrun Error if any, possible despite the use of hardware handshake
+	U2STAbits.OERR = 0;
 	
 	_U2RXIF = 0;			// Clear reception interrupt flag
 }

@@ -34,6 +34,8 @@
 	UART wrapper definitions
 */
 
+// Defines
+
 /** Identifiers of available UARTs. */
 enum uart_identifiers
 {
@@ -42,11 +44,12 @@ enum uart_identifiers
 };
 
 
-/** UART callback when a byte is received */
-typedef void (*uart_byte_received)(int uart_id, unsigned char data);
+/** UART callback when a byte is received
+	Return true if new data is accepted, false otherwise. */
+typedef bool (*uart_byte_received)(int uart_id, unsigned char data);
 
 /** UART callback when a byte has been transmitted
-	Return true if a new one should be sent, false otherwise */
+	Return true if a new one should be sent, false otherwise. */
 typedef bool (*uart_byte_transmitted)(int uart_id, unsigned char* data);
 
 // Functions, doc in the .c
@@ -70,6 +73,8 @@ void uart_2_init(
 );
 
 bool uart_2_transmit_byte(unsigned char data);
+
+void uart_2_read_pending_data(void);
 
 
 /*@}*/

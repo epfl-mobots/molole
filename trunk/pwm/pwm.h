@@ -36,6 +36,8 @@
 	PWM wrapper definitions
 */
 
+// Defines
+
 /** Errors PWM can throw */
 enum pwm_errors
 {

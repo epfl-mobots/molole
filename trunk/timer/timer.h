@@ -36,7 +36,7 @@
 	\brief A wrapper around dsPIC33 Timers.
 */
 
-/* Timers library defines */
+// Defines
 
 /** Errors timer can throw */
 enum timer_errors
