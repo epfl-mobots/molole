@@ -61,22 +61,17 @@ static struct
 	Init the PWM subsystem.
 	
 	\param	prescaler
-			Prescaler of FCY. Must be one of pwm_prescaler_values.
+			Prescaler of FCY. Must be one of \ref pwm_prescaler_values.
 	\param	period
 			PWM period (0..32767)
 	\param	mode
-			PWM time base modes. Must be one of pwm_time_base_modes.
+			PWM time base modes. Must be one of \ref pwm_time_base_modes.
 */
 void pwm_init(int prescaler, unsigned period, int mode)
 {
-	if (mode > 3)
-		ERROR(PWM_ERROR_INVALID_MODE, &mode);
-	
-	if (prescaler > 3)
-		ERROR(PWM_ERROR_INVALID_PRESCALER, &prescaler);
-	
-	if (period > 32676)
-		ERROR(PWM_ERROR_INVALID_RANGE, &period);
+	ERROR_CHECK_RANGE(prescaler, 0, 3, PWM_ERROR_INVALID_PRESCALER);
+	ERROR_CHECK_RANGE(period, 0, 32767, PWM_ERROR_INVALID_RANGE);
+	ERROR_CHECK_RANGE(mode, 0, 3, PWM_ERROR_INVALID_MODE);
 	
 	PTPER = period;						// PWM period
 	PTCONbits.PTCKPS = prescaler;		// PWM Time Base Input Clock Prescale
@@ -97,8 +92,8 @@ void pwm_init(int prescaler, unsigned period, int mode)
 */
 void pwm_enable_interrupt(int postscaler, pwm_callback callback, int priority)
 {
-	if (postscaler < 0 || postscaler > 15)
-		ERROR(PWM_ERROR_INVALID_POSTSCALER, &postscaler);
+	ERROR_CHECK_RANGE(postscaler, 0, 15, PWM_ERROR_INVALID_POSTSCALER);
+	ERROR_CHECK_RANGE(priority, 1, 7, GENERIC_ERROR_INVALID_INTERRUPT_PRIORITY);
 	
 	PTCONbits.PTOPS = postscaler;		// PWM Time Base Output Postscale
 	
@@ -117,13 +112,13 @@ void pwm_disable_interrupt()
 	_PWMIF = 0;							// clear the PWM interrupt
 }
 
-// TODO: check valid identifiers
+// TODO: why only PWM 1 to 4 ?
 
 /**
 	Enables a PWM.
 	
 	\param	pwm_id
-			Identifier of the PWM (0..7)
+			Identifier of the PWM, from \ref PWM_1 to \ref PWM_4.
 */
 void pwm_enable(int pwm_id)
 {
@@ -142,7 +137,7 @@ void pwm_enable(int pwm_id)
 	Disables a PWM.
 	
 	\param	pwm_id
-			Identifier of the PWM (0..7)
+			Identifier of the PWM, from \ref PWM_1 to \ref PWM_4.
 */
 void pwm_disable(int pwm_id)
 {
@@ -161,7 +156,7 @@ void pwm_disable(int pwm_id)
 	Set the duty of a PWM.
 	
 	\param	pwm_id
-			Identifier of the PWM (0..7)
+			Identifier of the PWM, from \ref PWM_1 to \ref PWM_4.
 	\param	duty
 			Duty cycle (0..32767)
 */
@@ -190,7 +185,7 @@ void pwm_set_duty(int pwm_id, unsigned duty)
 	This function does not perform adc setup.
 	
 	\param	direction
-			On which direction of counting to compare, PWM_SEV_UP or PWM_SEV_DOWN
+			On which direction of counting to compare, \ref PWM_SEV_UP or \ref PWM_SEV_DOWN
 	\param	postscale
 			The conversion is started each (postscale+1) (parameter is 0..15, corresponding to a 1:1 to 1:16 postscale)
 	\param	value
@@ -198,14 +193,9 @@ void pwm_set_duty(int pwm_id, unsigned duty)
 */
 void pwm_set_special_event_trigger(int direction, int postscale, unsigned value)
 {
-	if ((direction < 0) || (direction > 1))
-		ERROR(PWM_ERROR_INVALID_SEV_DIRECTION, &direction);
-	
-	if ((direction < 0) || (direction > 15))
-		ERROR(PWM_ERROR_INVALID_SEV_POSTSCALE, &postscale);
-	
-	if (value > 32676)
-		ERROR(PWM_ERROR_INVALID_RANGE, &value);
+	ERROR_CHECK_RANGE(direction, 0, 1, PWM_ERROR_INVALID_SEV_DIRECTION);
+	ERROR_CHECK_RANGE(postscale, 0, 15, PWM_ERROR_INVALID_SEV_POSTSCALE);
+	ERROR_CHECK_RANGE(value, 0, 32767, PWM_ERROR_INVALID_RANGE);
 	
 	SEVTCMPbits.SEVTDIR = direction;
 	SEVTCMPbits.SEVTCMP = value;

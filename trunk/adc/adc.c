@@ -83,6 +83,9 @@ void adc1_init_simple(adc_simple_callback callback, int priority, unsigned long 
 {
 	int i;
 	
+	ERROR_CHECK_RANGE(priority, 1, 7, GENERIC_ERROR_INVALID_INTERRUPT_PRIORITY);
+	ERROR_CHECK_RANGE(sample_time, 0, 31, ADC_ERROR_INVALID_SAMPLE_TIME);
+	
 	// Turn off ADC Module
 	AD1CON1bits.ADON = 0;
 	

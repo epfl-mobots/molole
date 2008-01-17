@@ -42,12 +42,12 @@
 enum pwm_errors
 {
 	PWM_ERROR_BASE = 0x0300,
-	PWM_ERROR_INVALID_PWM_ID,			/**< The desired PWM does not exists. */
+	PWM_ERROR_INVALID_PWM_ID,			/**< The specified PWM does not exists. */
 	PWM_ERROR_INVALID_PRESCALER,		/**< The specified prescaler value is invalid. */
 	PWM_ERROR_INVALID_POSTSCALER,		/**< The specified postscaler value is invalid. */
 	PWM_ERROR_INVALID_RANGE,			/**< The specified range for period, duty, or Special Event Trigger value is invalid. */
-	PWM_ERROR_INVALID_MODE,				/**< The specified time base mode is invalid. */
-	PWM_ERROR_INVALID_SEV_DIRECTION,	/**< The specified Special Event Trigger direction is invalid. */
+	PWM_ERROR_INVALID_MODE,				/**< The specified time base mode is not one of pwm_time_base_modes. */
+	PWM_ERROR_INVALID_SEV_DIRECTION,	/**< The specified Special Event Trigger direction is not one of pwm_sev_directions. */
 	PWM_ERROR_INVALID_SEV_POSTSCALE		/**< The specified Special Event Trigger postscale is invalid. */
 };
 

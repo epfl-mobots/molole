@@ -23,12 +23,14 @@
 */
 
 #include "i2c.h"
+#include "../error/error.h"
 
 /**
 	I2C Master yet to implement
 */
 void i2c_init_master(int priority)
 {
+	ERROR_CHECK_RANGE(priority, 1, 7, GENERIC_ERROR_INVALID_INTERRUPT_PRIORITY);
 /*	I2C1BRG = ((int)((FCY/FSCLI2CBUS)-1.0));	// Set the baud rate for master mode
 	_MI2C1IF = 0;					// clear the master interrupt
 	_MI2C1IP = priority;			// set the master interrupt priority

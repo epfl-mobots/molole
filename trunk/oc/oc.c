@@ -60,7 +60,7 @@
 	If timer source is enabled, this function disables it.
 	
 	\param	oc_id
-			Identifier of the Output Compare, from 0 to 7.
+			Identifier of the Output Compare, from \ref OC_1 to \ref OC_8.
 	\param	source
 			Timer providing clock to the output compare. Must be \ref OC_TIMER2 or \ref OC_TIMER3.
 	\param	mode
@@ -68,11 +68,8 @@
 */
 void oc_enable(int oc_id, int source, int mode)
 {
-	if ((source < 0) || (source > 1))
-		ERROR(OC_ERROR_INVALID_SOURCE, &source);
-	
-	if ((mode == OC_DISABLED) || (mode > 7))
-		ERROR(OC_ERROR_INVALID_MODE, &mode);
+	ERROR_CHECK_RANGE(source, 0, 1, OC_ERROR_INVALID_SOURCE);
+	ERROR_CHECK_RANGE(mode, OC_DISABLED, 7, OC_ERROR_INVALID_MODE);
 	
 	oc_disable(oc_id);
 	
@@ -99,7 +96,7 @@ void oc_enable(int oc_id, int source, int mode)
 	Disable an Output Compare.
 	
 	\param	oc_id
-			Identifier of the Output Compare, from 0 to 7.
+			Identifier of the Output Compare, from \ref OC_1 to \ref OC_8.
 */
 void oc_disable(int oc_id)
 {
@@ -121,7 +118,7 @@ void oc_disable(int oc_id)
 	Set the register values of an Output Compare.
 
 	\param	oc_id
-			Identifier of the Output Compare, from 0 to 7.
+			Identifier of the Output Compare, from \ref OC_1 to \ref OC_8.
 	\param	primary
 			Output Compare register, named OCxR in the documentation.
 	\param	secondary

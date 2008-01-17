@@ -40,8 +40,16 @@
 enum dma_errors
 {
 	DMA_ERROR_BASE = 0x0500,
-	DMA_ERROR_INVALID_CHANNEL,				/**< The desired DMA channel does not exists. */
+	DMA_ERROR_INVALID_CHANNEL,				/**< The specified DMA channel is not one of dma_channels_identifiers. */
+	DMA_ERROR_INVALID_REQUEST_SOURCE,		/**< The specified request source is not one of dma_requests_sources. */
+	DMA_ERROR_INVALID_DATA_SIZE,			/**< The specified data size is not one of dma_data_sizes. */
+	DMA_ERROR_INVALID_TRANSFER_DIRECTION,	/**< The specified transfer direction is not one of dma_transfer_direction. */
+	DMA_ERROR_INVALID_INTERRUPT_POSITION,	/**< The specified data size is not one of dma_interrupt_position. */
+	DMA_ERROR_INVALID_WRITE_NULL_MODE,		/**< The specified null data write mode is not one of dma_null_data_peripheral_write_mode_select. */
+	DMA_ERROR_INVALID_ADDRESSING_MODE,		/**< The specified addressing mode is not one of dma_addressing_mode. */
+	DMA_ERROR_INVALID_OPERATING_MODE,		/**< The specified operating mode is not one of dma_operating_mode. */
 };
+
 
 /** Identifiers of available DMA channels. */
 enum dma_channels_identifiers
@@ -98,8 +106,8 @@ enum dma_transfer_direction
 /** should DMA interrupt happens at half of transfer or when it is completed? */
 enum dma_interrupt_position
 {
-	DMA_INTERRUPT_AT_FULL = 0,				/**< Initiate interrupt when all of the data has been moved */
-	DMA_INTERRUPT_AT_HALF = 1				/**< Initiate interrupt when half of the data has been moved */
+	DMA_INTERRUPT_AT_FULL = 0,				/**< Initiate interrupt when a whole buffer has been filled*/
+	DMA_INTERRUPT_AT_HALF = 1				/**< Initiate interrupt when half of a buffer has been filled */
 };
 
 /** should DMA write null to peripheral when writing doto to DPSRAM? */
@@ -126,7 +134,7 @@ enum dma_operating_mode
 	DMA_OPERATING_ONE_SHOT_PING_PONG = 3,					/**< One-Shot, Ping-Pong modes enabled (one block transfer from/to each DMA RAM buffer) */
 };
 
-/** DMA callback when transfer is half or fully completed (depends on dma_interrupt_position) */
+/** DMA callback when a buffer is half or fully filled (depends on dma_interrupt_position) */
 typedef void(*dma_callback)(int channel, bool first_buffer);
 
 

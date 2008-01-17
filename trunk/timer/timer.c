@@ -59,7 +59,7 @@ and finally launch the timer.
 \code
 timer_init(TIMER_1, 400, 6)						// 400 us
 
-timer_enable_interrupt(TIMER_1, 1, int_timer1);	// int_timer1 is a void ...(void) function
+timer_enable_interrupt(TIMER_1, 1, int_timer1);	// int_timer1 is a function of type timer_callback
 
 timer_set_enabled(TIMER_1, true);				// start
 \endcode
@@ -191,8 +191,7 @@ void timer_init(int id, unsigned long int arg_sample_time, int unit)
 	int index;
 	
 	// test the validity of the timer identifier
-	if (id < TIMER_1 || id > TIMER_89)
-		ERROR(TIMER_ERROR_INVALID_TIMER_ID, &id)
+	ERROR_CHECK_RANGE(id, TIMER_1, TIMER_89, TIMER_ERROR_INVALID_TIMER_ID);
 		
 	// test that the timer is free
 	if (!Timer_Data[timer_id_to_index(id)].is_free)
@@ -253,13 +252,12 @@ void timer_set_period(int id, unsigned long int sample_time, int unit)
 	int i;
 
 	// test the validity of the timer identifier
-	if (id < TIMER_1 || id > TIMER_89)
-		ERROR(TIMER_ERROR_INVALID_TIMER_ID, &id)
-		
+	ERROR_CHECK_RANGE(id, TIMER_1, TIMER_89, TIMER_ERROR_INVALID_TIMER_ID);
+	
 	// is the timer initialized ?
 	if (!Timer_Data[timer_id_to_index(id)].is_initialized)
 		ERROR(TIMER_ERROR_NOT_INITIALIZED, &id)
-		
+	
 	// only unit 0,3,6,9 ok
 	if (!(unit == 0 || unit == 3 || unit == 6 || unit == 9))
 		ERROR(TIMER_ERROR_INVALID_UNIT, &unit)
@@ -332,8 +330,7 @@ void timer_release(int id)
 	int index;
 	
 	// test the validity of the timer identifier
-	if(id < TIMER_1 || id > TIMER_89)
-		ERROR(TIMER_ERROR_INVALID_TIMER_ID, &id)
+	ERROR_CHECK_RANGE(id, TIMER_1, TIMER_89, TIMER_ERROR_INVALID_TIMER_ID);
 	
 	index = timer_id_to_index(id);
 	Timer_Data[index].is_initialized = 0;
@@ -397,9 +394,8 @@ void timer_disable(int id)
 void timer_set_enabled(int id, bool enabled)
 {
 	// test the validity of the timer identifier
-	if (id < TIMER_1 || id > TIMER_89)
-		ERROR(TIMER_ERROR_INVALID_TIMER_ID, &id)
-		
+	ERROR_CHECK_RANGE(id, TIMER_1, TIMER_89, TIMER_ERROR_INVALID_TIMER_ID);
+	
 	// is the timer initialized ?
 	if (!Timer_Data[timer_id_to_index(id)].is_initialized)
 		ERROR(TIMER_ERROR_NOT_INITIALIZED, &id)
@@ -501,12 +497,14 @@ unsigned long timer_get_value(int id)
 	\param	id
 			The timer can be one of the 16-bits timer (\ref TIMER_1 -> \ref TIMER_9) or one of the 32-bits timer (\ref TIMER_23 -> \ref TIMER_89).
 	\param	clock_source
-			The parameter can be one of the two following constants:
+			One of the \ref timer_clock_source, that are:
 			- \ref TIMER_CLOCK_INTERNAL
 			- \ref TIMER_CLOCK_EXTERNAL
 */
 void timer_set_clock_source(int id, int clock_source)
 {
+	ERROR_CHECK_RANGE(clock_source, 0, 1, TIMER_ERROR_INVALID_CLOCK_SOURCE);
+	
 	switch (id)
 	{
 		case TIMER_1:	T1CONbits.TCS = clock_source;
@@ -596,8 +594,8 @@ void timer_use_gated_time_accumulation(int id, bool enable)
 void timer_enable_interrupt(int id, timer_callback callback, int priority)
 {
 	// test the validity of the timer identifier
-	if(id < TIMER_1 || id > TIMER_89)
-		ERROR(TIMER_ERROR_INVALID_TIMER_ID, &id)
+	ERROR_CHECK_RANGE(id, TIMER_1, TIMER_89, TIMER_ERROR_INVALID_TIMER_ID);
+	ERROR_CHECK_RANGE(priority, 1, 7, GENERIC_ERROR_INVALID_INTERRUPT_PRIORITY);
 	
 	Timer_Data[timer_id_to_index(id)].callback = callback;
 	

@@ -99,7 +99,9 @@ Note that if flow control is disabled and if data are not read in time, they are
 #include <p33fxxxx.h>
 
 #include "uart.h"
+#include "../error/error.h"
 #include "../clock/clock.h"
+
 
 //-----------------------
 // Structures definitions
@@ -140,10 +142,11 @@ static UART_Data UART_2_Data = { 0, 0, false };
 */
 void uart_1_init(unsigned long baud_rate, bool hardware_flow_control, uart_byte_received byte_received_callback, uart_byte_transmitted byte_transmitted_callback, int priority)
 {
+	ERROR_CHECK_RANGE(priority, 1, 7, GENERIC_ERROR_INVALID_INTERRUPT_PRIORITY);
+	
 	// Store callback functions
 	UART_1_Data.byte_received_callback = byte_received_callback;
 	UART_1_Data.byte_transmitted_callback = byte_transmitted_callback;
-	
 	
 	// Setup baud rate
 	/*
@@ -233,6 +236,8 @@ void uart_1_read_pending_data(void)
 */
 void uart_2_init(unsigned long baud_rate, bool hardware_flow_control, uart_byte_received byte_received_callback, uart_byte_transmitted byte_transmitted_callback, int priority)
 {
+	ERROR_CHECK_RANGE(priority, 1, 7, GENERIC_ERROR_INVALID_INTERRUPT_PRIORITY);
+	
 	// Store callback functions
 	UART_2_Data.byte_received_callback = byte_received_callback;
 	UART_2_Data.byte_transmitted_callback = byte_transmitted_callback;

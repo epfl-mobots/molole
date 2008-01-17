@@ -92,6 +92,8 @@ void i2c_init_slave(
 	int priority
 )
 {
+	ERROR_CHECK_RANGE(priority, 1, 7, GENERIC_ERROR_INVALID_INTERRUPT_PRIORITY);
+	
 	// Store callback functions
 	I2C_Slave_Data.message_from_master_callback = message_from_master_callback;
 	I2C_Slave_Data.message_to_master_callback = message_to_master_callback;

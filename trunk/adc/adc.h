@@ -41,6 +41,7 @@ enum adc_errors
 {
 	ADC_ERROR_BASE = 0x0200,
 	ADC_ERROR_CONVERSION_IN_PROGRESS,	/**< A conversion is already in progress */
+	ADC_ERROR_INVALID_SAMPLE_TIME,		/**< The specified sample time is not valid (outside 0 .. 31) */
 };
 
 /** ADC callback when conversion is completed */
