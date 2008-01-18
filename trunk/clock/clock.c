@@ -114,8 +114,7 @@ void clock_init_internal_rc_from_n1_m_n2(unsigned n1, unsigned m, unsigned n2)
 */
 void clock_init_internal_rc_30()
 {
-	// TODO: add correct values.
-	clock_init_internal_rc_from_n1_m_n2(6, 130, 2);
+	clock_init_internal_rc_from_n1_m_n2(8, 130, 2);
 }
 
 
