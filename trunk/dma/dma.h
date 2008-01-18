@@ -148,9 +148,6 @@ void dma_disable_channel(int channel);
 
 void dma_start_transfer(int channel);
 
-// Functions, doc in the .c
-
-
 /*@}*/
 
 #endif

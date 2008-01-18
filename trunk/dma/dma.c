@@ -27,7 +27,7 @@
 //--------------------
 
 /**
-	\defgroup DMA
+	\defgroup dma DMA
 	
 	Wrapper around DMA, with a callback oriented interface.
 	
@@ -560,7 +560,5 @@ void _ISR  _DMA7Interrupt(void)
 	// Clear interrupt flag
 	_DMA7IF = 0;
 }
-
-
 
 /*@}*/

@@ -5,10 +5,9 @@
 	\section About
 	
 	Molole (Mobots low level library) is a collection of device drivers and low-level functions for the dspic 33 processor family (pic30 in gcc).
-	We develop Molole in the course of our robotics work, but this library should be useful for other usage too.
+	We develop Molole in the course of our robotics work, but this library should be useful for other usages too.
  
-	Molole is primarly developed by the Mobots research group (http://mobots.epfl.ch) at the Laboratory of Robotics Systems at EPFL, Switzerland.
-	
+	Molole is primarly developed by the Mobots research group (http://mobots.epfl.ch) at the Laboratory of Robotics Systems (http://lsro.epfl.ch) at EPFL (http://www.epfl.ch), Switzerland.
 	
 	\section Philosophy
 	
@@ -22,4 +21,8 @@
 	As few people check functions return values in embedded systems, Molole functions must never return errors.
 	Instead, the developers must return errors through a global function (\link error Error module\endlink).
 	This provides a simple exception-like mechanism: the user can place a breakpoint in the global error function and use the stack trace to uncover the source of the problem.
+	
+	\section License
+	
+	Molole is released under the terms of the GNU General Public License (GPL) version 3 (http://www.gnu.org/licenses/gpl-3.0-standalone.html).
 */

@@ -112,8 +112,6 @@ void pwm_disable_interrupt()
 	_PWMIF = 0;							// clear the PWM interrupt
 }
 
-// TODO: why only PWM 1 to 4 ?
-
 /**
 	Enables a PWM.
 	

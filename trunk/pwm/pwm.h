@@ -58,10 +58,6 @@ enum pwm_identifiers
 	PWM_2,				/**< PWM 2 */
 	PWM_3,				/**< PWM 3 */
 	PWM_4,				/**< PWM 4 */
-	PWM_5,				/**< PWM 5 */
-	PWM_6,				/**< PWM 6 */
-	PWM_7,				/**< PWM 7 */
-	PWM_8,				/**< PWM 8 */
 };
 
 
