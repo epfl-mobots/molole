@@ -241,11 +241,12 @@ void adc1_init_scan_dma(unsigned long inputs, int start_conversion_event, int sa
 	
 	if (buffer_build_mode == ADC_DMA_SCATTER_GATHER)
 	{
-		unsigned adc_channel_count = amount_of_bits_at_one(inputs);
-		unsigned per_channel_buffer_size = buffers_size / adc_channel_count;
-		if (per_channel_buffer_size * adc_channel_count != buffers_size)
+		unsigned adc_input_count = amount_of_bits_at_one(inputs);
+		unsigned per_input_buffer_size = buffers_size / adc_input_count;
+		if (per_input_buffer_size * adc_input_count != buffers_size)
 			ERROR(ADC_ERROR_INVALID_BUFFER_SIZE_FOR_SCATTER_GATHER, &buffers_size);
-		
+		if (adc_input_count > 16)
+			ERROR(ADC_ERROR_TOO_MANY_INPUTS_FOR_SCATTER_GATHER, &adc_input_count);
 		dma_init_channel(
 			dma_channel,
 			DMA_INTERRUPT_SOURCE_ADC_1,
@@ -262,8 +263,8 @@ void adc1_init_scan_dma(unsigned long inputs, int start_conversion_event, int sa
 			callback
 		);
 		
-		AD1CON4bits.DMABL = log_2(per_channel_buffer_size);
-		AD1CON2bits.SMPI = adc_channel_count - 1;		// Increments the DMA address fter completion of adc_channel_count sample/conversion operation
+		AD1CON4bits.DMABL = log_2(per_input_buffer_size);
+		AD1CON2bits.SMPI = adc_input_count - 1;		// Increments the DMA address after completion of adc_input_count sample/conversion operation
 	}
 	else if (buffer_build_mode == ADC_DMA_CONVERSION_ORDER)
 	{

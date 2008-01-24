@@ -45,7 +45,8 @@ enum adc_errors
 	ADC_ERROR_INVALID_SAMPLE_TIME,		/**< The specified sample time is not valid (outside 0 .. 31) */
 	ADC_ERROR_INVALID_START_CONVERSION_EVENT,	/**< A specified stop sampling and start conversion was not one of \ref adc_start_conversion_event */
 	ADC_ERROR_INVALID_BUFFER_BUILD_MODE,	/**< A specified DMA buffer build mode was not one of \ref adc_dma_buffer_build_mode */
-	ADC_ERROR_INVALID_BUFFER_SIZE_FOR_SCATTER_GATHER	/**< A specified DMA buffer size was invalid for Scatter/Gather mode. */
+	ADC_ERROR_INVALID_BUFFER_SIZE_FOR_SCATTER_GATHER,	/**< A specified DMA buffer size was invalid for Scatter/Gather mode. */
+	ADC_ERROR_TOO_MANY_INPUTS_FOR_SCATTER_GATHER,		/**< The Scatter/Gather mode is limited to 16 inputs */
 };
 
 /** Which event stop sampling and start conversion */
