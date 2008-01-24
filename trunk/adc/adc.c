@@ -231,8 +231,8 @@ void adc1_init_scan_dma(unsigned long inputs, int start_conversion_event, int sa
 	AD1PCFGH = ~((unsigned short)(inputs >> 16));
 	AD1PCFGL = ~((unsigned short)(inputs));
 	// configure scanning on enabled inputs
-	AD1CSSH = 0x0000;
-	AD1CSSL = 0x0000;
+	AD1CSSH = (unsigned short)(inputs >> 16);
+	AD1CSSL = (unsigned short)(inputs);
 	
 	AD1CON1bits.ADSIDL = 0;		// Continue module operation in Idle mode
 	AD1CON1bits.AD12B = 1;		// 12-bit, 1-channel ADC operation
