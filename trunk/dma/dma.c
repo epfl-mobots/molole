@@ -105,9 +105,10 @@ static dma_callback DMA_Data[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };
 	\param	peripheral_address
 			Address of the peripheral, must be suitable for DMA.
 	\param	transfer_count
-			Amount of data (1 or 2 bytes depending on data_size) per transfer
+			Amount of data (in unit of 1 or 2 bytes depending on data_size) per transfer
 	\param	callback
-			User-specified function to call when a buffer is half or fully filled (depends on dma_interrupt_position)
+			User-specified function to call when a buffer is half or fully filled (depends on dma_interrupt_position).
+			If 0, DMA interrupt is disabled
 */
 void dma_init_channel(int channel, int request_source, int data_size, int transfer_dir, int interrupt_pos, int null_write, int addressing_mode, int operating_mode, unsigned offset_a, unsigned offset_b, void* peripheral_address, unsigned transfer_count, dma_callback callback)
 {
@@ -163,10 +164,15 @@ void dma_init_channel(int channel, int request_source, int data_size, int transf
 			DMA0PAD = (volatile unsigned int)peripheral_address;
 			DMA0CNT = transfer_count - 1;
 			
-			// enable interrupt
-			DMA_Data[0] = callback;
+			// enable interrupt if a callback function is provided
 			_DMA0IF = 0;
-			_DMA0IE = 1;
+			if (callback)
+			{
+				DMA_Data[0] = callback;
+				_DMA0IE = 1;
+			}
+			else
+				_DMA0IE = 0;
 		}
 		break;
 		
@@ -188,10 +194,15 @@ void dma_init_channel(int channel, int request_source, int data_size, int transf
 			DMA1PAD = (volatile unsigned int)peripheral_address;
 			DMA1CNT = transfer_count - 1;
 			
-			// enable interrupt
-			DMA_Data[1] = callback;
+			// enable interrupt if a callback function is provided
 			_DMA1IF = 0;
-			_DMA1IE = 1;
+			if (callback)
+			{
+				DMA_Data[1] = callback;
+				_DMA1IE = 1;
+			}
+			else
+				_DMA1IE = 0;
 		}
 		break;
 		
@@ -213,10 +224,15 @@ void dma_init_channel(int channel, int request_source, int data_size, int transf
 			DMA2PAD = (volatile unsigned int)peripheral_address;
 			DMA2CNT = transfer_count - 1;
 			
-			// enable interrupt
-			DMA_Data[2] = callback;
+			// enable interrupt if a callback function is provided
 			_DMA2IF = 0;
-			_DMA2IE = 1;
+			if (callback)
+			{
+				DMA_Data[2] = callback;
+				_DMA2IE = 1;
+			}
+			else
+				_DMA2IE = 0;
 		}
 		break;
 		
@@ -238,10 +254,15 @@ void dma_init_channel(int channel, int request_source, int data_size, int transf
 			DMA3PAD = (volatile unsigned int)peripheral_address;
 			DMA3CNT = transfer_count - 1;
 			
-			// enable interrupt
-			DMA_Data[3] = callback;
+			// enable interrupt if a callback function is provided
 			_DMA3IF = 0;
-			_DMA3IE = 1;
+			if (callback)
+			{
+				DMA_Data[3] = callback;
+				_DMA3IE = 1;
+			}
+			else
+				_DMA3IE = 0;
 		}
 		break;
 		
@@ -263,10 +284,15 @@ void dma_init_channel(int channel, int request_source, int data_size, int transf
 			DMA4PAD = (volatile unsigned int)peripheral_address;
 			DMA4CNT = transfer_count - 1;
 			
-			// enable interrupt
-			DMA_Data[4] = callback;
+			// enable interrupt if a callback function is provided
 			_DMA4IF = 0;
-			_DMA4IE = 1;
+			if (callback)
+			{
+				DMA_Data[4] = callback;
+				_DMA4IE = 1;
+			}
+			else
+				_DMA4IE = 0;
 		}
 		break;
 		
@@ -288,10 +314,15 @@ void dma_init_channel(int channel, int request_source, int data_size, int transf
 			DMA5PAD = (volatile unsigned int)peripheral_address;
 			DMA5CNT = transfer_count - 1;
 			
-			// enable interrupt
-			DMA_Data[5] = callback;
+			// enable interrupt if a callback function is provided
 			_DMA5IF = 0;
-			_DMA5IE = 1;
+			if (callback)
+			{
+				DMA_Data[0] = callback;
+				_DMA5IE = 1;
+			}
+			else
+				_DMA5IE = 0;
 		}
 		break;
 		
@@ -313,10 +344,15 @@ void dma_init_channel(int channel, int request_source, int data_size, int transf
 			DMA6PAD = (volatile unsigned int)peripheral_address;
 			DMA6CNT = transfer_count - 1;
 			
-			// enable interrupt
-			DMA_Data[6] = callback;
+			// enable interrupt if a callback function is provided
 			_DMA6IF = 0;
-			_DMA6IE = 1;
+			if (callback)
+			{
+				DMA_Data[6] = callback;
+				_DMA6IE = 1;
+			}
+			else
+				_DMA6IE = 0;
 		}
 		break;
 		
@@ -338,10 +374,15 @@ void dma_init_channel(int channel, int request_source, int data_size, int transf
 			DMA7PAD = (volatile unsigned int)peripheral_address;
 			DMA7CNT = transfer_count - 1;
 			
-			// enable interrupt
-			DMA_Data[7] = callback;
+			// enable interrupt if a callback function is provided
 			_DMA7IF = 0;
-			_DMA7IE = 1;
+			if (callback)
+			{
+				DMA_Data[7] = callback;
+				_DMA7IE = 1;
+			}
+			else
+				_DMA7IE = 0;
 		}
 		break;
 		

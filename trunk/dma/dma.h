@@ -113,7 +113,7 @@ enum dma_interrupt_position
 /** should DMA write null to peripheral when writing doto to DPSRAM? */
 enum dma_null_data_peripheral_write_mode_select
 {
-	DMA_DO_NOT_WRITE_TO_PERIPHERAL = 0,		/**< Normal operation */
+	DMA_DO_NOT_NULL_WRITE_TO_PERIPHERAL = 0,	/**< Normal operation */
 	DMA_WRITE_NULL_TO_PERIPHERAL = 1		/**< Null data write to peripheral in addition to DPSRAM write (transfer must be DMA_DIR_FROM_PERIPHERAL_TO_RAM) */
 };
 
