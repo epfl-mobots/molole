@@ -208,8 +208,7 @@ unsigned log_2(unsigned value)
 	\param	buffer_build_mode
 			DMA Buffer Build Mode, must be one of \ref adc_dma_buffer_build_mode.
 	\param	callback
-			User-specified function to call when a buffer is half or fully filled (depends on dma_interrupt_position).
-			If 0, DMA interrupt is disabled
+			User-specified function to call when a buffer filled. If 0, DMA interrupt is disabled
 */
 void adc1_init_scan_dma(unsigned long inputs, int start_conversion_event, int sample_time, int dma_channel, unsigned offset_a, unsigned offset_b, unsigned buffers_size, int buffer_build_mode, dma_callback callback)
 {
