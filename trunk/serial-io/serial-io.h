@@ -28,7 +28,7 @@
 #include "../types/types.h"
 #include "../uart/uart.h"
 
-/** \addtogroup serial-io */
+/** \addtogroup serialio */
 /*@{*/
 
 /** \file
@@ -39,6 +39,14 @@
 
 /** Sizes of read and write buffers */
 #define SERIAL_IO_BUFFERS_SIZE 64
+
+/** Possible alignment when sending numbers */
+enum serial_io_print_alignment
+{
+	SERIAL_IO_ALIGN_COMPACT = 0,	/**< compact number, do not align */
+	SERIAL_IO_ALIGN_LEFT,			/**< align number at left */
+	SERIAL_IO_ALIGN_RIGHT			/**< align number at right */
+};
 
 // Structures definitions
 
@@ -77,7 +85,16 @@ void serial_io_send_string(Serial_IO_State* state, const char* string);
 
 void serial_io_send_buffer(Serial_IO_State* state, const char* buffer, unsigned length);
 
-// TODO
+void serial_io_send_unsigned(Serial_IO_State* state, unsigned value, int alignment);
+
+void serial_io_send_int(Serial_IO_State* state, int value, int alignment);
+
+
+void serial_io_clear_screen(Serial_IO_State* state);
+
+void serial_io_clear_line(Serial_IO_State* state);
+
+void serial_io_move_cursor(Serial_IO_State* state, unsigned row, unsigned col);
 
 /*@}*/
 

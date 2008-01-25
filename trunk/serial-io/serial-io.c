@@ -27,7 +27,7 @@
 //--------------------
 
 /**
-	\defgroup serial-io Serial input/output library
+	\defgroup serialio Serial input/output library
 	
 	An input/output library using UART.
 	It provides buffered operations, basic types parsing, and terminal support.
@@ -204,33 +204,47 @@ void serial_io_send_buffer(Serial_IO_State* state, const char* buffer, unsigned 
 		serial_io_send_char(state, buffer[pos++]);
 }
 
-void serial_io_send_unsigned(Serial_IO_State* state, unsigned value)
+void serial_io_send_unsigned(Serial_IO_State* state, unsigned value, int alignment)
 {
 	unsigned div;
+	unsigned padding = 0;
 	bool hasSent = false;
 	for (div = 10000; div > 0; div /= 10)
 	{
 		unsigned disp = value / div;
 		value %= div;
 
-		if ((disp != 0) || (hasSent))
+		if ((disp != 0) || (hasSent) || (div == 1))
 		{
 			hasSent = true;
 			serial_io_send_char(state, '0' + disp);
 		}
+		else if (alignment == SERIAL_IO_ALIGN_RIGHT)
+		{
+			serial_io_send_char(state, ' ');
+		}
+		else if (alignment == SERIAL_IO_ALIGN_LEFT)
+		{
+			padding++;
+		}
 	}
-	if (!hasSent)
-		serial_io_send_char(state, '0');
+	
+	while (padding--)
+		serial_io_send_char(state, ' ');
 }
 
-void serial_io_send_int(Serial_IO_State* state, int value)
+void serial_io_send_int(Serial_IO_State* state, int value, int alignment)
 {
 	if (value < 0)
 	{
 		serial_io_send_char(state, '-');
 		value = -value;
 	}
-	serial_io_send_unsigned(state, (unsigned)value);
+	else if (alignment != SERIAL_IO_ALIGN_COMPACT)
+	{
+		serial_io_send_char(state, ' ');
+	}
+	serial_io_send_unsigned(state, (unsigned)value, alignment);
 }
 
 void serial_io_clear_screen(Serial_IO_State* state)
@@ -247,9 +261,9 @@ void serial_io_clear_line(Serial_IO_State* state)
 void serial_io_move_cursor(Serial_IO_State* state, unsigned row, unsigned col)
 {
 	serial_io_send_string(state, "\x1B[");
-	serial_io_send_unsigned(state, row);
+	serial_io_send_unsigned(state, row, SERIAL_IO_ALIGN_COMPACT);
 	serial_io_send_char(state, ';');
-	serial_io_send_unsigned(state, col);
+	serial_io_send_unsigned(state, col, SERIAL_IO_ALIGN_COMPACT);
 	serial_io_send_char(state, 'H');
 }
 
