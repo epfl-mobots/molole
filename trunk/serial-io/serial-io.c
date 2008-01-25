@@ -99,6 +99,22 @@ bool is_digit(char c)
 // Exported functions
 //-------------------
 
+/**
+	Initialize a serial input/output stream.
+	
+	This functions initializes the stream itself and open the serial port at 8 bits, 1 stop bit, no parity.
+	
+	\param	state
+			serial input/output stream
+	\param	uart_id
+			identifier of the UART to use, may be \ref UART_1 or \ref UART_2
+	\param	baud_rate
+			baud rate in bps
+	\param	hardware_flow_control
+			wether hardware flow control (CTS/RTS) should be used or not
+	\param 	priority
+			Interrupt priority, from 1 (lowest priority) to 7 (highest priority)
+*/
 void serial_io_init(Serial_IO_State* state, int uart_id, unsigned long baud_rate, bool hardware_flow_control, int priority)
 {
 	// init descriptor struct
@@ -112,12 +128,27 @@ void serial_io_init(Serial_IO_State* state, int uart_id, unsigned long baud_rate
 	uart_init(uart_id, baud_rate, hardware_flow_control, serial_io_byte_received, serial_io_byte_transmitted, priority, state);
 }
 
-
+/**
+	Return wether there is data available for reading in the reception buffer.
+	
+	\param	state
+			serial input/output stream
+	\return	true if there is data available for reading, false otherwise
+*/
 bool serial_io_is_data(Serial_IO_State* state)
 {
 	return state->reception_buffer_read_pos != state->reception_buffer_reception_pos;
 }
 
+/**
+	Return the heading character in the reception buffer, but do not remove it from the buffer.
+	
+	Wait if until there is one character available.
+	
+	\param	state
+			serial input/output stream
+	\return	the heading character of the reception buffer
+*/
 char serial_io_peek_char(Serial_IO_State* state)
 {
 	// wait while software buffer is empty
@@ -128,6 +159,15 @@ char serial_io_peek_char(Serial_IO_State* state)
 	return state->reception_buffer[state->reception_buffer_read_pos];
 }
 
+/**
+	Return the heading character in the reception buffer, and remove it from the buffer.
+	
+	Wait if until there is one character available.
+	
+	\param	state
+			serial input/output stream
+	\return	the heading character of the reception buffer
+*/
 char serial_io_get_char(Serial_IO_State* state)
 {
 	char c = serial_io_peek_char(state);
@@ -140,6 +180,16 @@ char serial_io_get_char(Serial_IO_State* state)
 	return c;
 }
 
+/**
+	Return the head of the reception buffer as an unsigned, and remove it from the buffer.
+	
+	Wait if until there is one character available.
+	If the head is not an unsigned, return 0 and do not remove anything.
+	
+	\param	state
+			serial input/output stream
+	\return	the head of the reception buffer as an unsigned.
+*/
 unsigned serial_io_get_unsigned(Serial_IO_State* state)
 {
 	unsigned val = 0;
@@ -151,6 +201,16 @@ unsigned serial_io_get_unsigned(Serial_IO_State* state)
 	return val;
 }
 
+/**
+	Return the head of the reception buffer as an int, and remove it from the buffer.
+	
+	Wait if until there is one character available.
+	If the head is not an int, return 0 and do not remove anything.
+	
+	\param	state
+			serial input/output stream
+	\return	the head of the reception buffer as an int.
+*/
 int serial_io_get_int(Serial_IO_State* state)
 {
 	if (serial_io_peek_char(state) == '-')
@@ -164,6 +224,19 @@ int serial_io_get_int(Serial_IO_State* state)
 	}
 }
 
+/**
+	Read a specific amount of byte from the reception buffer.
+	
+	Wait if until all data is available.
+	length is allowed to be bigger than the reception buffer, as each byte is read directly when it is available.
+	
+	\param	state
+			serial input/output stream
+	\param	buffer
+			pointer to location to store data to
+	\param	length
+			number of bytes to read
+*/
 void serial_io_get_buffer(Serial_IO_State* state, char* buffer, unsigned length)
 {
 	unsigned pos = 0;
@@ -171,7 +244,16 @@ void serial_io_get_buffer(Serial_IO_State* state, char* buffer, unsigned length)
 		buffer[pos++] = serial_io_get_char(state);
 }
 
-
+/**
+	Queue a character to the transmission buffer.
+	
+	If the buffer is full, waits until there is room for the character.
+	
+	\param	state
+			serial input/output stream
+	\param	c
+			character to send
+*/
 void serial_io_send_char(Serial_IO_State* state, char c)
 {
 	// if we were able to send directly, return
@@ -191,12 +273,34 @@ void serial_io_send_char(Serial_IO_State* state, char c)
 	state->transmission_buffer_write_pos = (state->transmission_buffer_write_pos + 1) % SERIAL_IO_BUFFERS_SIZE;
 }
 
+/**
+	Queue a string to the transmission buffer.
+	
+	If the buffer is full, waits until there is room for the string.
+	The string is allowed to be bigger than the transmission buffer, as this function waits while the buffer is full.
+	
+	\param	state
+			serial input/output stream
+	\param	string
+			null terminated string to send
+*/
 void serial_io_send_string(Serial_IO_State* state, const char* string)
 {
 	while (*string)
 		serial_io_send_char(state, *string++);
 }
 
+/**
+	Queue a specific amount of byte to the transmission buffer.
+	
+	If the buffer is full, waits until there is room all the data.
+	length is allowed to be bigger than the transmission buffer, as this function waits while the buffer is full.
+	
+	\param	state
+			serial input/output stream
+	\param	string
+			null terminated string to send
+*/
 void serial_io_send_buffer(Serial_IO_State* state, const char* buffer, unsigned length)
 {
 	unsigned pos = 0;
@@ -204,6 +308,18 @@ void serial_io_send_buffer(Serial_IO_State* state, const char* buffer, unsigned 
 		serial_io_send_char(state, buffer[pos++]);
 }
 
+/**
+	Queue an unsigned to the transmission buffer.
+	
+	If the buffer is full, waits until there is room for the unsigned.
+	
+	\param	state
+			serial input/output stream
+	\param	value
+			unsigned to send
+	\param	alignment
+			One of \ref serial_io_print_alignment: if other than \ref SERIAL_IO_ALIGN_COMPACT, extend small numbers with empty space so that numbers always are of constant width.
+*/
 void serial_io_send_unsigned(Serial_IO_State* state, unsigned value, int alignment)
 {
 	unsigned div;
@@ -233,6 +349,18 @@ void serial_io_send_unsigned(Serial_IO_State* state, unsigned value, int alignme
 		serial_io_send_char(state, ' ');
 }
 
+/**
+	Queue an integer to the transmission buffer.
+	
+	If the buffer is full, waits until there is room for the integer.
+	
+	\param	state
+			serial input/output stream
+	\param	value
+			integer to send
+	\param	alignment
+			One of \ref serial_io_print_alignment: if other than \ref SERIAL_IO_ALIGN_COMPACT, extend small numbers with empty space so that numbers always are of constant width.
+*/
 void serial_io_send_int(Serial_IO_State* state, int value, int alignment)
 {
 	if (value < 0)
@@ -247,17 +375,40 @@ void serial_io_send_int(Serial_IO_State* state, int value, int alignment)
 	serial_io_send_unsigned(state, (unsigned)value, alignment);
 }
 
+/**
+	Clear the screen of an ANSI terminal.
+	
+	\param	state
+			serial input/output stream
+*/
 void serial_io_clear_screen(Serial_IO_State* state)
 {
 	serial_io_send_string(state, "\x1B[2J");
 }
 
+/**
+	Clear the current line of an ANSI terminal.
+	
+	\param	state
+			serial input/output stream
+*/
 void serial_io_clear_line(Serial_IO_State* state)
 {
 	serial_io_send_string(state, "\x1B[K");
 }
 
-// the upper left corner is 1,1
+/**
+	Move insertion cursor of an ANSI terminal.
+	
+	This changes the position new characters are inserted.
+	
+	\param	state
+			serial input/output stream
+	\param	row
+			row, starting from 1 at top
+	\param	col
+			column, starting from 1 at left
+*/
 void serial_io_move_cursor(Serial_IO_State* state, unsigned row, unsigned col)
 {
 	serial_io_send_string(state, "\x1B[");

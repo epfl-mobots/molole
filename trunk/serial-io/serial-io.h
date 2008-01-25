@@ -43,24 +43,25 @@
 /** Possible alignment when sending numbers */
 enum serial_io_print_alignment
 {
-	SERIAL_IO_ALIGN_COMPACT = 0,	/**< compact number, do not align */
-	SERIAL_IO_ALIGN_LEFT,			/**< align number at left */
-	SERIAL_IO_ALIGN_RIGHT			/**< align number at right */
+	SERIAL_IO_ALIGN_COMPACT = 0,						/**< compact number, do not align */
+	SERIAL_IO_ALIGN_LEFT,								/**< align number at left */
+	SERIAL_IO_ALIGN_RIGHT								/**< align number at right */
 };
 
 // Structures definitions
 
+/** Data associated with a serial input/output stream; basically a twin producer/consumer buffer. */
 typedef struct
 {
-	int uart_id;
+	int uart_id;										/**< identifier of the UART the stream is attached to, may be \ref UART_1 or \ref UART_2 */
 	
-	unsigned reception_buffer_read_pos;
-	unsigned reception_buffer_reception_pos;
-	char reception_buffer[SERIAL_IO_BUFFERS_SIZE];
+	unsigned reception_buffer_read_pos;					/**< position of reading (from the user code) in the reception buffer */
+	unsigned reception_buffer_reception_pos;			/**< position of reception (from the interrupt code) in the reception buffer */
+	char reception_buffer[SERIAL_IO_BUFFERS_SIZE];		/**< reception buffer */
 	
-	unsigned transmission_buffer_write_pos;
-	unsigned transmission_buffer_transmit_pos;
-	char transmission_buffer[SERIAL_IO_BUFFERS_SIZE];
+	unsigned transmission_buffer_write_pos;				/**< position of writing (from the user code) in the transmission buffer */
+	unsigned transmission_buffer_transmit_pos;			/**< position of transmission (from the interrupt code) in the transmission buffer */
+	char transmission_buffer[SERIAL_IO_BUFFERS_SIZE];	/**< transmission buffer */
 } Serial_IO_State;
 
 // Functions, doc in the .c

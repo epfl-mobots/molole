@@ -125,6 +125,8 @@ static UART_Data UART_2_Data = { 0, 0, false, 0 };
 			identifier of the UART, \ref UART_1 or \ref UART_2
 	\param	baud_rate
 			baud rate in bps
+	\param	hardware_flow_control
+			wether hardware flow control (CTS/RTS) should be used or not
 	\param	byte_received_callback
 			function to call when a new byte is received
 	\param	byte_transmitted_callback
