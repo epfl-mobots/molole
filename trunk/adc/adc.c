@@ -63,7 +63,33 @@ static struct
 //-------------------
 
 /**
-	Initialize ADC1 for simple input conversion.
+	Enable ADC 1.
+	
+	The ADC must be previously initialized by calling adc1_init_simple() or adc1_init_scan_dma().
+	The user should call this function only if she hase previously called adc1_disable() manually.
+*/
+void adc1_enable()
+{
+	int i;
+	
+	// Turn on ADC Module
+	AD1CON1bits.ADON = 1;
+	
+	// Wait 20 us, at 40 MIPS == 800 instructions
+	i = 800/3;
+	while (--i)
+		Nop();
+}
+
+/** Disable ADC 1. */
+void adc1_disable()
+{
+	// Turn off ADC Module
+	AD1CON1bits.ADON = 0;
+}
+
+/**
+	Initialize and enable ADC1 for simple input conversion.
 	
 	The converter is put in 12 bits / single conversion mode and callback is called when conversion is completed.
 	This function does not start any conversion. Call adc1_start_simple_conversion() to start a conversion.
@@ -81,13 +107,10 @@ static struct
 */
 void adc1_init_simple(adc_simple_callback callback, int priority, unsigned long inputs, int sample_time)
 {
-	int i;
-	
 	ERROR_CHECK_RANGE(priority, 1, 7, GENERIC_ERROR_INVALID_INTERRUPT_PRIORITY);
 	ERROR_CHECK_RANGE(sample_time, 0, 31, ADC_ERROR_INVALID_SAMPLE_TIME);
 	
-	// Turn off ADC Module
-	AD1CON1bits.ADON = 0;
+	adc1_disable();
 	
 	// Setup callback
 	ADC_Data.callback = callback;
@@ -123,13 +146,7 @@ void adc1_init_simple(adc_simple_callback callback, int priority, unsigned long 
 	// Enable ADC 1 Interrupt
 	_AD1IE = 1;
 	
-	// Turn on ADC Module
-	AD1CON1bits.ADON = 1;
-	
-	// Wait 20 us, at 40 MIPS == 800 instructions
-	i = 800/3;
-	while (--i)
-		Nop();
+	adc1_enable();
 }
 
 /**
@@ -185,7 +202,7 @@ unsigned log_2(unsigned value)
 }
 
 /**
-	Initialize ADC1 for input scanning conversion using DMA.
+	Initialize and enable ADC1 for input scanning conversion using DMA.
 	
 	The converter is put in 12 bits.
 	
@@ -212,8 +229,6 @@ unsigned log_2(unsigned value)
 */
 void adc1_init_scan_dma(unsigned long inputs, int start_conversion_event, int sample_time, int dma_channel, unsigned offset_a, unsigned offset_b, unsigned buffers_size, int buffer_build_mode, dma_callback callback)
 {
-	int i;
-	
 	ERROR_CHECK_RANGE(sample_time, 0, 31, ADC_ERROR_INVALID_SAMPLE_TIME);
 	if (start_conversion_event != ADC_START_CONVERSION_MANUAL_CLEAR_SAMPLE_BIT &&
 		start_conversion_event != ADC_START_CONVERSION_EXTERNAL_INT &&
@@ -223,8 +238,7 @@ void adc1_init_scan_dma(unsigned long inputs, int start_conversion_event, int sa
 	)
 		ERROR(ADC_ERROR_INVALID_START_CONVERSION_EVENT, &start_conversion_event);
 	
-	// Turn off ADC Module
-	AD1CON1bits.ADON = 0;
+	adc1_disable();
 	
 	// configure I/O pins in digital or analogic
 	AD1PCFGH = ~((unsigned short)(inputs >> 16));
@@ -236,7 +250,7 @@ void adc1_init_scan_dma(unsigned long inputs, int start_conversion_event, int sa
 	AD1CON1bits.ADSIDL = 0;		// Continue module operation in Idle mode
 	AD1CON1bits.AD12B = 1;		// 12-bit, 1-channel ADC operation
 	AD1CON1bits.FORM = 0;		// Integer (DOUT = 0000 dddd dddd dddd)
-	AD1CON1bits.ASAM = 1;		// Sampling begins immediately after last conversion. SAMP bit is auto-set
+	AD1CON1bits.ASAM = 1;		// Sampling begins immediately after last conversion and SAMP bit is auto-set
 	AD1CON1bits.SSRC = start_conversion_event;	// select event which starts conversion
 	
 	if (buffer_build_mode == ADC_DMA_SCATTER_GATHER)
@@ -313,13 +327,8 @@ void adc1_init_scan_dma(unsigned long inputs, int start_conversion_event, int sa
 	
 	// Enable DMA channel
 	dma_enable_channel(dma_channel);
-	// Turn on ADC Module
-	AD1CON1bits.ADON = 1;
 	
-	// Wait 20 us, at 40 MIPS == 800 instructions
-	i = 800/3;
-	while (--i)
-		Nop();
+	adc1_enable();
 }
 
 //--------------------------

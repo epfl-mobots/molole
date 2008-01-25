@@ -44,24 +44,13 @@
 #include <clock/clock.h>
 
 // functions for callbacks
-bool uart1_byte_received(int uart_id, unsigned char data)
+bool uart_byte_received(int uart_id, unsigned char data)
 {
-	uart_1_transmit_byte(data);
+	uart_transmit_byte(uart_id, data);
 	return true;
 }
 
-bool uart1_byte_transmitted(int uart_id, unsigned char* data)
-{
-	return false;
-}
-
-bool uart2_byte_received(int uart_id, unsigned char data)
-{
-	uart_2_transmit_byte(data);
-	return true;
-}
-
-bool uart2_byte_transmitted(int uart_id, unsigned char* data)
+bool uart_byte_transmitted(int uart_id, unsigned char* data)
 {
 	return false;
 }
@@ -72,8 +61,8 @@ int main(void)
 	clock_init_internal_rc();
 	
 	// initialise both UART at 115200, no flow control
-	uart_1_init(115200, false, uart1_byte_received, uart1_byte_transmitted, 1);
-	uart_2_init(115200, false, uart2_byte_received, uart2_byte_transmitted, 1);
+	uart_init(UART_1, 115200, false, uart_byte_received, uart_byte_transmitted, 1);
+	uart_init(UART_2, 115200, false, uart_byte_received, uart_byte_transmitted, 1);
 	
 	// sleep
 	while(1) 
@@ -127,10 +116,12 @@ static UART_Data UART_2_Data = { 0, 0, false };
 //-------------------
 
 /**
-	Init UART 1 subsystem.
+	Init an UART subsystem.
 	
 	The parameters are 8 bits, 1 stop bit, no parity.
 	
+	\param	uart_id
+			identifier of the UART, \ref UART_1 or \ref UART_2
 	\param	baud_rate
 			baud rate in bps
 	\param	byte_received_callback
@@ -140,180 +131,176 @@ static UART_Data UART_2_Data = { 0, 0, false };
 	\param 	priority
 			Interrupt priority, from 1 (lowest priority) to 7 (highest priority)
 */
-void uart_1_init(unsigned long baud_rate, bool hardware_flow_control, uart_byte_received byte_received_callback, uart_byte_transmitted byte_transmitted_callback, int priority)
+void uart_init(int uart_id, unsigned long baud_rate, bool hardware_flow_control, uart_byte_received byte_received_callback, uart_byte_transmitted byte_transmitted_callback, int priority)
 {
 	ERROR_CHECK_RANGE(priority, 1, 7, GENERIC_ERROR_INVALID_INTERRUPT_PRIORITY);
 	
-	// Store callback functions
-	UART_1_Data.byte_received_callback = byte_received_callback;
-	UART_1_Data.byte_transmitted_callback = byte_transmitted_callback;
-	
-	// Setup baud rate
-	/*
-	UART high speed mode is buggy on current dsPIC 33, see erratas for details
-	if (baud_rate <= CLOCK_FCY / 16)
+	if (uart_id == UART_1)
 	{
-		U1MODEbits.BRGH = 0;// Low Speed mode
-		U1BRG = (clock_get_cycle_frequency() / baud_rate) / 16 - 1;
+		// Store callback functions
+		UART_1_Data.byte_received_callback = byte_received_callback;
+		UART_1_Data.byte_transmitted_callback = byte_transmitted_callback;
+		
+		// Setup baud rate
+		/*
+		UART high speed mode is buggy on current dsPIC 33, see erratas for details
+		if (baud_rate <= CLOCK_FCY / 16)
+		{
+			U1MODEbits.BRGH = 0;// Low Speed mode
+			U1BRG = (clock_get_cycle_frequency() / baud_rate) / 16 - 1;
+		}
+		else
+		{
+			U1MODEbits.BRGH = 1;// High Speed mode
+			U1BRG = clock_get_cycle_frequency() / (4*baud_rate) - 1;
+		}
+		*/
+		U1MODEbits.BRGH = 0;	// Low Speed mode
+		U1BRG = (clock_get_cycle_frequency()/baud_rate) / 16 - 1;
+		
+		// Setup other parameters
+		U1MODEbits.USIDL = 0;	// Continue module operation in idle mode
+		U1MODEbits.STSEL = 0;	// 1-stop bit
+		U1MODEbits.PDSEL = 0;	// No Parity, 8-data bits
+		U1MODEbits.ABAUD = 0;	// Autobaud Disabled
+		if (hardware_flow_control)
+			U1MODEbits.UEN = 2;	// Do hardware flow control. Use RTS and CTS, but not use BCLK
+		else
+			U1MODEbits.UEN = 0;	// Do not do any hardware flow control. RTS and CTS are left as GPIO
+		
+		// Setup interrupts
+		_U1RXIF = 0;			// clear the reception interrupt
+		_U1RXIP = priority;   	// set the reception interrupt priority
+		_U1RXIE = 1;			// enable the reception interrupt
+		
+		_U1TXIF = 0;			// clear the transmission interrupt
+		_U1TXIP = priority;   	// set the transmission interrupt priority
+		_U1TXIE = 1;			// enable the transmission interrupt
+	
+		U1MODEbits.UARTEN = 1;	// Enable UART
+		U1STAbits.UTXEN = 1; 	// Enable transmit
+	}
+	else if (uart_id == UART_2)
+	{
+		// Store callback functions
+		UART_2_Data.byte_received_callback = byte_received_callback;
+		UART_2_Data.byte_transmitted_callback = byte_transmitted_callback;
+		
+		// Setup baud rate
+		/*
+		UART high speed mode is buggy on current dsPIC 33, see erratas for details
+		if (baud_rate <= clock_get_cycle_frequency() / 16)
+		{
+			U2MODEbits.BRGH = 0;// Low Speed mode
+			U2BRG = (clock_get_cycle_frequency() / baud_rate) / 16 - 1;
+		}
+		else
+		{
+			U2MODEbits.BRGH = 1;// High Speed mode
+			U2BRG = clock_get_cycle_frequency() / (4*baud_rate) - 1;
+		}
+		*/
+		U2MODEbits.BRGH = 0;	// Low Speed mode
+		U2BRG = (clock_get_cycle_frequency()/baud_rate) / 16 - 1;
+		
+		// Setup other parameters
+		U2MODEbits.USIDL = 0;	// Continue module operation in idle mode
+		U2MODEbits.STSEL = 0;	// 1-stop bit
+		U2MODEbits.PDSEL = 0;	// No Parity, 8-data bits
+		U2MODEbits.ABAUD = 0;	// Autobaud Disabled
+		if (hardware_flow_control)
+			U2MODEbits.UEN = 2;	// Do hardware flow control. Use RTS and CTS, but not use BCLK
+		else
+			U2MODEbits.UEN = 0;	// Do not do any hardware flow control. RTS and CTS are left as GPIO
+		
+		// Setup interrupts
+		_U2RXIF = 0;			// clear the reception interrupt
+		_U2RXIP = priority;   	// set the reception interrupt priority
+		_U2RXIE = 1;			// enable the reception interrupt
+		
+		_U2TXIF = 0;			// clear the transmission interrupt
+		_U2TXIP = priority;   	// set the transmission interrupt priority
+		_U2TXIE = 1;			// enable the transmission interrupt
+	
+		U2MODEbits.UARTEN = 1;	// Enable UART
+		U2STAbits.UTXEN = 1; 	// Enable transmit
 	}
 	else
 	{
-		U1MODEbits.BRGH = 1;// High Speed mode
-		U1BRG = clock_get_cycle_frequency() / (4*baud_rate) - 1;
+		ERROR(UART_ERROR_INVALID_ID, &uart_id);
 	}
-	*/
-	U1MODEbits.BRGH = 0;	// Low Speed mode
-	U1BRG = (clock_get_cycle_frequency()/baud_rate) / 16 - 1;
-	
-	// Setup other parameters
-	U1MODEbits.USIDL = 0;	// Continue module operation in idle mode
-	U1MODEbits.STSEL = 0;	// 1-stop bit
-	U1MODEbits.PDSEL = 0;	// No Parity, 8-data bits
-	U1MODEbits.ABAUD = 0;	// Autobaud Disabled
-	if (hardware_flow_control)
-		U1MODEbits.UEN = 2;	// Do hardware flow control. Use RTS and CTS, but not use BCLK
-	else
-		U1MODEbits.UEN = 0;	// Do not do any hardware flow control. RTS and CTS are left as GPIO
-	
-	// Setup interrupts
-	_U1RXIF = 0;			// clear the reception interrupt
-	_U1RXIP = priority;   	// set the reception interrupt priority
-	_U1RXIE = 1;			// enable the reception interrupt
-	
-	_U1TXIF = 0;			// clear the transmission interrupt
-	_U1TXIP = priority;   	// set the transmission interrupt priority
-	_U1TXIE = 1;			// enable the transmission interrupt
-
-	U1MODEbits.UARTEN = 1;	// Enable UART
-	U1STAbits.UTXEN = 1; 	// Enable transmit
 }
 
 /**
 	Transmit a byte on UART 1.
 	
+	\param	uart_id
+			identifier of the UART, \ref UART_1 or \ref UART_2
 	\param	data
 			byte to transmit
 	\return true if byte was transmitted, false if transmit buffer was full
 */
-bool uart_1_transmit_byte(unsigned char data)
+bool uart_transmit_byte(int uart_id, unsigned char data)
 {
-	if (U1STAbits.UTXBF)
-		return false;
+	if (uart_id == UART_1)
+	{
+		if (U1STAbits.UTXBF)
+			return false;
+		
+		U1TXREG = data;
+		return true;
+	}
+	else if (uart_id == UART_2)
+	{
+		if (U2STAbits.UTXBF)
+			return false;
 	
-	U1TXREG = data;
-	return true;
+		U2TXREG = data;
+		return true;
+	}
+	else
+	{
+		ERROR_RET_0(UART_ERROR_INVALID_ID, &uart_id);
+	}
 }
 
 /**
 	Read pending data until there is no more data or callback returned true
+	
+	\param	uart_id
+			identifier of the UART, \ref UART_1 or \ref UART_2
 */
-void uart_1_read_pending_data(void)
+void uart_read_pending_data(int uart_id)
 {
-	if (UART_1_Data.user_program_busy)
+	if (uart_id == UART_1)
 	{
-		while (U1STAbits.URXDA)
+		if (UART_1_Data.user_program_busy)
 		{
-			if (UART_1_Data.byte_received_callback(UART_1, U1RXREG) == false)
-				return;
+			while (U1STAbits.URXDA)
+			{
+				if (UART_1_Data.byte_received_callback(UART_1, U1RXREG) == false)
+					return;
+			}
+			UART_1_Data.user_program_busy = false;
 		}
-		UART_1_Data.user_program_busy = false;
 	}
-}
-
-
-
-/**
-	Init UART 2 subsystem.
-	
-	\param	baud_rate
-			baud rate in bps
-	\param	byte_received_callback
-			function to call when a new byte is received
-	\param	byte_transmitted_callback
-			function to call when a byte has been transmitted
-	\param 	priority
-			Interrupt priority, from 1 (lowest priority) to 7 (highest priority)
-*/
-void uart_2_init(unsigned long baud_rate, bool hardware_flow_control, uart_byte_received byte_received_callback, uart_byte_transmitted byte_transmitted_callback, int priority)
-{
-	ERROR_CHECK_RANGE(priority, 1, 7, GENERIC_ERROR_INVALID_INTERRUPT_PRIORITY);
-	
-	// Store callback functions
-	UART_2_Data.byte_received_callback = byte_received_callback;
-	UART_2_Data.byte_transmitted_callback = byte_transmitted_callback;
-	
-	// Setup baud rate
-	/*
-	UART high speed mode is buggy on current dsPIC 33, see erratas for details
-	if (baud_rate <= clock_get_cycle_frequency() / 16)
+	else if (uart_id == UART_2)
 	{
-		U2MODEbits.BRGH = 0;// Low Speed mode
-		U2BRG = (clock_get_cycle_frequency() / baud_rate) / 16 - 1;
+		if (UART_2_Data.user_program_busy)
+		{
+			while (U2STAbits.URXDA)
+			{
+				if (UART_2_Data.byte_received_callback(UART_2, U2RXREG) == false)
+					return;
+			}
+			UART_2_Data.user_program_busy = false;
+		}
 	}
 	else
 	{
-		U2MODEbits.BRGH = 1;// High Speed mode
-		U2BRG = clock_get_cycle_frequency() / (4*baud_rate) - 1;
-	}
-	*/
-	U2MODEbits.BRGH = 0;	// Low Speed mode
-	U2BRG = (clock_get_cycle_frequency()/baud_rate) / 16 - 1;
-	
-	// Setup other parameters
-	U2MODEbits.USIDL = 0;	// Continue module operation in idle mode
-	U2MODEbits.STSEL = 0;	// 1-stop bit
-	U2MODEbits.PDSEL = 0;	// No Parity, 8-data bits
-	U2MODEbits.ABAUD = 0;	// Autobaud Disabled
-	if (hardware_flow_control)
-		U2MODEbits.UEN = 2;	// Do hardware flow control. Use RTS and CTS, but not use BCLK
-	else
-		U2MODEbits.UEN = 0;	// Do not do any hardware flow control. RTS and CTS are left as GPIO
-	
-	// Setup interrupts
-	_U2RXIF = 0;			// clear the reception interrupt
-	_U2RXIP = priority;   	// set the reception interrupt priority
-	_U2RXIE = 1;			// enable the reception interrupt
-	
-	_U2TXIF = 0;			// clear the transmission interrupt
-	_U2TXIP = priority;   	// set the transmission interrupt priority
-	_U2TXIE = 1;			// enable the transmission interrupt
-
-	U2MODEbits.UARTEN = 1;	// Enable UART
-	U2STAbits.UTXEN = 1; 	// Enable transmit
-}
-
-/**
-	Transmit a byte on UART 2.
-	
-	\param	data
-			byte to transmit
-	\return true if byte was transmitted, false if transmit buffer was full
-*/
-bool uart_2_transmit_byte(unsigned char data)
-{
-	if (U2STAbits.UTXBF)
-		return false;
-	
-	U2TXREG = data;
-	return true;
-}
-
-/**
-	Read pending data until there is no more data or callback returned true
-*/
-void uart_2_read_pending_data(void)
-{
-	if (UART_2_Data.user_program_busy)
-	{
-		while (U2STAbits.URXDA)
-		{
-			if (UART_2_Data.byte_received_callback(UART_2, U2RXREG) == false)
-				return;
-		}
-		UART_2_Data.user_program_busy = false;
+		ERROR(UART_ERROR_INVALID_ID, &uart_id);
 	}
 }
-
 
 
 //--------------------------
