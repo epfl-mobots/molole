@@ -11,6 +11,7 @@ all:
 	$(MAKE) -C dma builddir=pic30-33fj256mc510 cpu=33fj256mc510 prefix=pic30-elf-
 	$(MAKE) -C motor builddir=pic30-33fj256mc510 cpu=33fj256mc510 prefix=pic30-elf-
 	$(MAKE) -C serial-io builddir=pic30-33fj256mc510 cpu=33fj256mc510 prefix=pic30-elf-
+	$(MAKE) -C cn builddir=pic30-33fj256mc510 cpu=33fj256mc510 prefix=pic30-elf-
 
 clean:
 	$(MAKE) -C can-bootloader builddir=pic30-24hj128gp506 clean
@@ -25,3 +26,4 @@ clean:
 	$(MAKE) -C dma builddir=pic30-33fj256mc510 clean
 	$(MAKE) -C motor builddir=pic30-33fj256mc510 clean
 	$(MAKE) -C serial-io builddir=pic30-33fj256mc510 clean
+	$(MAKE) -C cn builddir=pic30-33fj256mc510 clean
