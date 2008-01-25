@@ -61,8 +61,8 @@ int main(void)
 	clock_init_internal_rc();
 	
 	// initialise both UART at 115200, no flow control
-	uart_init(UART_1, 115200, false, uart_byte_received, uart_byte_transmitted, 1);
-	uart_init(UART_2, 115200, false, uart_byte_received, uart_byte_transmitted, 1);
+	uart_init(UART_1, 115200, false, uart_byte_received, uart_byte_transmitted, 1, 0);
+	uart_init(UART_2, 115200, false, uart_byte_received, uart_byte_transmitted, 1, 0);
 	
 	// sleep
 	while(1) 
@@ -102,13 +102,14 @@ typedef struct
 	uart_byte_received byte_received_callback; /**< function to call when a new byte is received */
 	uart_byte_transmitted byte_transmitted_callback; /**< function to call when a byte has been transmitted */
 	bool user_program_busy; /**< true if user program is busy and cannot read any more data, false otherwise */
+	void* user_data; /**< pointer to user-specified data to be passed in interrupt, may be 0 */
 } UART_Data;
 
 /** data for UART 1 wrapper */
-static UART_Data UART_1_Data = { 0, 0, false };
+static UART_Data UART_1_Data = { 0, 0, false, 0 };
 
 /** data for UART 2 wrapper */
-static UART_Data UART_2_Data = { 0, 0, false };
+static UART_Data UART_2_Data = { 0, 0, false, 0 };
 
 
 //-------------------
@@ -130,8 +131,10 @@ static UART_Data UART_2_Data = { 0, 0, false };
 			function to call when a byte has been transmitted
 	\param 	priority
 			Interrupt priority, from 1 (lowest priority) to 7 (highest priority)
+	\param 	user_data
+			Pointer to user-specified data to be passed in interrupt, may be 0
 */
-void uart_init(int uart_id, unsigned long baud_rate, bool hardware_flow_control, uart_byte_received byte_received_callback, uart_byte_transmitted byte_transmitted_callback, int priority)
+void uart_init(int uart_id, unsigned long baud_rate, bool hardware_flow_control, uart_byte_received byte_received_callback, uart_byte_transmitted byte_transmitted_callback, int priority, void* user_data)
 {
 	ERROR_CHECK_RANGE(priority, 1, 7, GENERIC_ERROR_INVALID_INTERRUPT_PRIORITY);
 	
@@ -140,6 +143,7 @@ void uart_init(int uart_id, unsigned long baud_rate, bool hardware_flow_control,
 		// Store callback functions
 		UART_1_Data.byte_received_callback = byte_received_callback;
 		UART_1_Data.byte_transmitted_callback = byte_transmitted_callback;
+		UART_1_Data.user_data = user_data;
 		
 		// Setup baud rate
 		/*
@@ -185,6 +189,7 @@ void uart_init(int uart_id, unsigned long baud_rate, bool hardware_flow_control,
 		// Store callback functions
 		UART_2_Data.byte_received_callback = byte_received_callback;
 		UART_2_Data.byte_transmitted_callback = byte_transmitted_callback;
+		UART_2_Data.user_data = user_data;
 		
 		// Setup baud rate
 		/*
@@ -232,7 +237,7 @@ void uart_init(int uart_id, unsigned long baud_rate, bool hardware_flow_control,
 }
 
 /**
-	Transmit a byte on UART 1.
+	Transmit a byte on UART.
 	
 	\param	uart_id
 			identifier of the UART, \ref UART_1 or \ref UART_2
@@ -265,7 +270,7 @@ bool uart_transmit_byte(int uart_id, unsigned char data)
 }
 
 /**
-	Read pending data until there is no more data or callback returned true
+	Read pending data on UART until there is no more data or callback returned true.
 	
 	\param	uart_id
 			identifier of the UART, \ref UART_1 or \ref UART_2
@@ -278,7 +283,7 @@ void uart_read_pending_data(int uart_id)
 		{
 			while (U1STAbits.URXDA)
 			{
-				if (UART_1_Data.byte_received_callback(UART_1, U1RXREG) == false)
+				if (UART_1_Data.byte_received_callback(UART_1, U1RXREG, UART_1_Data.user_data) == false)
 					return;
 			}
 			UART_1_Data.user_program_busy = false;
@@ -290,7 +295,7 @@ void uart_read_pending_data(int uart_id)
 		{
 			while (U2STAbits.URXDA)
 			{
-				if (UART_2_Data.byte_received_callback(UART_2, U2RXREG) == false)
+				if (UART_2_Data.byte_received_callback(UART_2, U2RXREG, UART_2_Data.user_data) == false)
 					return;
 			}
 			UART_2_Data.user_program_busy = false;
@@ -318,7 +323,7 @@ void _ISR _U1RXInterrupt(void)
 	{
 		do
 		{
-			if (UART_1_Data.byte_received_callback(UART_1, U1RXREG) == false)
+			if (UART_1_Data.byte_received_callback(UART_1, U1RXREG, UART_1_Data.user_data) == false)
 			{
 				UART_1_Data.user_program_busy = true;
 				break;
@@ -342,7 +347,7 @@ void _ISR _U1RXInterrupt(void)
 void _ISR _U1TXInterrupt(void)
 {
 	unsigned char data;
-	if (UART_1_Data.byte_transmitted_callback(UART_1, &data))
+	if (UART_1_Data.byte_transmitted_callback(UART_1, &data, UART_1_Data.user_data))
 		U1TXREG = data;
 	
 	_U1TXIF = 0;			// Clear transmission interrupt flag
@@ -359,7 +364,7 @@ void _ISR _U2RXInterrupt(void)
 	{
 		do
 		{
-			if (UART_2_Data.byte_received_callback(UART_2, U2RXREG) == false)
+			if (UART_2_Data.byte_received_callback(UART_2, U2RXREG, UART_2_Data.user_data) == false)
 			{
 				UART_2_Data.user_program_busy = true;
 				break;
@@ -383,7 +388,7 @@ void _ISR _U2RXInterrupt(void)
 void _ISR _U2TXInterrupt(void)
 {
 	unsigned char data;
-	if (UART_2_Data.byte_transmitted_callback(UART_2, &data))
+	if (UART_2_Data.byte_transmitted_callback(UART_2, &data, UART_2_Data.user_data))
 		U2TXREG = data;
 	
 	_U2TXIF = 0;			// Clear transmission interrupt flag

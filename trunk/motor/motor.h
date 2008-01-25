@@ -46,6 +46,8 @@ enum motor_constraint_violation_type
 /** Motor callback on constraint violation, argument is one of motor_constraint_violation_type and the current output; this function must return the new output. */
 typedef int (*motor_constraint_violation_callback)(int violation_type, int output);
 
+// Structures definitions
+
 /** Data associated with a motor controller. */
 typedef struct
 {
