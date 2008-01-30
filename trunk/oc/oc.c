@@ -62,14 +62,14 @@
 	\param	oc_id
 			Identifier of the Output Compare, from \ref OC_1 to \ref OC_8.
 	\param	source
-			Timer providing clock to the output compare. Must be \ref OC_TIMER2 or \ref OC_TIMER3.
+			Timer providing clock to the Output Compare. Must be \ref OC_TIMER2 or \ref OC_TIMER3.
 	\param	mode
 			Mode of this Output Compare. Must be one of \ref oc_modes but not \ref OC_DISABLED.
 */
 void oc_enable(int oc_id, int source, int mode)
 {
-	ERROR_CHECK_RANGE(source, 0, 1, OC_ERROR_INVALID_SOURCE);
-	ERROR_CHECK_RANGE(mode, OC_DISABLED, 7, OC_ERROR_INVALID_MODE);
+	ERROR_CHECK_RANGE(source, 0, 1, OC_ERROR_INVALID_TIMER_SOURCE);
+	ERROR_CHECK_RANGE(mode, OC_DISABLED + 1, 7, OC_ERROR_INVALID_MODE);
 	
 	oc_disable(oc_id);
 	

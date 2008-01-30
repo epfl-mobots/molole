@@ -38,9 +38,9 @@
 enum oc_errors
 {
 	OC_ERROR_BASE = 0x0400,
-	OC_ERROR_INVALID_OC_ID,				/**< The desired Output Compare does not exists. */
-	OC_ERROR_INVALID_SOURCE,			/**< The specified source is invalid. */
-	OC_ERROR_INVALID_MODE,				/**< The specified mode is invalid. */
+	OC_ERROR_INVALID_OC_ID,				/**< The desired Output Compare does not exists, must be one of \ref oc_identifiers. */
+	OC_ERROR_INVALID_TIMER_SOURCE,		/**< The specified timer source is invalid, must be one of \ref oc_timer_source. */
+	OC_ERROR_INVALID_MODE,				/**< The specified mode is invalid, must be one of \ref oc_modes excepted \ref OC_DISABLED. */
 };
 
 /** Identifiers of available Output Compares. */
@@ -67,7 +67,7 @@ enum oc_timer_source
 /** Available Output Compare modes */
 enum oc_modes
 {
-	OC_DISABLED = 0,					/**< Module Disabled; Output Compare module is disabled; This is not a valid mode to set, call oc_disable instead. */
+	OC_DISABLED = 0,					/**< Module Disabled; Output Compare module is disabled; This is not a valid mode to set, call oc_disable() instead. */
 	OC_ACTIVE_LOW_ONE_SHOT,				/**< Active Low One-Shot mode; Initialize OCx pin low, compare event forces OCx pin high. */
 	OC_ACTIVE_HIGH_ONE_SHOT,			/**< Active High One-Shot mode; Initialize OCx pin high, compare event forces OCx pin low. */
 	OC_TOGGLE,							/**< Toggle mode; Compare event toggles OCx pin. */

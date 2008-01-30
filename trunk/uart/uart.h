@@ -46,7 +46,7 @@ enum uart_identifiers
 /** Errors UART can throw */
 enum uart_errors
 {
-	UART_ERROR_BASE = 0x6300,
+	UART_ERROR_BASE = 0x0600,
 	UART_ERROR_INVALID_ID,			/**< The specified UART does not exists. */
 }; 
 
