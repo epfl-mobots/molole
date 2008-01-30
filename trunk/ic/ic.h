@@ -25,7 +25,7 @@
 #ifndef _MOLOLE_IC_H
 #define _MOLOLE_IC_H
 
-/** \addtogroup Ic */
+/** \addtogroup ic */
 /*@{*/
 
 /** \file
