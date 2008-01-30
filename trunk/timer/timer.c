@@ -73,10 +73,10 @@ All functions cast errors using the \ref error "error reporting mechanism"
 \subsection SIM MPLAB SIM
 
 The following problems occurs when using the MPLAB SIM simulator (the library is working fine on the real microcontrollers):
-- \ref TIMER_6: timer_enable_interrupt() don't modify the IEC2.T6IE register ! So the interruption is never fired...
-- \ref TIMER_9: everything is ok (register IEC3.T9IE = 1), the timer normally counts, but the flag IFS3bits.T9IF is never set !
+- \ref TIMER_6 : timer_enable_interrupt() don't modify the IEC2.T6IE register ! So the interruption is never fired...
+- \ref TIMER_9 : everything is ok (register IEC3.T9IE = 1), the timer normally counts, but the flag IFS3bits.T9IF is never set !
 	The interruption is never fired ! If we set the flag by hand, we enter in the interruption...
-- \ref TIMER_67 and \ref TIMER_89: same problem as TIMER_9
+- \ref TIMER_67 and \ref TIMER_89 : same problem as TIMER_9
 
 */
 /*@{*/
@@ -433,6 +433,8 @@ void timer_set_enabled(int id, bool enabled)
 	
 	\param	id
 			The timer can be one of the 16-bits timer (\ref TIMER_1 -> \ref TIMER_9) or one of the 32-bits timer (\ref TIMER_23 -> \ref TIMER_89).
+	\param	value
+			value to set
 */
 void timer_set_value(int id, unsigned long value)
 {

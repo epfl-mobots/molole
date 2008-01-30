@@ -31,7 +31,7 @@
 	
 	Wrapper around Output Compare, with a callback oriented interface.
 	
-	The Output Compare interrupts are not supported, but the timers one are, through the \ref timers library.
+	The Output Compare interrupts are not supported, but the timers one are, through the \ref timer library.
 */
 /*@{*/
 

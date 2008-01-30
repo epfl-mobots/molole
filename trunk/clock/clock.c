@@ -128,7 +128,7 @@ void clock_init_internal_rc_40()
 
 /**
 	Returns the duration of one CPU cycle, in ns
-/*/
+*/
 unsigned long clock_get_cycle_duration()
 {
 	return 1000000000 / Clock_Data.fcy;

@@ -298,8 +298,10 @@ void serial_io_send_string(Serial_IO_State* state, const char* string)
 	
 	\param	state
 			serial input/output stream
-	\param	string
-			null terminated string to send
+	\param	buffer
+			pointer to location to read data from
+	\param	length
+			number of bytes to send
 */
 void serial_io_send_buffer(Serial_IO_State* state, const char* buffer, unsigned length)
 {
@@ -318,7 +320,7 @@ void serial_io_send_buffer(Serial_IO_State* state, const char* buffer, unsigned 
 	\param	value
 			unsigned to send
 	\param	alignment
-			One of \ref serial_io_print_alignment: if other than \ref SERIAL_IO_ALIGN_COMPACT, extend small numbers with empty space so that numbers always are of constant width.
+			One of \ref serial_io_print_alignment : if other than \ref SERIAL_IO_ALIGN_COMPACT, extend small numbers with empty space so that numbers always are of constant width.
 */
 void serial_io_send_unsigned(Serial_IO_State* state, unsigned value, int alignment)
 {
@@ -359,7 +361,7 @@ void serial_io_send_unsigned(Serial_IO_State* state, unsigned value, int alignme
 	\param	value
 			integer to send
 	\param	alignment
-			One of \ref serial_io_print_alignment: if other than \ref SERIAL_IO_ALIGN_COMPACT, extend small numbers with empty space so that numbers always are of constant width.
+			One of \ref serial_io_print_alignment : if other than \ref SERIAL_IO_ALIGN_COMPACT, extend small numbers with empty space so that numbers always are of constant width.
 */
 void serial_io_send_int(Serial_IO_State* state, int value, int alignment)
 {

@@ -81,9 +81,9 @@ void pwm_init(int prescaler, unsigned period, int mode)
 }
 
 /**
-	Enable the PWM interrupt
+	Enable the PWM interrupt.
 	
-	\param	postscale
+	\param	postscaler
 			The conversion is started each (postscale+1) (parameter is 0..15, corresponding to a 1:1 to 1:16 postscale)
 	\param	callback
 			Pointer to a function that will be called upon interrupt

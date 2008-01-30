@@ -48,6 +48,7 @@
 // Structures definitions
 //-----------------------
 
+/** State of the transmission */
 enum I2C_State
 {
 	I2C_IDLE,

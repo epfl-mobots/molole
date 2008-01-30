@@ -213,9 +213,9 @@ unsigned log_2(unsigned value)
 			Which event triggers stop of sampling and start of conversion.
 			Muse be one of \ref adc_start_conversion_event
 	\param	sample_time
-			If start_conversion_event is \ref ADC_START_CONVERSION_FROM_INTERNAL_COUNTER: Sample time, from 0 to 31, in number of ADC Internal RC Clock cycle. Otherwise ignored.
+			If start_conversion_event is \ref ADC_START_CONVERSION_FROM_INTERNAL_COUNTER : Sample time, from 0 to 31, in number of ADC Internal RC Clock cycle. Otherwise ignored.
 	\param	dma_channel
-			DMA channel, from \ref DMA_CHANNEL_0 to \ref DMA_CHANNEL_7.
+			DMA channel, from \ref DMA_CHANNEL_0 to \ref DMA_CHANNEL_7 .
 	\param	offset_a
 			Offset of buffer A inside the DMA memory, call __builtin_dmaoffset() on the pointer to your buffer to get this offset
 	\param	offset_b
@@ -223,7 +223,7 @@ unsigned log_2(unsigned value)
 	\param	buffers_size
 			Size of memory buffers (in amount of int, i.e. 2 bytes)
 	\param	buffer_build_mode
-			DMA Buffer Build Mode, must be one of \ref adc_dma_buffer_build_mode.
+			DMA Buffer Build Mode, must be one of \ref adc_dma_buffer_build_mode .
 	\param	callback
 			User-specified function to call when a buffer filled. If 0, DMA interrupt is disabled
 */
