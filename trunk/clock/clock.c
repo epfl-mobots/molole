@@ -68,6 +68,7 @@
 static struct 
 {
 	unsigned long fcy; /**< instruction cycle frequency */
+	unsigned target_bogomips;	/**< a vague and optimistic estimation of the MIPS this processor provides */
 } Clock_Data;
 
 
@@ -107,6 +108,10 @@ void clock_init_internal_rc_from_n1_m_n2(unsigned n1, unsigned m, unsigned n2)
 	// Compute cycle frequency
 	unsigned long fosc = (fin * (unsigned long)m) / ((unsigned long)n1 * (unsigned long)n2);
 	Clock_Data.fcy = fosc / 2;
+	Clock_Data.target_bogomips = (Clock_Data.fcy + 500000) / 1000000;
+	
+	// Lower the priority of all non-interrupt code.
+	_IPL3 = 0;
 }
 
 /**
@@ -115,6 +120,7 @@ void clock_init_internal_rc_from_n1_m_n2(unsigned n1, unsigned m, unsigned n2)
 void clock_init_internal_rc_30()
 {
 	clock_init_internal_rc_from_n1_m_n2(8, 130, 2);
+	Clock_Data.target_bogomips = 30;
 }
 
 
@@ -124,10 +130,11 @@ void clock_init_internal_rc_30()
 void clock_init_internal_rc_40()
 {
 	clock_init_internal_rc_from_n1_m_n2(6, 130, 2);
+	Clock_Data.target_bogomips = 40;
 }
 
 /**
-	Returns the duration of one CPU cycle, in ns
+	Return the duration of one CPU cycle, in ns
 */
 unsigned long clock_get_cycle_duration()
 {
@@ -135,11 +142,25 @@ unsigned long clock_get_cycle_duration()
 }
 
 /**
-	Returns the frequency of CPU cycles, in Hz
+	Return the frequency of CPU cycles, in Hz
 */
 unsigned long clock_get_cycle_frequency()
 {
 	return Clock_Data.fcy;
+}
+
+/**
+	Return the a vague and optimistic estimation of the MIPS this processor provides.
+	
+	Concretly, if the user called clock_init_internal_rc_30(), it will return 30, and
+	if the user called clock_init_internal_rc_40(), it will return 40.
+	
+	If the user called clock_init_internal_rc_from_n1_m_n2() herself, this returns
+	(Fcy + 500000) / 1000000.
+*/
+unsigned clock_get_target_bogomips()
+{
+	return Clock_Data.target_bogomips;
 }
 
 /*@}*/

@@ -47,6 +47,8 @@ unsigned long clock_get_cycle_duration();
 
 unsigned long clock_get_cycle_frequency();
 
+unsigned clock_get_target_bogomips();
+
 /*@}*/
 
 #endif
