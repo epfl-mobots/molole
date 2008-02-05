@@ -69,7 +69,7 @@ switch (channel)
 //-----------------------
 
 /** DMA wrapper data */
-static dma_callback DMA_Data[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };
+static dma_callback DMA_Data[8];
 
 
 //-------------------

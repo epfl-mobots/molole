@@ -106,10 +106,10 @@ typedef struct
 } UART_Data;
 
 /** data for UART 1 wrapper */
-static UART_Data UART_1_Data = { 0, 0, false, 0 };
+static UART_Data UART_1_Data;
 
 /** data for UART 2 wrapper */
-static UART_Data UART_2_Data = { 0, 0, false, 0 };
+static UART_Data UART_2_Data;
 
 
 //-------------------

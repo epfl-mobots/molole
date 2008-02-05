@@ -54,7 +54,7 @@ enum timer_errors
 enum timer_clock_source
 {
 	TIMER_CLOCK_INTERNAL			= 0,	/**< Use the interal clock (Fcy). This is the default option. */
-	TIMER_CLOCK_EXTERNAL			= 1,	/**< Use the external clock from pin T1CK (on the rising edge). */
+	TIMER_CLOCK_EXTERNAL			= 1,	/**< Use the external clock provided on a physical pin (on the rising edge). */
 };
 
 /** Identifiers of available timers. Not all can be used concurrently */

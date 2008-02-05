@@ -46,15 +46,17 @@
 
 #include "ic.h"
 #include "../error/error.h"
-//#include "../timer/timer.h"
-
 
 //-----------------------
 // Structures definitions
 //-----------------------
 
 /** Input Capture wrapper data */
-static ic_callback IC_Data[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };
+static struct
+{
+	ic_callback callback;	/**< callback to user-defined function */
+	void* user_data;		/**< pointer to user-specified data to be passed in interrupt, may be 0 */
+} IC_Data[8];
 
 
 //-------------------
@@ -77,7 +79,7 @@ static ic_callback IC_Data[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };
 	\param 	priority
 			Interrupt priority, from 1 (lowest priority) to 7 (highest priority)
 */
-void ic_enable(int ic_id, int source, int mode, ic_callback callback, int priority)
+void ic_enable(int ic_id, int source, int mode, ic_callback callback, int priority, void* user_data)
 {
 	ERROR_CHECK_RANGE(priority, 1, 7, GENERIC_ERROR_INVALID_INTERRUPT_PRIORITY);
 	ERROR_CHECK_RANGE(source, 0, 1, IC_ERROR_INVALID_TIMER_SOURCE);
@@ -91,7 +93,8 @@ void ic_enable(int ic_id, int source, int mode, ic_callback callback, int priori
 		IC1CONbits.ICM = IC_DISABLED;
 		IC1CONbits.ICTMR = source;
 		IC1CONbits.ICM = mode;
-		IC_Data[0] = callback;
+		IC_Data[0].callback = callback;
+		IC_Data[0].user_data = user_data;
 		_IC1IP = priority;
 		_IC1IF = 0;
 		_IC1IE = 1;
@@ -101,7 +104,8 @@ void ic_enable(int ic_id, int source, int mode, ic_callback callback, int priori
 		IC2CONbits.ICM = IC_DISABLED;
 		IC2CONbits.ICTMR = source;
 		IC2CONbits.ICM = mode;
-		IC_Data[1] = callback;
+		IC_Data[1].callback = callback;
+		IC_Data[1].user_data = user_data;
 		_IC2IP = priority;
 		_IC2IF = 0;
 		_IC2IE = 1;
@@ -111,7 +115,8 @@ void ic_enable(int ic_id, int source, int mode, ic_callback callback, int priori
 		IC3CONbits.ICM = IC_DISABLED;
 		IC3CONbits.ICTMR = source;
 		IC3CONbits.ICM = mode;
-		IC_Data[2] = callback;
+		IC_Data[2].callback = callback;
+		IC_Data[2].user_data = user_data;
 		_IC3IP = priority;
 		_IC3IF = 0;
 		_IC3IE = 1;
@@ -121,7 +126,8 @@ void ic_enable(int ic_id, int source, int mode, ic_callback callback, int priori
 		IC4CONbits.ICM = IC_DISABLED;
 		IC4CONbits.ICTMR = source;
 		IC4CONbits.ICM = mode;
-		IC_Data[3] = callback;
+		IC_Data[3].callback = callback;
+		IC_Data[3].user_data = user_data;
 		_IC4IP = priority;
 		_IC4IF = 0;
 		_IC4IE = 1;
@@ -131,7 +137,8 @@ void ic_enable(int ic_id, int source, int mode, ic_callback callback, int priori
 		IC5CONbits.ICM = IC_DISABLED;
 		IC5CONbits.ICTMR = source;
 		IC5CONbits.ICM = mode;
-		IC_Data[4] = callback;
+		IC_Data[4].callback = callback;
+		IC_Data[4].user_data = user_data;
 		_IC5IP = priority;
 		_IC5IF = 0;
 		_IC5IE = 1;
@@ -141,7 +148,8 @@ void ic_enable(int ic_id, int source, int mode, ic_callback callback, int priori
 		IC6CONbits.ICM = IC_DISABLED;
 		IC6CONbits.ICTMR = source;
 		IC6CONbits.ICM = mode;
-		IC_Data[5] = callback;
+		IC_Data[5].callback = callback;
+		IC_Data[5].user_data = user_data;
 		_IC6IP = priority;
 		_IC6IF = 0;
 		_IC6IE = 1;
@@ -151,7 +159,8 @@ void ic_enable(int ic_id, int source, int mode, ic_callback callback, int priori
 		IC7CONbits.ICM = IC_DISABLED;
 		IC7CONbits.ICTMR = source;
 		IC7CONbits.ICM = mode;
-		IC_Data[6] = callback;
+		IC_Data[6].callback = callback;
+		IC_Data[6].user_data = user_data;
 		_IC7IP = priority;
 		_IC7IF = 0;
 		_IC7IE = 1;
@@ -161,7 +170,8 @@ void ic_enable(int ic_id, int source, int mode, ic_callback callback, int priori
 		IC8CONbits.ICM = IC_DISABLED;
 		IC8CONbits.ICTMR = source;
 		IC8CONbits.ICM = mode;
-		IC_Data[7] = callback;
+		IC_Data[7].callback = callback;
+		IC_Data[7].user_data = user_data;
 		_IC8IP = priority;
 		_IC8IF = 0;
 		_IC8IE = 1;
@@ -204,7 +214,7 @@ void ic_disable(int ic_id)
 */
 void _ISR _IC1Interrupt(void)
 {
-	IC_Data[0](IC_1, IC1BUF);
+	IC_Data[0].callback(IC_1, IC1BUF, IC_Data[0].user_data);
 	
 	// Clear interrupt flag
 	_IC1IF = 0;
@@ -217,7 +227,7 @@ void _ISR _IC1Interrupt(void)
 */
 void _ISR _IC2Interrupt(void)
 {
-	IC_Data[1](IC_2, IC2BUF);
+	IC_Data[1].callback(IC_2, IC2BUF, IC_Data[1].user_data);
 	
 	// Clear interrupt flag
 	_IC2IF = 0;
@@ -230,7 +240,7 @@ void _ISR _IC2Interrupt(void)
 */
 void _ISR _IC3Interrupt(void)
 {
-	IC_Data[2](IC_3, IC3BUF);
+	IC_Data[2].callback(IC_3, IC3BUF, IC_Data[2].user_data);
 	
 	// Clear interrupt flag
 	_IC3IF = 0;
@@ -243,7 +253,7 @@ void _ISR _IC3Interrupt(void)
 */
 void _ISR _IC4Interrupt(void)
 {
-	IC_Data[3](IC_4, IC4BUF);
+	IC_Data[3].callback(IC_4, IC4BUF, IC_Data[3].user_data);
 	
 	// Clear interrupt flag
 	_IC4IF = 0;
@@ -256,7 +266,7 @@ void _ISR _IC4Interrupt(void)
 */
 void _ISR _IC5Interrupt(void)
 {
-	IC_Data[4](IC_5, IC5BUF);
+	IC_Data[4].callback(IC_5, IC5BUF, IC_Data[4].user_data);
 	
 	// Clear interrupt flag
 	_IC5IF = 0;
@@ -269,7 +279,7 @@ void _ISR _IC5Interrupt(void)
 */
 void _ISR _IC6Interrupt(void)
 {
-	IC_Data[5](IC_6, IC6BUF);
+	IC_Data[5].callback(IC_6, IC6BUF, IC_Data[5].user_data);
 	
 	// Clear interrupt flag
 	_IC6IF = 0;
@@ -282,7 +292,7 @@ void _ISR _IC6Interrupt(void)
 */
 void _ISR _IC7Interrupt(void)
 {
-	IC_Data[6](IC_7, IC7BUF);
+	IC_Data[6].callback(IC_7, IC7BUF, IC_Data[6].user_data);
 	
 	// Clear interrupt flag
 	_IC7IF = 0;
@@ -295,7 +305,7 @@ void _ISR _IC7Interrupt(void)
 */
 void _ISR _IC8Interrupt(void)
 {
-	IC_Data[7](IC_8, IC8BUF);
+	IC_Data[7].callback(IC_8, IC8BUF, IC_Data[7].user_data);
 	
 	// Clear interrupt flag
 	_IC8IF = 0;

@@ -3,6 +3,7 @@
 	An open source toolkit for robot programming using DsPICs
 	
 	Copyright (C) 2008 Stephane Magnenat <stephane at magnenat dot net>,
+	Philippe Retornaz <philippe dot retornaz at epfl dot ch>
 	Mobots group (http://mobots.epfl.ch), Robotics system laboratory (http://lsro.epfl.ch)
 	EPFL Ecole polytechnique federale de Lausanne (http://www.epfl.ch)
 	
@@ -27,14 +28,14 @@
 //--------------------
 
 /**
-	\defgroup error Error
+	\defgroup encoder Encoders
 	
-	A simple error management library for callback-based assertions.
+	Wrapper around Quadrature Encoder Interface or software implementation using \ref TIMER_2 or \ref TIMER_3 .
 */
 /*@{*/
 
 /** \file
-	\brief Implementation of the error management library for callback-based assertions
+	Implementation of the Encoders abstraction.
 */
 
 
@@ -42,49 +43,60 @@
 // Definitions
 //------------
 
-#include "error.h"
+#include <p33fxxxx.h>
+
+#include "encoder.h"
+#include "../error/error.h"
 
 //-----------------------
 // Structures definitions
 //-----------------------
 
-static void error_default_handler(const char * file, int line, int id, void* arg);
-
-/** error management library data */
+/** Data for the Quadrature Encoder Interface */
 static struct
 {
-	error_callback callback;  /**< function to call when an error occurs */
-} Error_Data = { &error_default_handler };
+	long* pos;			/**< absolute position */
+	int* speed;			/**< difference of last two absolutes positions (i.e. speed) */
+} QEI_Encoder_Data;
+
+static struct
+{
+	long* pos;			/**< absolute position */
+	int* speed;			/**< difference of last two absolutes positions (i.e. speed) */
+	int ic;				/**< Input Capture to use, must be one of \ref ic_identifiers */
+} Software_Encoder_Data[2];
 
 
 //-------------------
 // Exported functions
 //-------------------
 
-/**
-	If no handler is configured, any error call this function which does nothing and return.
-*/
-static void error_default_handler(const char * file, int line, int id, void* arg)
+void encoder_init(int type, int encoder_ic, long* pos, int* speed, int priority)
 {
-	// do nothing
-	while (1)
-		Idle();
+	// TODO: implement me
 }
 
-/**
-	Call the error handler.
-*/
-void error_report(const char * file, int line, int id, void* arg)
+void encoder_step(int type)
 {
-	Error_Data.callback(file, line, id, arg);
+	// TODO: implement me
+	if (type == ENCODER_TIMER_2)
+	{
+	
+	}
+	else if (type == ENCODER_TIMER_2)
+	{
+	
+	}
+	else if (type == ENCODER_TYPE_HARD)
+	{
+	
+	}
+	else
+	{
+		ERROR(ENCODER_INVALID_TYPE, &type);
+	}
 }
 
-/**
-	Register a pointer to an error handling, replacing the previous one.
-*/
-void error_register_callback(error_callback callback)
-{
-	Error_Data.callback = callback;
-}
+// TODO: implement callbacks
 
 /*@}*/

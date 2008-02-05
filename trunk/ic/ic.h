@@ -46,14 +46,14 @@ enum ic_errors
 /** Identifiers of available Input Capture. */
 enum ic_identifiers
 {
-	IC_1 = 0,			/**< Input Capture 1 */
-	IC_2,				/**< Input Capture 2 */
-	IC_3,				/**< Input Capture 3 */
-	IC_4,				/**< Input Capture 4 */
-	IC_5,				/**< Input Capture 5 */
-	IC_6,				/**< Input Capture 6 */
-	IC_7,				/**< Input Capture 7 */
-	IC_8,				/**< Input Capture 8 */
+	IC_1 = 0,							/**< Input Capture 1 */
+	IC_2,								/**< Input Capture 2 */
+	IC_3,								/**< Input Capture 3 */
+	IC_4,								/**< Input Capture 4 */
+	IC_5,								/**< Input Capture 5 */
+	IC_6,								/**< Input Capture 6 */
+	IC_7,								/**< Input Capture 7 */
+	IC_8,								/**< Input Capture 8 */
 };
 
 /** Possible Input Capture timer sources */
@@ -76,11 +76,11 @@ enum ic_modes
 };
 
 /** Input Capture callback on interrupt, with the value of the timer at that moment */
-typedef void (*ic_callback)(int ic_id, unsigned int value);
+typedef void (*ic_callback)(int ic_id, unsigned int value, void* user_data);
 
 // Functions, doc in the .c
 
-void ic_enable(int ic_id, int source, int mode, ic_callback callback, int priority);
+void ic_enable(int ic_id, int source, int mode, ic_callback callback, int priority, void* user_data);
 
 void ic_disable(int ic_id);
 
