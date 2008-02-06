@@ -42,6 +42,8 @@
 // Definitions
 //------------
 
+#include <p33fxxxx.h>		// Needed for Idle()
+
 #include "error.h"
 
 //-----------------------
