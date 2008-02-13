@@ -59,7 +59,7 @@ and finally launch the timer.
 \code
 timer_init(TIMER_1, 400, 6)						// 400 us
 
-timer_enable_interrupt(TIMER_1, 1, int_timer1);	// int_timer1 is a function of type timer_callback
+timer_enable_interrupt(TIMER_1, int_timer1, 1);	// int_timer1 is a function of type timer_callback
 
 timer_set_enabled(TIMER_1, true);				// start
 \endcode
@@ -179,10 +179,14 @@ static void m_set_period_32b(int id, unsigned long period);
 			The period of the timer, expressed in the unit defined by the \e unit parameter
 	\param 	unit
 			Time base of the \e sample_time parameter. Possible values are:
-			- 0 : second
-			- 3 : millisecond
-			- 6 : microsecond
-			- 9 : nanosecond
+			- -4 : cpu clock/256
+			- -3 : cpu clock/64
+			- -2 : cpu clock/8
+			- -1 : cpu clock
+			-  0 : second
+			-  3 : millisecond
+			-  6 : microsecond
+			-  9 : nanosecond
 	
 	\note	Use timer_release() when you don't need a timer anymore, so that someone else can use it !
 */
@@ -235,10 +239,14 @@ void timer_init(int id, unsigned long int arg_sample_time, int unit)
 			The period of the timer, expressed in the unit defined by the \e unit parameter
 	\param 	unit
 			Time base of the \e sample_time parameter. Possible values are:
-			- 0 : second
-			- 3 : millisecond
-			- 6 : microsecond
-			- 9 : nanosecond
+			- -4 : cpu clock/256
+			- -3 : cpu clock/64
+			- -2 : cpu clock/8
+			- -1 : cpu clock
+			-  0 : second
+			-  3 : millisecond
+			-  6 : microsecond
+			-  9 : nanosecond
 	
 	\note	Automatically reset the timer's counter.
 */
@@ -258,14 +266,17 @@ void timer_set_period(int id, unsigned long int sample_time, int unit)
 	if (!Timer_Data[timer_id_to_index(id)].is_initialized)
 		ERROR(TIMER_ERROR_NOT_INITIALIZED, &id)
 	
-	// only unit 0,3,6,9 ok
-	if (!(unit == 0 || unit == 3 || unit == 6 || unit == 9))
+	// only unit 0,3,6,9, -1, -2, -3, -4 ok
+	if (!(unit == 0 || unit == 3 || unit == 6 || unit == 9 || unit == -1 
+		  || unit == -2 || unit == -3 || unit == -4))
 		ERROR(TIMER_ERROR_INVALID_UNIT, &unit)
 	
 	// compute sample time in ns
-	real_sample_time = sample_time;
-	for (i=0; i < 9 - unit; i++)
-		real_sample_time *= 10;
+	if(unit >= 0) {
+		real_sample_time = sample_time;
+		for (i=0; i < 9 - unit; i++)
+			real_sample_time *= 10;
+	}
 	
 	// 16 bits timer
 	if (id <= TIMER_9)
@@ -273,19 +284,25 @@ void timer_set_period(int id, unsigned long int sample_time, int unit)
 		// set the 16 bits mode
 		m_set_32bits_mode(id, TIMER_16B_MODE);
 		
-		// control the range validity
-		if ((real_sample_time < clock_get_cycle_duration()) || (real_sample_time > TIMER_16B_MAX_TIME_NS))
-			ERROR(TIMER_ERROR_SAMPLE_TIME_NOT_IN_RANGE, &real_sample_time)
+		if (unit >= 0) {
+			// control the range validity
+			if ((real_sample_time < clock_get_cycle_duration()) || (real_sample_time > TIMER_16B_MAX_TIME_NS))
+				ERROR(TIMER_ERROR_SAMPLE_TIME_NOT_IN_RANGE, &real_sample_time)
 		
-		// compute the prescaler
-		for (prescaler=0; real_sample_time > ((unsigned long long)clock_get_cycle_duration() * 0x0000ffffULL * (unsigned long long)prescaler_value[prescaler]); prescaler++)
-			;
-		
+			// compute the prescaler
+			for (prescaler=0; real_sample_time > ((unsigned long long)clock_get_cycle_duration() * 0x0000ffffULL * (unsigned long long)prescaler_value[prescaler]); prescaler++)
+				;
+			// compute the period value
+			period = real_sample_time / ((unsigned long long)clock_get_cycle_duration() * (unsigned long long)prescaler_value[prescaler]);
+
+		} else {
+			prescaler = -unit - 1;
+			ERROR_CHECK_RANGE(sample_time, 0, 0xFFFFU, TIMER_ERROR_SAMPLE_TIME_NOT_IN_RANGE);
+			period = sample_time;
+		}
 		// set the prescaler
 		m_set_prescaler(id, prescaler);
 		
-		// compute the period value
-		period = real_sample_time / ((unsigned long long)clock_get_cycle_duration() * (unsigned long long)prescaler_value[prescaler]);
 		
 		// set the period value
 		m_set_period_16b(id, (unsigned short)period);
@@ -296,19 +313,24 @@ void timer_set_period(int id, unsigned long int sample_time, int unit)
 		// set the 32 bits mode
 		m_set_32bits_mode(id, TIMER_32B_MODE);
 		
-		// control the range validity
-		if ((real_sample_time < clock_get_cycle_duration()) || (real_sample_time > TIMER_32B_MAX_TIME_NS))
-			ERROR(TIMER_ERROR_SAMPLE_TIME_NOT_IN_RANGE, &real_sample_time)
+		if(unit >= 0) {
+			// control the range validity
+			if ((real_sample_time < clock_get_cycle_duration()) || (real_sample_time > TIMER_32B_MAX_TIME_NS))
+				ERROR(TIMER_ERROR_SAMPLE_TIME_NOT_IN_RANGE, &real_sample_time)
 		
-		// compute the prescaler
-		for (prescaler=0; real_sample_time > ((unsigned long long)clock_get_cycle_duration() * 0x0000ffffULL * (unsigned long long)prescaler_value[prescaler]); prescaler++)
-			;
-		
+			// compute the prescaler
+			for (prescaler=0; real_sample_time > ((unsigned long long)clock_get_cycle_duration() * 0x0000ffffULL * (unsigned long long)prescaler_value[prescaler]); prescaler++)
+				;
+			// compute the period value
+			period = real_sample_time / ((unsigned long long)clock_get_cycle_duration() * (unsigned long long)prescaler_value[prescaler]);
+		} else {
+			prescaler = -unit - 1;
+			ERROR_CHECK_RANGE(sample_time, 0, 0xFFFFFFFFUL, TIMER_ERROR_SAMPLE_TIME_NOT_IN_RANGE);
+			period = sample_time;
+		}
+
 		// set the prescaler
 		m_set_prescaler(id, prescaler);
-		
-		// compute the period value
-		period = real_sample_time / ((unsigned long long)clock_get_cycle_duration() * (unsigned long long)prescaler_value[prescaler]);
 		
 		// set the period value
 		m_set_period_32b(id, (unsigned long)period);

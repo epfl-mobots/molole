@@ -99,11 +99,9 @@ void pwm_enable_interrupt(int postscaler, pwm_callback callback, int priority);
 
 void pwm_disable_interrupt();
 
-void pwm_enable(int pwm_id);
-
 void pwm_disable(int pwm_id);
 
-void pwm_set_duty(int pwm_id, unsigned duty);
+void pwm_set_duty(int pwm_id, int duty);
 
 void pwm_set_special_event_trigger(int direction, int postscale, unsigned value);
 

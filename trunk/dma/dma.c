@@ -136,7 +136,7 @@ void dma_init_channel(int channel, int request_source, int data_size, int transf
 	)
 		ERROR(DMA_ERROR_INVALID_REQUEST_SOURCE, &request_source);
 	
-	ERROR_CHECK_RANGE(data_size, 1, 32767, DMA_ERROR_INVALID_DATA_SIZE);
+	ERROR_CHECK_RANGE(data_size, 0, 1, DMA_ERROR_INVALID_DATA_SIZE);
 	ERROR_CHECK_RANGE(transfer_dir , 0, 1, DMA_ERROR_INVALID_TRANSFER_DIRECTION);
 	ERROR_CHECK_RANGE(interrupt_pos, 0, 1, DMA_ERROR_INVALID_INTERRUPT_POSITION);
 	ERROR_CHECK_RANGE(null_write, 0, 1, DMA_ERROR_INVALID_WRITE_NULL_MODE);

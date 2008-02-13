@@ -46,6 +46,22 @@ enum bool_literals
 	true = 1	//!< false literal
 };
 
+
+//! Force GCC to not reorder the instruction before and after this macro 
+#define barrier() __asm__ __volatile__("": : :"memory")
+
+
+#define IRQ_DISABLE(flags) 	do { \
+								flags = SRbits.IPL; \
+								SRbits.IPL = 7; \
+								barrier();\
+							} while(0)
+#define IRQ_ENABLE(flags) 	do { \
+								SRbits.IPL = flags; \
+								barrier(); \
+							 } while(0)
+
+
 /*@}*/
 
 #endif

@@ -79,6 +79,8 @@ int serial_io_get_int(Serial_IO_State* state);
 
 void serial_io_get_buffer(Serial_IO_State* state, char* buffer, unsigned length);
 
+unsigned serial_io_get_hex(Serial_IO_State* state);
+
 
 void serial_io_send_char(Serial_IO_State* state, char c);
 
@@ -89,6 +91,8 @@ void serial_io_send_buffer(Serial_IO_State* state, const char* buffer, unsigned 
 void serial_io_send_unsigned(Serial_IO_State* state, unsigned value, int alignment);
 
 void serial_io_send_int(Serial_IO_State* state, int value, int alignment);
+
+void serial_io_send_hex(Serial_IO_State* state, unsigned int value, int alignment);
 
 
 void serial_io_clear_screen(Serial_IO_State* state);

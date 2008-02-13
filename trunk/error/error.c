@@ -43,13 +43,14 @@
 //------------
 
 #include <p33fxxxx.h>		// Needed for Idle()
+
 #include "error.h"
 
 //-----------------------
 // Structures definitions
 //-----------------------
 
-static void error_default_handler(const char * file, int line, int id, void* arg);
+static void __attribute__((noreturn)) error_default_handler(const char * file, int line, int id, void* arg);
 
 /** error management library data */
 static struct
@@ -65,7 +66,7 @@ static struct
 /**
 	If no handler is configured, any error call this function which does nothing and return.
 */
-static void error_default_handler(const char * file, int line, int id, void* arg)
+static void __attribute__((noreturn)) error_default_handler(const char * file, int line, int id, void* arg)
 {
 	// do nothing
 	while (1)

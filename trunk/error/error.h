@@ -42,25 +42,25 @@ enum generic_errors
 
 
 /** Callback when an error occurs */
-typedef void(*error_callback)(const char * file, int line, int id, void* arg);
+typedef void  __attribute__((noreturn)) (*error_callback)(const char * file, int line, int id, void* arg);
 
 // Macros, to get file and line
 
 /** Report an error, alongside the file name and line number and return */
-#define ERROR(id, arg) { error_report(__FILE__, __LINE__, (id), (arg)); return; }
+#define ERROR(id, arg) { error_report(__FILE__, __LINE__, (id), (arg)); }
 
 /** Report an error, alongside the file name and line number and return 0 */
-#define ERROR_RET_0(id, arg) { error_report(__FILE__, __LINE__, (id), (arg)); return 0; }
+#define ERROR_RET_0(id, arg) { error_report(__FILE__, __LINE__, (id), (arg)); }
 
 /** Report an error, alongside the file name and line number, if a variable is outside the bounds of a specific range */
-#define ERROR_CHECK_RANGE(var, min, max, id) if ((var) < (min) || (var) > (max)) { error_report(__FILE__, __LINE__, (id), &(var)); return; }
+#define ERROR_CHECK_RANGE(var, min, max, id) if ((var) < (min) || (var) > (max)) { error_report(__FILE__, __LINE__, (id), &(var));}
 
 
 // Functions, doc in the .c
 
-void error_report(const char * file, int line, int id, void*arg);
+void __attribute__((noreturn)) error_report(const char * file, int line, int id, void*arg);
 
-void error_register_callback(error_callback callback);
+void  error_register_callback(error_callback callback);
 
 /*@}*/
 

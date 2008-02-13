@@ -201,8 +201,50 @@ unsigned serial_io_get_unsigned(Serial_IO_State* state)
 	return val;
 }
 
+static bool is_hex(char c) {
+	if (c >= '0' && c <= '9')
+		return true;
+	if (c >= 'a' && c <= 'f')
+		return true;
+	if (c >= 'A' && c <= 'F')
+		return true;
+	return false;
+}
+
+static unsigned int c_to_hex(char c) {
+	if(c >= '0' && c <= '9') 
+		return c - '0';
+	if (c >= 'a' && c <= 'f')
+		return 10 + c - 'a';
+
+	return 10 + c - 'A';
+}
+
 /**
 	Return the head of the reception buffer as an int, and remove it from the buffer.
+	Parsed as hexadecimal number
+	
+	Wait if until there is one character available.
+	If the head is not an int, return 0 and do not remove anything.
+	
+	\param	state
+			serial input/output stream
+	\return	the head of the reception buffer as an int.
+*/
+unsigned serial_io_get_hex(Serial_IO_State* state)
+{
+	unsigned val = 0;
+	while (is_hex(serial_io_peek_char(state)))
+	{
+		val *= 16;
+		val += c_to_hex(serial_io_get_char(state));
+	}
+	return val;
+}
+
+/**
+	Return the head of the reception buffer as an int, and remove it from the buffer.
+	Parsed as decimal number
 	
 	Wait if until there is one character available.
 	If the head is not an int, return 0 and do not remove anything.
@@ -349,6 +391,37 @@ void serial_io_send_unsigned(Serial_IO_State* state, unsigned value, int alignme
 	
 	while (padding--)
 		serial_io_send_char(state, ' ');
+}
+
+void serial_io_send_hex(Serial_IO_State* state, unsigned int value, int alignment) {
+	int shift;
+	unsigned padding = 0;
+	bool hasSent = false;
+	for (shift = 12; shift >= 0; shift -= 4)
+	{
+		unsigned disp = ((value & (0xF << shift)) >> shift);
+
+		if ((disp != 0) || (hasSent) || (shift == 0))
+		{
+			hasSent = true;
+			if(disp < 0xA)
+				serial_io_send_char(state, '0' + disp);
+			else
+				serial_io_send_char(state, 'A' + disp - 0xA);
+		}
+		else if (alignment == SERIAL_IO_ALIGN_RIGHT)
+		{
+			serial_io_send_char(state, ' ');
+		}
+		else if (alignment == SERIAL_IO_ALIGN_LEFT)
+		{
+			padding++;
+		}
+	}
+	
+	while (padding--)
+		serial_io_send_char(state, ' ');
+
 }
 
 /**

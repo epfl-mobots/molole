@@ -26,6 +26,9 @@
 #ifndef _MOLOLE_CAN_H
 #define _MOLOLE_CAN_H
 
+#include "../types/types.h"
+#include "../gpio/gpio.h"
+
 /** \addtogroup can */
 /*@{*/
 
@@ -33,31 +36,37 @@
 	CAN wrapper definitions
 */
 
+
+/** Errors CAN module can throw */
+enum can_errors
+{
+	CAN_ERROR_BASE = 0x0A00,
+	CAN_UNKNOWN_SPEED,
+	CAN_UNKNOWN_CPU_CLOCK,
+};
 // Defines
 
 /*! the data that physically go on the CAN bus; used to communicate with the CAN data layer */
 typedef struct
 {
-	uint8 data[8]; /**< data payload */
+	unsigned char data[8] __attribute__((aligned(sizeof(int)))); /**< data payload */
 	unsigned id:11; /**< CAN identifier */
-	unsigned used:1; /**< when frame is in a circular buffer, tell if it frame is used */
 	unsigned len:4; /**< amount of bytes used in data */
 } can_frame;
+
 
 /*! User-specified function to call when a new CAN frame is available. */
 typedef void (*can_frame_received_callback)(const can_frame* frame);
 
 /*! User-specified function to call when the CAN frame was sent successfully. */
-typedef void (*can_frame_sent_callback());
-
+typedef void (*can_frame_sent_callback)(void);
 
 // Functions, doc in the .c
+void can_init(can_frame_received_callback frame_received_callback, can_frame_sent_callback frame_sent_callback, int dma_rx_channel, int dma_tx_channel, gpio trans_pin, unsigned int kbps, int priority);
 
-void can_init(can_frame_received_callback frame_received_callback, can_frame_sent_callback frame_sent_callback, int priority);
+int can_send_frame(const can_frame *frame);
 
-void can_send_frame(const can_frame *frame);
-
-int can_is_frame_room();
+int can_is_frame_room(void);
 
 
-// Defines
+#endif

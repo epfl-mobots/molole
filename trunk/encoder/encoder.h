@@ -26,6 +26,9 @@
 #ifndef _MOLOLE_ENCODER_H
 #define _MOLOLE_ENCODER_H
 
+#include "../types/types.h"
+#include "../gpio/gpio.h"
+
 /** \addtogroup encoder */
 /*@{*/
 
@@ -40,6 +43,7 @@ enum encoder_errors
 {
 	ENCODER_ERROR_BASE = 0x0800,
 	ENCODER_INVALID_TYPE,				/**< The specified encoder type is invalid, must be one of \ref encoder_type */
+	ENCODER_INVALID_X2X4,				/**< The specified encoder speed is invalid, must be one of \ref encoder_x2x4 */
 };
 
 
@@ -51,9 +55,23 @@ enum encoder_type
 	ENCODER_TYPE_HARD = 2,		/**< encoder uses Quadrature Encoder Interface */
 };
 
+/** Direction of the encoder; might either be normal, or reverse */
+enum encoder_direction
+{
+	ENCODER_DIR_NORMAL = 0,
+	ENCODER_DIR_REVERSE = 1,
+};
+
+/** Decoding mode; Either 4x mode or 2x */
+enum encoder_mode
+{
+	ENCODER_MODE_X2 = 0,
+	ENCODER_MODE_X4 = 1,
+};
+
 // Functions, doc in the .c
 
-void encoder_init(int type, int encoder_ic, long* pos, int* speed, int priority);
+void encoder_init(int type, int encoder_ic, long* pos, int* speed, int direction, gpio gpio_dir, gpio gpio_speed, int decoding_mode, int priority);
 
 void encoder_step(int type);
 

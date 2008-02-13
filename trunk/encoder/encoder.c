@@ -47,6 +47,9 @@
 
 #include "encoder.h"
 #include "../error/error.h"
+#include "../timer/timer.h"
+#include "../ic/ic.h"
+#include "../gpio/gpio.h"
 
 //-----------------------
 // Structures definitions
@@ -54,42 +57,186 @@
 
 /** Data for the Quadrature Encoder Interface */
 static struct
-{
+{	
+	int high_word;		/**< High word of the 32 bits position */
 	long* pos;			/**< absolute position */
 	int* speed;			/**< difference of last two absolutes positions (i.e. speed) */
 } QEI_Encoder_Data;
 
+
 static struct
 {
+	long tpos;			/**< 32bits temporary position */
+	int sens;			/**< Upward/backward counting */
+	int up; 			/**< State of the pin when counting upward */
 	long* pos;			/**< absolute position */
 	int* speed;			/**< difference of last two absolutes positions (i.e. speed) */
 	int ic;				/**< Input Capture to use, must be one of \ref ic_identifiers */
+	gpio mode;			/**< GPIO used for mode selection */
+	gpio g_sens;		/**< GPIO used for direction read */
 } Software_Encoder_Data[2];
 
+
+
+//------------------
+// Private functions
+//------------------
+
+static void ic_tmr2_cb(int __attribute__((unused)) foo, unsigned int value, void * __attribute__((unused)) bar);
+
+static void ic_tmr3_cb(int __attribute__((unused)) foo, unsigned int value, void * __attribute__((unused)) bar);
+
+static void tmr_2_cb(int __attribute__((unused)) foo);
+
+static void tmr_3_cb(int __attribute__((unused)) foo);
+
+static void init_qei1_module(int ipl, bool reverse, int x2x4) {
+	QEI1CONbits.QEIM = 0;				// disable QEI
+	IEC3bits.QEIIE = 0;					// disable interrupt
+	QEI1CONbits.CNTERR = 0;				// No position count error has occured
+	QEI1CONbits.QEISIDL = 0;			// Continue Module Operation in idle mode 
+	QEI1CONbits.SWPAB = reverse;		// Phase A and Phase B not swapped 
+	QEI1CONbits.PCDOUT = 0;				// Direction status Pin NOT controlled by the QEI Logic 
+	QEI1CONbits.TQGATE = 0;				// Do not use timer function
+	DFLT1CONbits.QEOUT = 1;				// Digital Filter QEA, QEB enabled 
+	DFLT1CONbits.QECK = 0;				// clock divide QEA, QEB: 0=1,1=2,2=4,3=16,4=32,5=64,6=128,7=256
+	QEI1CONbits.POSRES = 0;				// Index pulse does not reset position counter	
+	DFLT1CONbits.CEID = 1;				// Interrups due to position count errors disabled
+	MAX1CNT = 0xFFFF;					
+	POS1CNT = 0;							// Set Counter to 0	
+	
+	if(x2x4 == ENCODER_MODE_X4)
+		QEI1CONbits.QEIM = 7;			// x4 mode position counter reset by match MAXCNT
+	else if(x2x4 == ENCODER_MODE_X2)
+		QEI1CONbits.QEIM = 5;			// x2 mode position counter reset by match MAXCNT
+	else
+		ERROR(ENCODER_INVALID_TYPE, &x2x4);
+	IFS3bits.QEIIF = 0;					// Clear interrupt flag
+	IPC14bits.QEIIP = ipl;
+	IEC3bits.QEIIE = 1;					// Enable Interrupt
+}
+
+static void init_timer2_encoder(int ipl) {
+	timer_init(TIMER_2, 0xFFFF,-1);
+	timer_set_clock_source(TIMER_2, TIMER_CLOCK_EXTERNAL);
+	timer_enable_interrupt(TIMER_2, tmr_2_cb, ipl);
+	timer_set_enabled(TIMER_2, true);
+}
+
+static void init_timer3_encoder(int ipl) {
+	timer_init(TIMER_3, 0xFFFF,-1);
+	timer_set_clock_source(TIMER_3, TIMER_CLOCK_EXTERNAL);
+	timer_enable_interrupt(TIMER_3, tmr_3_cb, ipl);
+	timer_set_enabled(TIMER_3, true);
+}
 
 //-------------------
 // Exported functions
 //-------------------
 
-void encoder_init(int type, int encoder_ic, long* pos, int* speed, int priority)
+void encoder_init(int type, int encoder_ic, long* pos, int* speed, int direction, gpio gpio_dir, gpio gpio_speed, int decoding_mode, int priority)
 {
-	// TODO: implement me
+	switch(type) {
+	case ENCODER_TYPE_HARD:
+		QEI_Encoder_Data.pos = pos;
+		QEI_Encoder_Data.speed = speed;
+		init_qei1_module(priority, direction, decoding_mode);
+		return;
+
+	case ENCODER_TIMER_2:
+
+		Software_Encoder_Data[0].pos = pos;
+		Software_Encoder_Data[0].speed = speed;
+		Software_Encoder_Data[0].sens = gpio_read(gpio_dir);
+		Software_Encoder_Data[0].up = !direction;  
+		Software_Encoder_Data[0].mode = gpio_speed;
+		Software_Encoder_Data[0].g_sens = gpio_dir;
+
+		ic_enable(encoder_ic, IC_TIMER2, IC_EDGE_CAPTURE, ic_tmr2_cb, priority, 0);
+
+		gpio_set_dir(gpio_dir, GPIO_INPUT);
+
+		if(decoding_mode == ENCODER_MODE_X4) 
+			gpio_set_dir(gpio_speed, GPIO_INPUT);
+		else if(decoding_mode == ENCODER_MODE_X2) {
+			gpio_write(gpio_speed, true);
+			gpio_set_dir(gpio_speed, GPIO_OUTPUT);
+		} else
+			ERROR(ENCODER_INVALID_TYPE, &decoding_mode)
+
+		init_timer2_encoder(priority);
+		return;
+
+	case ENCODER_TIMER_3:
+		Software_Encoder_Data[1].pos = pos;
+		Software_Encoder_Data[1].speed = speed;
+		Software_Encoder_Data[1].sens = gpio_read(gpio_dir);
+		Software_Encoder_Data[1].up = !direction; 
+		Software_Encoder_Data[1].mode = gpio_speed;
+		Software_Encoder_Data[1].g_sens = gpio_dir;
+		ic_enable(encoder_ic, IC_TIMER3, IC_EDGE_CAPTURE, ic_tmr3_cb, priority, 0);
+		
+		gpio_set_dir(gpio_dir, GPIO_INPUT);
+
+		if(decoding_mode == ENCODER_MODE_X4) 
+			gpio_set_dir(gpio_speed, GPIO_INPUT);
+		else if(decoding_mode == ENCODER_MODE_X2) {
+			gpio_write(gpio_speed, true);
+			gpio_set_dir(gpio_speed, GPIO_OUTPUT);
+		} else
+			ERROR(ENCODER_INVALID_TYPE, &decoding_mode)
+
+		init_timer3_encoder(priority);
+		return;
+		
+	default:
+		ERROR(ENCODER_INVALID_TYPE, &type)
+	}
+
 }
 
 void encoder_step(int type)
 {
+	long old_pos;
+	unsigned int temp1;
+	unsigned int temp2;
+	long temp3;
+	int flags;
+
 	// TODO: implement me
 	if (type == ENCODER_TIMER_2)
 	{
-	
+		old_pos = *(Software_Encoder_Data[0].pos);
+
+		IRQ_DISABLE(flags);
+		temp3 = Software_Encoder_Data[0].tpos;
+		temp1 = TMR2;
+		temp2 = Software_Encoder_Data[0].sens;
+		IRQ_ENABLE(flags);
+
+		if(temp2 == Software_Encoder_Data[0].up) 
+			temp3 += temp1;
+		else
+			temp3 -= temp1;
+
+		*(Software_Encoder_Data[0].pos) = temp3;
+		*(Software_Encoder_Data[0].speed) = *(Software_Encoder_Data[0].pos) - old_pos;
 	}
-	else if (type == ENCODER_TIMER_2)
+	else if (type == ENCODER_TIMER_3)
 	{
 	
 	}
 	else if (type == ENCODER_TYPE_HARD)
-	{
-	
+	{	
+		old_pos = *QEI_Encoder_Data.pos;
+
+		IRQ_DISABLE(flags);
+		temp1 = POS1CNT;
+		temp2 = QEI_Encoder_Data.high_word;
+		IRQ_ENABLE(flags);
+
+		*QEI_Encoder_Data.pos = ((long) temp2) << 16 | temp1;
+		*QEI_Encoder_Data.speed = *QEI_Encoder_Data.pos - old_pos;
 	}
 	else
 	{
@@ -98,5 +245,75 @@ void encoder_step(int type)
 }
 
 // TODO: implement callbacks
+
+static void ic_tmr2_cb(int __attribute__((unused)) foo, unsigned int value, void * __attribute__((unused)) bar) {
+	unsigned int tmr;
+
+	if(Software_Encoder_Data[0].sens == Software_Encoder_Data[0].up) 
+		Software_Encoder_Data[0].tpos += value;
+	else
+		Software_Encoder_Data[0].tpos -= value;
+
+	/* Now update the timer with the correct value */
+	/* Yeah, it's a bit racy, but we are a _lot_ more faster than the external clock
+	 * So the race window is small */
+	tmr = TMR2;
+	TMR2 = 0;
+
+	if(tmr < value) {
+		/* WTF ?!? the timer has done an overflow while the motor has changed direction ...*/
+		/* what can I do ? ... mmm .... */
+		/* we must account the number of imp. done since the IC trigger */
+		/* Clear the timer interrupt flag so it don't trigger and account false results */
+		IFS0bits.T2IF = 0;
+		if(Software_Encoder_Data[0].sens == Software_Encoder_Data[0].up) {
+			Software_Encoder_Data[0].tpos -= (((unsigned int) 0xFFFF) - value) + tmr;
+		} else {
+			Software_Encoder_Data[0].tpos += (((unsigned int) 0xFFFF) - value) + tmr;
+		}
+	} else {
+		/* tmr - icval is the number of imp. done since we have changed direction */
+		if(Software_Encoder_Data[0].sens == Software_Encoder_Data[0].up) 
+			Software_Encoder_Data[0].tpos -= ((long) tmr) - ((long) value);
+		else
+			Software_Encoder_Data[0].tpos += ((long) tmr) - ((long) value);
+	}
+		
+	Software_Encoder_Data[0].sens = gpio_read(Software_Encoder_Data[0].g_sens);
+
+}
+
+static void ic_tmr3_cb(int __attribute__((unused)) foo, unsigned int value, void * __attribute__((unused)) bar) {
+
+
+}
+
+static void tmr_2_cb(int __attribute__((unused)) foo) {
+	/* Ok, so we have an overflow. Let's update the internal count */
+	if(Software_Encoder_Data[0].sens != gpio_read(Software_Encoder_Data[0].g_sens)) {
+		/* Wow, we changed direction and IC interrupt has still not fired ... 
+		 * Do not do anything */
+		return ;
+	}
+	if(Software_Encoder_Data[0].sens == Software_Encoder_Data[0].up) 
+		Software_Encoder_Data[0].tpos += 0x00010000;
+	else
+		Software_Encoder_Data[0].tpos -= 0x00010000;
+
+}
+
+static void tmr_3_cb(int __attribute__((unused)) foo) {
+
+
+}
+
+void _ISR _QEIInterrupt(void) {
+	if (QEI1CONbits.UPDN)
+		QEI_Encoder_Data.high_word++;				// Forward
+	else														// Backwards
+		QEI_Encoder_Data.high_word--;	
+
+	IFS3bits.QEIIF = 0;					// Clear interrupt flag
+}
 
 /*@}*/

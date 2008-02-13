@@ -78,6 +78,8 @@ void pwm_init(int prescaler, unsigned period, int mode)
 	PTCONbits.PTMOD = mode;				// PWM Time Base operates in continuous up/down counting mode
 	PTCONbits.PTSIDL = 0;				// PWM time base runs in CPU Idle mode
 	PTCONbits.PTEN = 1;					// Enable PWM Time Base Timer
+	DTCON1 = 0;							// Disable any dead time generator
+	DTCON2 = 0;
 }
 
 /**
@@ -112,24 +114,6 @@ void pwm_disable_interrupt()
 	_PWMIF = 0;							// clear the PWM interrupt
 }
 
-/**
-	Enables a PWM.
-	
-	\param	pwm_id
-			Identifier of the PWM, from \ref PWM_1 to \ref PWM_4.
-*/
-void pwm_enable(int pwm_id)
-{
-	// L and H pins are set to PWM in complimentary output
-	switch (pwm_id)
-	{
-		case 0: PWMCON1bits.PEN1L = 1; PWMCON1bits.PEN1H = 1; PWMCON1bits.PMOD1 = 0; break;
-		case 1: PWMCON1bits.PEN2L = 1; PWMCON1bits.PEN2H = 1; PWMCON1bits.PMOD2 = 0; break;
-		case 2: PWMCON1bits.PEN3L = 1; PWMCON1bits.PEN3H = 1; PWMCON1bits.PMOD3 = 0; break;
-		case 3: PWMCON1bits.PEN4L = 1; PWMCON1bits.PEN4H = 1; PWMCON1bits.PMOD4 = 0; break;
-		default: ERROR(PWM_ERROR_INVALID_PWM_ID, &pwm_id);
-	}
-}
 
 /**
 	Disables a PWM.
@@ -140,6 +124,7 @@ void pwm_enable(int pwm_id)
 void pwm_disable(int pwm_id)
 {
 	// L and H pins are to GPIO
+	PWMCON2bits.UDIS = 1;
 	switch (pwm_id)
 	{
 		case 0: PWMCON1bits.PEN1L = 0; PWMCON1bits.PEN1H = 0; break;
@@ -148,10 +133,11 @@ void pwm_disable(int pwm_id)
 		case 3: PWMCON1bits.PEN4L = 0; PWMCON1bits.PEN4H = 0; break;
 		default: ERROR(PWM_ERROR_INVALID_PWM_ID, &pwm_id);
 	}
+	PWMCON2bits.UDIS = 0;
 }
 
 /**
-	Set the duty of a PWM.
+	Set the duty of a PWM. Implicitly enable a PWM output.
 	
 	\param	pwm_id
 			Identifier of the PWM, from \ref PWM_1 to \ref PWM_4.
@@ -159,19 +145,110 @@ void pwm_disable(int pwm_id)
 			Duty cycle (0..32767)
 */
 
-void pwm_set_duty(int pwm_id, unsigned duty)
+void pwm_set_duty(int pwm_id, int duty)
 {
-	if (duty > 32676)
+	if (duty > 32676 || duty < -32676)
 		ERROR(PWM_ERROR_INVALID_RANGE, &duty);
-		
+
+	PWMCON2bits.UDIS = 1;
 	switch (pwm_id)
 	{
-		case 0: PDC1 = duty; break;
-		case 1: PDC2 = duty; break;
-		case 2: PDC3 = duty; break;
-		case 3: PDC4 = duty; break;
+		case 0: 
+			PWMCON1bits.PEN1L = 1; 
+			PWMCON1bits.PEN1H = 1; 
+			PWMCON1bits.PMOD1 = 1; 
+
+			if(duty > 0) {
+				/* PWM1L is forced low */
+				OVDCONbits.POUT1L = 0;
+				OVDCONbits.POVD1L = 0;
+		
+				/* PWM1H is PWM */
+				OVDCONbits.POVD1H = 1;
+				PDC1 = duty; 
+			} else {
+				/* PWM1H is forced low */
+				OVDCONbits.POUT1H = 0;
+				OVDCONbits.POVD1H = 0;
+		
+				/* PWM1L is PWM */
+				OVDCONbits.POVD1L = 1;
+				PDC1 = -duty; 
+			}
+				
+			break;
+		case 1: 
+			PWMCON1bits.PEN2L = 1; 
+			PWMCON1bits.PEN2H = 1; 
+			PWMCON1bits.PMOD2 = 1; 
+
+			if(duty > 0) {
+				/* PWM1L is forced low */
+				OVDCONbits.POUT2L = 0;
+				OVDCONbits.POVD2L = 0;
+		
+				/* PWM1H is PWM */
+				OVDCONbits.POVD2H = 1;
+				PDC2 = duty; 
+			} else {
+				/* PWM1H is forced low */
+				OVDCONbits.POUT2H = 0;
+				OVDCONbits.POVD2H = 0;
+		
+				/* PWM1L is PWM */
+				OVDCONbits.POVD2L = 1;
+				PDC2 = -duty; 
+			}
+			break;
+		case 2: 
+			PWMCON1bits.PEN3L = 1; 
+			PWMCON1bits.PEN3H = 1; 
+			PWMCON1bits.PMOD3 = 1; 
+
+			if(duty > 0) {
+				/* PWM1L is forced low */
+				OVDCONbits.POUT3L = 0;
+				OVDCONbits.POVD3L = 0;
+		
+				/* PWM1H is PWM */
+				OVDCONbits.POVD3H = 1;
+				PDC3 = duty; 
+			} else {
+				/* PWM1H is forced low */
+				OVDCONbits.POUT3H = 0;
+				OVDCONbits.POVD3H = 0;
+		
+				/* PWM1L is PWM */
+				OVDCONbits.POVD3L = 1;
+				PDC3 = -duty; 
+			}
+			break;
+		case 3: 
+			PWMCON1bits.PEN4L = 1; 
+			PWMCON1bits.PEN4H = 1; 
+			PWMCON1bits.PMOD4 = 1; 
+
+			if(duty > 0) {
+				/* PWM1L is forced low */
+				OVDCONbits.POUT4L = 0;
+				OVDCONbits.POVD4L = 0;
+		
+				/* PWM1H is PWM */
+				OVDCONbits.POVD4H = 1;
+				PDC4 = duty; 
+			} else {
+				/* PWM1H is forced low */
+				OVDCONbits.POUT4H = 0;
+				OVDCONbits.POVD4H = 0;
+		
+				/* PWM1L is PWM */
+				OVDCONbits.POVD4L = 1;
+				PDC4 = -duty; 
+			}
+			break;
 		default: ERROR(PWM_ERROR_INVALID_PWM_ID, &pwm_id);
 	}
+	PWMCON2bits.UDIS = 0;
 }
 
 /**

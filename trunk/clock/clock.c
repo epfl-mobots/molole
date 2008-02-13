@@ -111,7 +111,7 @@ void clock_init_internal_rc_from_n1_m_n2(unsigned n1, unsigned m, unsigned n2)
 	Clock_Data.target_bogomips = (Clock_Data.fcy + 500000) / 1000000;
 	
 	// Lower the priority of all non-interrupt code.
-	_IPL3 = 0;
+	SRbits.IPL = 0;
 }
 
 /**
