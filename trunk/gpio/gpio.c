@@ -33,10 +33,15 @@
 	PORTx
 	LATx
 */
-	
+
+/* *x = (*x) & y */
+#define atomic_and(x,y) do { __asm__ volatile ("and.w %[yy], [%[xx]], [%[xx]]": : [xx] "r" (x), [yy] "r"(y): "cc","memory"); } while(0)
+/* *x = (*x) | y */
+#define atomic_or(x,y) do { __asm__ volatile ("ior.w %[yy], [%[xx]], [%[xx]]" : : [xx] "r" (x), [yy] "r"(y): "cc","memory"); } while(0)
 
 void gpio_set_dir(gpio gpio_id, int dir) {
 	int pin = gpio_id & 0xF;
+	unsigned int mask;
 	volatile unsigned int * ptr =  (volatile unsigned int *) (gpio_id >> 4);
 	
 	
@@ -48,16 +53,19 @@ void gpio_set_dir(gpio gpio_id, int dir) {
 	if(ptr == GPIO_NONE) 
 		return;
 
-	if(dir == GPIO_OUTPUT) 
-		*ptr |= ~(1 << pin);
-	else if(dir == GPIO_INPUT)
-		*ptr &= 1 << pin;
-	else
+	if(dir == GPIO_OUTPUT) {
+		mask = ~(1 << pin);
+		atomic_and(ptr, mask);	
+	} else if(dir == GPIO_INPUT) {
+		mask = 1 << pin;
+		atomic_or(ptr, mask);
+	} else
 		ERROR(GPIO_INVALID_DIR, &dir);
 }
 
 void gpio_write(gpio gpio_id, bool value) {
 	int pin = gpio_id & 0xF;
+	unsigned int mask;
 	volatile unsigned int * ptr = (volatile unsigned int *) (gpio_id >> 4);
 
 /*
@@ -70,11 +78,13 @@ void gpio_write(gpio gpio_id, bool value) {
 
 
 	ptr += 2;
-	if(value == false)
-		*ptr |= ~(1 << pin);
-	else if(value == true)
-		*ptr &= 1 << pin;
-	else
+	if(value == false) {
+		mask = ~(1 << pin);
+		atomic_and(ptr, mask);
+	} else if(value == true) {
+		mask = 1 << pin;
+		atomic_or(ptr, mask);
+	} else
 		ERROR(GPIO_INVALID_VALUE, &value);
 }
 
