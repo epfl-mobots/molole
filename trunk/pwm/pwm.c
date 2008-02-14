@@ -61,11 +61,11 @@ static struct
 	Init the PWM subsystem.
 	
 	\param	prescaler
-			Prescaler of FCY. Must be one of \ref pwm_prescaler_values.
+			Prescaler of FCY. Must be one of \ref pwm_prescaler_values .
 	\param	period
 			PWM period (0..32767)
 	\param	mode
-			PWM time base modes. Must be one of \ref pwm_time_base_modes.
+			PWM time base modes. Must be one of \ref pwm_time_base_modes .
 */
 void pwm_init(int prescaler, unsigned period, int mode)
 {
@@ -114,12 +114,11 @@ void pwm_disable_interrupt()
 	_PWMIF = 0;							// clear the PWM interrupt
 }
 
-
 /**
 	Disables a PWM.
 	
 	\param	pwm_id
-			Identifier of the PWM, from \ref PWM_1 to \ref PWM_4.
+			Identifier of the PWM, from \ref PWM_1 to \ref PWM_4 .
 */
 void pwm_disable(int pwm_id)
 {
@@ -127,10 +126,10 @@ void pwm_disable(int pwm_id)
 	PWMCON2bits.UDIS = 1;
 	switch (pwm_id)
 	{
-		case 0: PWMCON1bits.PEN1L = 0; PWMCON1bits.PEN1H = 0; break;
-		case 1: PWMCON1bits.PEN2L = 0; PWMCON1bits.PEN2H = 0; break;
-		case 2: PWMCON1bits.PEN3L = 0; PWMCON1bits.PEN3H = 0; break;
-		case 3: PWMCON1bits.PEN4L = 0; PWMCON1bits.PEN4H = 0; break;
+		case PWM_1: PWMCON1bits.PEN1L = 0; PWMCON1bits.PEN1H = 0; break;
+		case PWM_2: PWMCON1bits.PEN2L = 0; PWMCON1bits.PEN2H = 0; break;
+		case PWM_3: PWMCON1bits.PEN3L = 0; PWMCON1bits.PEN3H = 0; break;
+		case PWM_4: PWMCON1bits.PEN4L = 0; PWMCON1bits.PEN4H = 0; break;
 		default: ERROR(PWM_ERROR_INVALID_PWM_ID, &pwm_id);
 	}
 	PWMCON2bits.UDIS = 0;
@@ -140,7 +139,7 @@ void pwm_disable(int pwm_id)
 	Set the duty of a PWM. Implicitly enable a PWM output.
 	
 	\param	pwm_id
-			Identifier of the PWM, from \ref PWM_1 to \ref PWM_4.
+			Identifier of the PWM, from \ref PWM_1 to \ref PWM_4 .
 	\param	duty
 			Duty cycle (0..32767)
 */
@@ -153,7 +152,7 @@ void pwm_set_duty(int pwm_id, int duty)
 	PWMCON2bits.UDIS = 1;
 	switch (pwm_id)
 	{
-		case 0: 
+		case PWM_1:
 			PWMCON1bits.PEN1L = 1; 
 			PWMCON1bits.PEN1H = 1; 
 			PWMCON1bits.PMOD1 = 1; 
@@ -177,7 +176,7 @@ void pwm_set_duty(int pwm_id, int duty)
 			}
 				
 			break;
-		case 1: 
+		case PWM_2:
 			PWMCON1bits.PEN2L = 1; 
 			PWMCON1bits.PEN2H = 1; 
 			PWMCON1bits.PMOD2 = 1; 
@@ -200,7 +199,7 @@ void pwm_set_duty(int pwm_id, int duty)
 				PDC2 = -duty; 
 			}
 			break;
-		case 2: 
+		case PWM_3:
 			PWMCON1bits.PEN3L = 1; 
 			PWMCON1bits.PEN3H = 1; 
 			PWMCON1bits.PMOD3 = 1; 
@@ -223,7 +222,7 @@ void pwm_set_duty(int pwm_id, int duty)
 				PDC3 = -duty; 
 			}
 			break;
-		case 3: 
+		case PWM_4:
 			PWMCON1bits.PEN4L = 1; 
 			PWMCON1bits.PEN4H = 1; 
 			PWMCON1bits.PMOD4 = 1; 

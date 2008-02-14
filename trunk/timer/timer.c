@@ -934,6 +934,8 @@ void m_set_period_32b(int id, unsigned long period)
 // Interrupt service routine
 //--------------------------
 
+#ifndef TIMER_1_CUSTOM_INTERRUPT_HANDLER
+
 /**
 	Timer 1 Interrupt Service Routine.
  
@@ -947,6 +949,10 @@ void _ISR _T1Interrupt(void)
 	_T1IF = 0;
 }
 
+#endif
+
+#ifndef TIMER_2_CUSTOM_INTERRUPT_HANDLER
+
 /**
 	Timer 2 Interrupt Service Routine.
 
@@ -959,6 +965,10 @@ void _ISR _T2Interrupt(void)
 	
 	_T2IF = 0;
 }
+
+#endif
+
+#ifndef TIMER_3_CUSTOM_INTERRUPT_HANDLER
 
 /**
 	Timer 3 Interrupt Service Routine.
@@ -976,6 +986,10 @@ void _ISR _T3Interrupt(void)
 	_T3IF = 0;
 }
 
+#endif
+
+#ifndef TIMER_4_CUSTOM_INTERRUPT_HANDLER
+
 /**
 	Timer 4 Interrupt Service Routine.
  
@@ -988,6 +1002,10 @@ void _ISR _T4Interrupt(void)
 	
 	_T4IF = 0;
 }
+
+#endif
+
+#ifndef TIMER_5_CUSTOM_INTERRUPT_HANDLER
 
 /**
 	Timer 5 Interrupt Service Routine.
@@ -1005,6 +1023,10 @@ void _ISR _T5Interrupt(void)
 	_T5IF = 0;
 }
 
+#endif
+
+#ifndef TIMER_6_CUSTOM_INTERRUPT_HANDLER
+
 /**
 	Timer 6 Interrupt Service Routine.
  
@@ -1017,6 +1039,10 @@ void _ISR _T6Interrupt(void)
 	
 	_T6IF = 0;
 }
+
+#endif
+
+#ifndef TIMER_7_CUSTOM_INTERRUPT_HANDLER
 
 /**
 	Timer 7 Interrupt Service Routine.
@@ -1034,6 +1060,10 @@ void _ISR _T7Interrupt(void)
 	_T7IF = 0;
 }
 
+#endif
+
+#ifndef TIMER_8_CUSTOM_INTERRUPT_HANDLER
+
 /**
 	Timer 8 Interrupt Service Routine.
  
@@ -1046,6 +1076,10 @@ void _ISR _T8Interrupt(void)
 	
 	_T8IF = 0;
 }
+
+#endif
+
+#ifndef TIMER_9_CUSTOM_INTERRUPT_HANDLER
 
 /**
 	Timer 9 Interrupt Service Routine.
@@ -1062,5 +1096,7 @@ void _ISR _T9Interrupt(void)
 	
 	_T9IF = 0;
 }
+
+#endif
 
 /*@}*/
