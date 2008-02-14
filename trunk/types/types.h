@@ -50,12 +50,14 @@ enum bool_literals
 //! Force GCC to not reorder the instruction before and after this macro 
 #define barrier() __asm__ __volatile__("": : :"memory")
 
-
+//! Save current interrupt priority level into flags and disable interrupts
 #define IRQ_DISABLE(flags) 	do { \
 								flags = SRbits.IPL; \
 								SRbits.IPL = 7; \
 								barrier();\
 							} while(0)
+
+//! Re-enable interrupts at interrupt priority level as in flags
 #define IRQ_ENABLE(flags) 	do { \
 								SRbits.IPL = flags; \
 								barrier(); \

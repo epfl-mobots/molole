@@ -221,8 +221,7 @@ static unsigned int c_to_hex(char c) {
 }
 
 /**
-	Return the head of the reception buffer as an int, and remove it from the buffer.
-	Parsed as hexadecimal number
+	Return the head of the reception buffer as an int parsed as hexadecimal number, and remove it from the buffer.
 	
 	Wait if until there is one character available.
 	If the head is not an int, return 0 and do not remove anything.
@@ -298,6 +297,8 @@ void serial_io_get_buffer(Serial_IO_State* state, char* buffer, unsigned length)
 */
 void serial_io_send_char(Serial_IO_State* state, char c)
 {
+	int flags;
+	
 	// if we were able to send directly, return
 	if ((state->transmission_buffer_write_pos == state->transmission_buffer_transmit_pos) && (uart_transmit_byte(state->uart_id, c)))
 		return;
@@ -307,12 +308,15 @@ void serial_io_send_char(Serial_IO_State* state, char c)
 		Idle();
 	
 	// write data to software buffer
-	// NOTE: race condition will NOT happen, because hardware buffer is 4 bytes and the following instruction execute faster that the transmission
+	// NOTE: we disable IRQ to prevent potential race condition due to very long interrupts of higher priority
+	// Excepted this case, race condition will NOT happen because hardware buffer is 4 bytes and the following instruction execute faster that the transmission
 	// of 4 bytes. Thus, we are sure that if we use the software buffer, the interrupt will at be called after the end of this function, so data
 	// will be transmitted correctly.
-	state->transmission_buffer[state->transmission_buffer_write_pos] = c;
 	
+	IRQ_DISABLE(flags);
+	state->transmission_buffer[state->transmission_buffer_write_pos] = c;
 	state->transmission_buffer_write_pos = (state->transmission_buffer_write_pos + 1) % SERIAL_IO_BUFFERS_SIZE;
+	IRQ_ENABLE(flags);
 }
 
 /**
@@ -393,7 +397,20 @@ void serial_io_send_unsigned(Serial_IO_State* state, unsigned value, int alignme
 		serial_io_send_char(state, ' ');
 }
 
-void serial_io_send_hex(Serial_IO_State* state, unsigned int value, int alignment) {
+/**
+	Queue an unsigned to the transmission buffer in hex format.
+	
+	If the buffer is full, waits until there is room for the unsigned.
+	
+	\param	state
+			serial input/output stream
+	\param	value
+			unsigned to send
+	\param	alignment
+			One of \ref serial_io_print_alignment : if other than \ref SERIAL_IO_ALIGN_COMPACT, extend small numbers with empty space so that numbers always are of constant width.
+*/
+void serial_io_send_hex(Serial_IO_State* state, unsigned int value, int alignment)
+{
 	int shift;
 	unsigned padding = 0;
 	bool hasSent = false;
