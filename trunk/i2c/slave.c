@@ -73,7 +73,8 @@ static struct
 
 /**
 	Init I2C slave subsystem.
-	
+	\param  address 
+			Slave address
 	\param	message_from_master_callback
 			function to call upon new write message
 	\param	message_to_master_callback
@@ -86,6 +87,7 @@ static struct
 			Interrupt priority, from 1 (lowest priority) to 7 (highest priority)
 */
 void i2c_init_slave(
+	unsigned char address,
 	i2c_status_callback message_from_master_callback,
 	i2c_status_callback message_to_master_callback,
 	i2c_set_data_callback data_from_master_callback,
@@ -101,6 +103,7 @@ void i2c_init_slave(
 	I2C_Slave_Data.data_from_master_callback = data_from_master_callback;
 	I2C_Slave_Data.data_to_master_callback = data_to_master_callback;
 	
+	I2C1ADD = address;			// Set the module address 
 	_SI2C1IF = 0;				// clear the slave interrupt
 	_SI2C1IP = priority;   		// set the slave interrupt priority
 	_SI2C1IE = 1;				// enable the slave interrupt
@@ -170,12 +173,10 @@ void _ISR _SI2C1Interrupt(void)
 		break;
 		
 		case I2C_END_TO_MASTER:
-		I2C_Slave_Data.state = I2C_IDLE;
-		I2C1CONbits.SCLREL = 1;									// Release clock
+			I2C_Slave_Data.state = I2C_IDLE;
+			I2C1CONbits.SCLREL = 1;									// Release clock
 		break;
 		
-		default:
-		break;
 	}
 	
 	_SI2C1IF = 0;				// Clear Slave interrupt flag

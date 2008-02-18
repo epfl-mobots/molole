@@ -44,7 +44,7 @@
 
 #include <p33fxxxx.h>
 
-#include "i2c.h"
+#include "../i2c/i2c.h"
 
 
 //-------------------
@@ -58,9 +58,8 @@
 	
 	\param address I2C address of the module
 */
-void i2c_init(unsigned char address)
+void i2c_init(void)
 {
-	I2C1ADD = address;				// Set the module address defined in the program
 	I2C1CONbits.I2CEN = 1;			// Enables the I2C module and configures the SDA and SCL pins as serial port pins
 	I2C1CONbits.I2CSIDL = 0;		// Continue module operation in idle mode
 	I2C1CONbits.SCLREL = 1;			// Release SCLx clock
@@ -76,6 +75,7 @@ void i2c_init(unsigned char address)
 	I2C1CONbits.PEN = 0;			// STOP condition not in progress
 	I2C1CONbits.RSEN = 0;			// Repeated START condition not in progress
 	I2C1CONbits.SEN = 0;			// START condition not in progress
+
 }
 
 /*@}*/
