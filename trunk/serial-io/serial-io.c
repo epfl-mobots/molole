@@ -313,10 +313,10 @@ void serial_io_send_char(Serial_IO_State* state, char c)
 	// of 4 bytes. Thus, we are sure that if we use the software buffer, the interrupt will at be called after the end of this function, so data
 	// will be transmitted correctly.
 	
-	IRQ_DISABLE(flags);
+	flags = uart_disable_tx_interrupt(state->uart_id);
 	state->transmission_buffer[state->transmission_buffer_write_pos] = c;
 	state->transmission_buffer_write_pos = (state->transmission_buffer_write_pos + 1) % SERIAL_IO_BUFFERS_SIZE;
-	IRQ_ENABLE(flags);
+	uart_enable_tx_interrupt(state->uart_id, flags);
 }
 
 /**

@@ -309,6 +309,56 @@ void uart_read_pending_data(int uart_id)
 	}
 }
 
+/**
+	Disable the TX interrupt
+	
+	\param	uart_id
+			identifier of the UART, \ref UART_1 or \ref UART_2
+*/
+int uart_disable_tx_interrupt(int uart_id) {
+	if(uart_id == UART_1) {
+
+		if(_U1TXIE) {
+			_U1TXIE = 0;
+			return 1;
+		} 
+		return 0;
+
+	} else if(uart_id == UART_2) {
+
+		if(_U2TXIE) {
+			_U2TXIE = 0;
+			return 1;
+		} 
+		return 0;
+
+	} else {
+		ERROR(UART_ERROR_INVALID_ID, &uart_id);
+	}
+}
+
+/**
+	Re-enable the TX interrupt
+	
+	\param	uart_id
+			identifier of the UART, \ref UART_1 or \ref UART_2
+	\param flags
+			The return value of the \ref uart_disable_tx_interrupt function
+*/
+void uart_enable_tx_interrupt(int uart_id, int flags) {
+	if(uart_id == UART_1) {
+
+		_U1TXIE = flags;
+
+	} else if(uart_id == UART_2) {
+
+		_U2TXIE = flags;
+
+	} else {
+		ERROR(UART_ERROR_INVALID_ID, &uart_id);
+	}
+}
+
 
 //--------------------------
 // Interrupt service routine

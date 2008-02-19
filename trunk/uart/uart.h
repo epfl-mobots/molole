@@ -75,6 +75,10 @@ bool uart_transmit_byte(int uart_id, unsigned char data);
 
 void uart_read_pending_data(int uart_id);
 
+void uart_enable_tx_interrupt(int uart_id, int flags);
+
+int uart_disable_tx_interrupt(int uart_id);
+
 
 /*@}*/
 
