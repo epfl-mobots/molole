@@ -25,6 +25,8 @@
 #ifndef _MOLOLE_TYPES_H
 #define _MOLOLE_TYPES_H
 
+#include <p33fxxxx.h>
+
 /**
 	\defgroup types Types
 	
