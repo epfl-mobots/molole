@@ -271,14 +271,14 @@ void can_init(can_frame_received_callback frame_received_callback, can_frame_sen
 	dma_init_channel(dma_rx_channel, DMA_INTERRUPT_SOURCE_ECAN_1_RX, DMA_SIZE_WORD,
 					DMA_DIR_FROM_PERIPHERAL_TO_RAM, DMA_INTERRUPT_AT_FULL, 
 					DMA_DO_NOT_NULL_WRITE_TO_PERIPHERAL, DMA_ADDRESSING_PERIPHERAL_INDIRECT,
-					DMA_OPERATING_CONTINUOUS, __builtin_dmaoffset(can_buf), 0, (void *) &C1RXD, 
+					DMA_OPERATING_CONTINUOUS, can_buf, 0, (void *) &C1RXD, 
 					sizeof(struct s_can_buf) / sizeof(unsigned int) - 1, 0);
 	dma_enable_channel(dma_rx_channel);
 
 	dma_init_channel(dma_tx_channel, DMA_INTERRUPT_SOURCE_ECAN_1_TX, DMA_SIZE_WORD,
 					DMA_DIR_FROM_RAM_TO_PERIPHERAL, DMA_INTERRUPT_AT_FULL, 
 					DMA_DO_NOT_NULL_WRITE_TO_PERIPHERAL, DMA_ADDRESSING_PERIPHERAL_INDIRECT,
-					DMA_OPERATING_CONTINUOUS, __builtin_dmaoffset(can_buf), 0, (void *) &C1TXD, 
+					DMA_OPERATING_CONTINUOUS, can_buf, 0, (void *) &C1TXD, 
 					sizeof(struct s_can_buf) / sizeof(unsigned int) - 1, 0);
 	dma_enable_channel(dma_tx_channel);		
 

@@ -117,10 +117,14 @@ void adc1_init_simple(adc_simple_callback callback, int priority, unsigned long 
 	_AD1IP = priority;
 	
 	// configure I/O pins in digital or analogic
+#ifdef _CSS16
 	AD1PCFGH = ~((unsigned short)(inputs >> 16));
+#endif
 	AD1PCFGL = ~((unsigned short)(inputs));
 	// No input to scan
+#ifdef _CSS16
 	AD1CSSH = 0x0000;
+#endif
 	AD1CSSL = 0x0000;
 	
 	AD1CON1bits.ADSIDL = 0;		// Continue module operation in Idle mode
@@ -216,10 +220,10 @@ unsigned log_2(unsigned value)
 			If start_conversion_event is \ref ADC_START_CONVERSION_FROM_INTERNAL_COUNTER : Sample time, from 0 to 31, in number of ADC Internal RC Clock cycle. Otherwise ignored.
 	\param	dma_channel
 			DMA channel, from \ref DMA_CHANNEL_0 to \ref DMA_CHANNEL_7 .
-	\param	offset_a
-			Offset of buffer A inside the DMA memory, call __builtin_dmaoffset() on the pointer to your buffer to get this offset
-	\param	offset_b
-			Offset of buffer B inside the DMA memory, call __builtin_dmaoffset() on the pointer to your buffer to get this offset
+	\param	a
+			Buffer A inside the DMA memory.
+	\param	b
+			Buffer B inside the DMA memory.
 			If 0, Ping-pong mode is not enabled
 	\param	buffers_size
 			Size of memory buffers (in amount of int, i.e. 2 bytes)
@@ -228,7 +232,7 @@ unsigned log_2(unsigned value)
 	\param	callback
 			User-specified function to call when a buffer filled. If 0, DMA interrupt is disabled
 */
-void adc1_init_scan_dma(unsigned long inputs, int start_conversion_event, int sample_time, int dma_channel, unsigned offset_a, unsigned offset_b, unsigned buffers_size, int buffer_build_mode, dma_callback callback)
+void adc1_init_scan_dma(unsigned long inputs, int start_conversion_event, int sample_time, int dma_channel, void * a, void * b, unsigned buffers_size, int buffer_build_mode, dma_callback callback)
 {
 	ERROR_CHECK_RANGE(sample_time, 0, 31, ADC_ERROR_INVALID_SAMPLE_TIME);
 	if (start_conversion_event != ADC_START_CONVERSION_MANUAL_CLEAR_SAMPLE_BIT &&
@@ -242,10 +246,14 @@ void adc1_init_scan_dma(unsigned long inputs, int start_conversion_event, int sa
 	adc1_disable();
 	
 	// configure I/O pins in digital or analogic
+#ifdef _CSS16
 	AD1PCFGH = ~((unsigned short)(inputs >> 16));
+#endif
 	AD1PCFGL = ~((unsigned short)(inputs));
 	// configure scanning on enabled inputs
+#ifdef _CSS16
 	AD1CSSH = (unsigned short)(inputs >> 16);
+#endif
 	AD1CSSL = (unsigned short)(inputs);
 	
 	AD1CON1bits.ADSIDL = 0;		// Continue module operation in Idle mode
@@ -270,9 +278,9 @@ void adc1_init_scan_dma(unsigned long inputs, int start_conversion_event, int sa
 			DMA_INTERRUPT_AT_FULL,
 			DMA_DO_NOT_NULL_WRITE_TO_PERIPHERAL,
 			DMA_ADDRESSING_PERIPHERAL_INDIRECT,
-			offset_b ? DMA_OPERATING_CONTINUOUS_PING_PONG : DMA_OPERATING_CONTINUOUS,
-			offset_a,
-			offset_b,
+			b ? DMA_OPERATING_CONTINUOUS_PING_PONG : DMA_OPERATING_CONTINUOUS,
+			a,
+			b,
 			(void*)&ADC1BUF0,
 			buffers_size,
 			callback
@@ -299,9 +307,9 @@ void adc1_init_scan_dma(unsigned long inputs, int start_conversion_event, int sa
 			DMA_INTERRUPT_AT_FULL,
 			DMA_DO_NOT_NULL_WRITE_TO_PERIPHERAL,
 			DMA_ADDRESSING_REGISTER_INDIRECT_POST_INCREMENT,
-			offset_b ? DMA_OPERATING_CONTINUOUS_PING_PONG : DMA_OPERATING_CONTINUOUS,
-			offset_a,
-			offset_b,
+			b ? DMA_OPERATING_CONTINUOUS_PING_PONG : DMA_OPERATING_CONTINUOUS,
+			a,
+			b,
 			(void*)&ADC1BUF0,
 			buffers_size,
 			callback
@@ -463,10 +471,10 @@ void adc2_start_simple_conversion(int channel)
 			If start_conversion_event is \ref ADC_START_CONVERSION_FROM_INTERNAL_COUNTER : Sample time, from 0 to 31, in number of ADC Internal RC Clock cycle. Otherwise ignored.
 	\param	dma_channel
 			DMA channel, from \ref DMA_CHANNEL_0 to \ref DMA_CHANNEL_7 .
-	\param	offset_a
-			Offset of buffer A inside the DMA memory, call __builtin_dmaoffset() on the pointer to your buffer to get this offset
-	\param	offset_b
-			Offset of buffer B inside the DMA memory, call __builtin_dmaoffset() on the pointer to your buffer to get this offset
+	\param	a
+			Buffer A inside the DMA memory.
+	\param	b
+			Buffer B inside the DMA memory.
 			If 0, Ping-pong mode is not enabled
 	\param	buffers_size
 			Size of memory buffers (in amount of int, i.e. 2 bytes)
@@ -475,7 +483,7 @@ void adc2_start_simple_conversion(int channel)
 	\param	callback
 			User-specified function to call when a buffer filled. If 0, DMA interrupt is disabled
 */
-void adc2_init_scan_dma(unsigned int inputs, int start_conversion_event, int sample_time, int dma_channel, unsigned offset_a, unsigned offset_b, unsigned buffers_size, int buffer_build_mode, dma_callback callback)
+void adc2_init_scan_dma(unsigned int inputs, int start_conversion_event, int sample_time, int dma_channel, void * a, void * b, unsigned buffers_size, int buffer_build_mode, dma_callback callback)
 {
 	ERROR_CHECK_RANGE(sample_time, 0, 31, ADC_ERROR_INVALID_SAMPLE_TIME);
 	if (start_conversion_event != ADC_START_CONVERSION_MANUAL_CLEAR_SAMPLE_BIT &&
@@ -514,9 +522,9 @@ void adc2_init_scan_dma(unsigned int inputs, int start_conversion_event, int sam
 			DMA_INTERRUPT_AT_FULL,
 			DMA_DO_NOT_NULL_WRITE_TO_PERIPHERAL,
 			DMA_ADDRESSING_PERIPHERAL_INDIRECT,
-			offset_b ? DMA_OPERATING_CONTINUOUS_PING_PONG : DMA_OPERATING_CONTINUOUS,
-			offset_a,
-			offset_b,
+			b ? DMA_OPERATING_CONTINUOUS_PING_PONG : DMA_OPERATING_CONTINUOUS,
+			a,
+			b,
 			(void*)&ADC2BUF0,
 			buffers_size,
 			callback
@@ -537,9 +545,9 @@ void adc2_init_scan_dma(unsigned int inputs, int start_conversion_event, int sam
 			DMA_INTERRUPT_AT_FULL,
 			DMA_DO_NOT_NULL_WRITE_TO_PERIPHERAL,
 			DMA_ADDRESSING_REGISTER_INDIRECT_POST_INCREMENT,
-			offset_b ? DMA_OPERATING_CONTINUOUS_PING_PONG : DMA_OPERATING_CONTINUOUS,
-			offset_a,
-			offset_b,
+			b ? DMA_OPERATING_CONTINUOUS_PING_PONG : DMA_OPERATING_CONTINUOUS,
+			a,
+			b,
 			(void*)&ADC2BUF0,
 			buffers_size,
 			callback

@@ -48,8 +48,9 @@ enum dma_errors
 	DMA_ERROR_INVALID_WRITE_NULL_MODE,		/**< The specified null data write mode is not one of dma_null_data_peripheral_write_mode_select. */
 	DMA_ERROR_INVALID_ADDRESSING_MODE,		/**< The specified addressing mode is not one of dma_addressing_mode. */
 	DMA_ERROR_INVALID_OPERATING_MODE,		/**< The specified operating mode is not one of dma_operating_mode. */
+	DMA_ERROR_INVALID_ADDRESS				/**< The specified address is not a DMA address. Declare your dma storage space with __attribute__((space(dma))) */
 };
-
+	
 
 /** Identifiers of available DMA channels. */
 enum dma_channels_identifiers
@@ -140,7 +141,7 @@ typedef void(*dma_callback)(int channel, bool first_buffer);
 
 // Functions, doc in the .c
 
-void dma_init_channel(int channel, int request_source, int data_size, int transfer_dir, int interrupt_pos, int null_write, int addressing_mode, int operating_mode, unsigned offset_a, unsigned offset_b, void* peripheral_address, unsigned transfer_count, dma_callback callback);
+void dma_init_channel(int channel, int request_source, int data_size, int transfer_dir, int interrupt_pos, int null_write, int addressing_mode, int operating_mode, void * a, void * b, void* peripheral_address, unsigned transfer_count, dma_callback callback);
 
 void dma_enable_channel(int channel);
 

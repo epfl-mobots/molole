@@ -73,6 +73,23 @@ static dma_callback DMA_Data[8];
 
 
 //-------------------
+// Privates functions 
+//-------------------
+
+static unsigned int get_offset(void * addr) {
+	unsigned int offset;
+	/* Special handling for addr == 0. It mean "Do not use this buffer" */
+	if(!addr)
+		return 0;
+	offset = ((unsigned int) addr) - ((unsigned int) &_DMA_BASE);
+	if(offset > ((unsigned int) addr) || offset >  ((unsigned int) &_DMA_BASE) + 0x2000) {
+		ERROR(DMA_ERROR_INVALID_ADDRESS, &addr)
+	}
+	return offset;
+}
+
+
+//-------------------
 // Exported functions
 //-------------------
 
@@ -98,10 +115,10 @@ static dma_callback DMA_Data[8];
 			DMA Channel Addressing Mode, one of \ref dma_addressing_mode
 	\param	operating_mode
 			DMA Channel Operating Mode, one of \ref dma_operating_mode
-	\param	offset_a
-			Offset of buffer A inside the DMA memory, call __builtin_dmaoffset() on the pointer to your buffer to get this offset
-	\param	offset_b
-			Offset of buffer B inside the DMA memory, call __builtin_dmaoffset() on the pointer to your buffer to get this offset
+	\param	a
+			Buffer A inside the DMA memory.
+	\param	b
+			Buffer B inside the DMA memory.
 	\param	peripheral_address
 			Address of the peripheral, must be suitable for DMA.
 	\param	transfer_count
@@ -110,7 +127,7 @@ static dma_callback DMA_Data[8];
 			User-specified function to call when a buffer is half or fully filled (depends on dma_interrupt_position).
 			If 0, DMA interrupt is disabled
 */
-void dma_init_channel(int channel, int request_source, int data_size, int transfer_dir, int interrupt_pos, int null_write, int addressing_mode, int operating_mode, unsigned offset_a, unsigned offset_b, void* peripheral_address, unsigned transfer_count, dma_callback callback)
+void dma_init_channel(int channel, int request_source, int data_size, int transfer_dir, int interrupt_pos, int null_write, int addressing_mode, int operating_mode, void * a, void * b, void* peripheral_address, unsigned transfer_count, dma_callback callback)
 {
 	// validate arguments
 	if (request_source != DMA_INTERRUPT_SOURCE_INT_0 &&
@@ -159,8 +176,9 @@ void dma_init_channel(int channel, int request_source, int data_size, int transf
 			DMA0CONbits.AMODE = addressing_mode;
 			DMA0CONbits.MODE = operating_mode;
 			
-			DMA0STA = offset_a;
-			DMA0STB = offset_b;
+			
+			DMA0STA = get_offset(a);
+			DMA0STB = get_offset(b);
 			DMA0PAD = (volatile unsigned int)peripheral_address;
 			DMA0CNT = transfer_count - 1;
 			
@@ -189,8 +207,8 @@ void dma_init_channel(int channel, int request_source, int data_size, int transf
 			DMA1CONbits.AMODE = addressing_mode;
 			DMA1CONbits.MODE = operating_mode;
 			
-			DMA1STA = offset_a;
-			DMA1STB = offset_b;
+			DMA1STA = get_offset(a);
+			DMA1STB = get_offset(b);
 			DMA1PAD = (volatile unsigned int)peripheral_address;
 			DMA1CNT = transfer_count - 1;
 			
@@ -219,8 +237,8 @@ void dma_init_channel(int channel, int request_source, int data_size, int transf
 			DMA2CONbits.AMODE = addressing_mode;
 			DMA2CONbits.MODE = operating_mode;
 			
-			DMA2STA = offset_a;
-			DMA2STB = offset_b;
+			DMA2STA = get_offset(a);
+			DMA2STB = get_offset(b);
 			DMA2PAD = (volatile unsigned int)peripheral_address;
 			DMA2CNT = transfer_count - 1;
 			
@@ -249,8 +267,8 @@ void dma_init_channel(int channel, int request_source, int data_size, int transf
 			DMA3CONbits.AMODE = addressing_mode;
 			DMA3CONbits.MODE = operating_mode;
 			
-			DMA3STA = offset_a;
-			DMA3STB = offset_b;
+			DMA3STA = get_offset(a);
+			DMA3STB = get_offset(b);
 			DMA3PAD = (volatile unsigned int)peripheral_address;
 			DMA3CNT = transfer_count - 1;
 			
@@ -279,8 +297,8 @@ void dma_init_channel(int channel, int request_source, int data_size, int transf
 			DMA4CONbits.AMODE = addressing_mode;
 			DMA4CONbits.MODE = operating_mode;
 			
-			DMA4STA = offset_a;
-			DMA4STB = offset_b;
+			DMA4STA = get_offset(a);
+			DMA4STB = get_offset(b);
 			DMA4PAD = (volatile unsigned int)peripheral_address;
 			DMA4CNT = transfer_count - 1;
 			
@@ -309,8 +327,8 @@ void dma_init_channel(int channel, int request_source, int data_size, int transf
 			DMA5CONbits.AMODE = addressing_mode;
 			DMA5CONbits.MODE = operating_mode;
 			
-			DMA5STA = offset_a;
-			DMA5STB = offset_b;
+			DMA5STA = get_offset(a);
+			DMA5STB = get_offset(b);
 			DMA5PAD = (volatile unsigned int)peripheral_address;
 			DMA5CNT = transfer_count - 1;
 			
@@ -339,8 +357,8 @@ void dma_init_channel(int channel, int request_source, int data_size, int transf
 			DMA6CONbits.AMODE = addressing_mode;
 			DMA6CONbits.MODE = operating_mode;
 			
-			DMA6STA = offset_a;
-			DMA6STB = offset_b;
+			DMA6STA = get_offset(a);
+			DMA6STB = get_offset(b);
 			DMA6PAD = (volatile unsigned int)peripheral_address;
 			DMA6CNT = transfer_count - 1;
 			
@@ -369,8 +387,8 @@ void dma_init_channel(int channel, int request_source, int data_size, int transf
 			DMA7CONbits.AMODE = addressing_mode;
 			DMA7CONbits.MODE = operating_mode;
 			
-			DMA7STA = offset_a;
-			DMA7STB = offset_b;
+			DMA7STA = get_offset(a);
+			DMA7STB = get_offset(b);
 			DMA7PAD = (volatile unsigned int)peripheral_address;
 			DMA7CNT = transfer_count - 1;
 			
