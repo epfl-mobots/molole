@@ -42,9 +42,8 @@
 // Definitions
 //------------
 
-#include <p33fxxxx.h>		// Needed for Idle()
-
 #include "error.h"
+#include "../types/types.h"
 
 //-----------------------
 // Structures definitions

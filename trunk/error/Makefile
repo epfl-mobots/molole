@@ -9,7 +9,7 @@ sources = error.c
 objects = $(patsubst %.c,%.o,$(sources))
 target = liberror.a
 
-CFLAGS +=-g -Wall
+CFLAGS +=-g -Wall -mcpu=$(cpu)
 CC = $(prefix)gcc
 
 $(target): $(objects)
