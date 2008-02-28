@@ -107,6 +107,7 @@ static I2C_Master_Data I2C_Master_Datas[2];
 // static i2c_error_callback error_cb;
 // volatile static bool last_oper_failed = false;
 
+//TODO: bug when no collaback function is declare and a failed occure in the state machine (selfcall function) MB 
 static void error_wrapper(int i2c_id, int error)
 {
 	if ((i2c_id < I2C_1) || (i2c_id > I2C_2))
@@ -250,6 +251,9 @@ void i2c_init_master(int i2c_id, long speed, int priority)
 	
 		_MI2C2IE = 1;					// enable the master interrupt*/
 	}
+
+	I2C_Master_Datas[i2c_id].state = idle;
+	I2C_Master_Datas[i2c_id].last_oper_failed = false;
 }
 
 void _ISR _MI2C1Interrupt(void)

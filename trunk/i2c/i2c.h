@@ -74,7 +74,7 @@ typedef void (*i2c_error_callback)(int i2c_id, int error_type);
 
 // Functions, doc in the .c
 
-void i2c_init(void);
+void i2c_init(int i2c_id);
 
 void i2c_init_slave(
 	int i2c_id,

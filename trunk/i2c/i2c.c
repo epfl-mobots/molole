@@ -45,7 +45,7 @@
 #include <p33fxxxx.h>
 
 #include "../i2c/i2c.h"
-
+#include "../error/error.h"
 
 //-------------------
 // Exported functions
@@ -58,24 +58,46 @@
 	
 	\param address I2C address of the module
 */
-void i2c_init(void)
+void i2c_init(int i2c_id )
 {
-	I2C1CONbits.I2CEN = 1;			// Enables the I2C module and configures the SDA and SCL pins as serial port pins
-	I2C1CONbits.I2CSIDL = 0;		// Continue module operation in idle mode
-	I2C1CONbits.SCLREL = 1;			// Release SCLx clock
-	I2C1CONbits.IPMIEN = 0;			// Only acknowledge own address
-	I2C1CONbits.A10M = 0;			// 7bit slave address
-	I2C1CONbits.DISSLW = 1;			// Slew rate control disabled (enable for 400kHz operation!)
-	I2C1CONbits.SMEN = 0;			// Disable SMBus Input thresholds (set for 3.3V operation!)
-	I2C1CONbits.GCEN = 0;			// General call address disabled
-	I2C1CONbits.STREN = 0;			// Disable software or receive clock stretching
-	I2C1CONbits.ACKDT = 0;			// Send ACK during acknowledge
-	I2C1CONbits.ACKEN = 0;			// Acknowledge sequence not in progress
-	I2C1CONbits.RCEN = 0;			// Receive sequence not in progress
-	I2C1CONbits.PEN = 0;			// STOP condition not in progress
-	I2C1CONbits.RSEN = 0;			// Repeated START condition not in progress
-	I2C1CONbits.SEN = 0;			// START condition not in progress
+	if ((i2c_id < I2C_1) || (i2c_id > I2C_2))
+		ERROR(I2C_ERROR_INVALID_ID, &i2c_id);
 
+	if(i2c_id ==I2C_1){
+		I2C1CONbits.I2CEN = 1;			// Enables the I2C module and configures the SDA and SCL pins as serial port pins
+		I2C1CONbits.I2CSIDL = 0;		// Continue module operation in idle mode
+		I2C1CONbits.SCLREL = 1;			// Release SCLx clock
+		I2C1CONbits.IPMIEN = 0;			// Only acknowledge own address
+		I2C1CONbits.A10M = 0;			// 7bit slave address
+		I2C1CONbits.DISSLW = 1;			// Slew rate control disabled (enable for 400kHz operation!)
+		I2C1CONbits.SMEN = 0;			// Disable SMBus Input thresholds (set for 3.3V operation!)
+		I2C1CONbits.GCEN = 0;			// General call address disabled
+		I2C1CONbits.STREN = 0;			// Disable software or receive clock stretching
+		I2C1CONbits.ACKDT = 0;			// Send ACK during acknowledge
+		I2C1CONbits.ACKEN = 0;			// Acknowledge sequence not in progress
+		I2C1CONbits.RCEN = 0;			// Receive sequence not in progress
+		I2C1CONbits.PEN = 0;			// STOP condition not in progress
+		I2C1CONbits.RSEN = 0;			// Repeated START condition not in progress
+		I2C1CONbits.SEN = 0;			// START condition not in progress
+	}
+	else
+	{
+		I2C2CONbits.I2CEN = 1;			// Enables the I2C module and configures the SDA and SCL pins as serial port pins
+		I2C2CONbits.I2CSIDL = 0;		// Continue module operation in idle mode
+		I2C2CONbits.SCLREL = 1;			// Release SCLx clock
+		I2C2CONbits.IPMIEN = 0;			// Only acknowledge own address
+		I2C2CONbits.A10M = 0;			// 7bit slave address
+		I2C2CONbits.DISSLW = 1;			// Slew rate control disabled (enable for 400kHz operation!)
+		I2C2CONbits.SMEN = 0;			// Disable SMBus Input thresholds (set for 3.3V operation!)
+		I2C2CONbits.GCEN = 0;			// General call address disabled
+		I2C2CONbits.STREN = 0;			// Disable software or receive clock stretching
+		I2C2CONbits.ACKDT = 0;			// Send ACK during acknowledge
+		I2C2CONbits.ACKEN = 0;			// Acknowledge sequence not in progress
+		I2C2CONbits.RCEN = 0;			// Receive sequence not in progress
+		I2C2CONbits.PEN = 0;			// STOP condition not in progress
+		I2C2CONbits.RSEN = 0;			// Repeated START condition not in progress
+		I2C2CONbits.SEN = 0;			// START condition not in progress
+	}
 }
 
 /*@}*/
