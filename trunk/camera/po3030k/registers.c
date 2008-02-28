@@ -240,7 +240,7 @@ static unsigned char cam_reg[] = {
 void po3030k_write_cam_registers(void) {
 	int i;
 	for(i=0;i < 2*NB_REGISTERS; i+=2 ) 
-			i2c_write(0,DEVICE_ID,cam_reg[i],&(cam_reg[i+1]), 1);
+			i2c_write(I2C_1,0,DEVICE_ID,cam_reg[i],&(cam_reg[i+1]), 1);
 
 }
 
@@ -250,7 +250,7 @@ void po3030k_write_cam_registers(void) {
 void po3030k_read_cam_registers(void) {
 	int i;
 	for(i=0;i < 2*NB_REGISTERS; i+=2) 
-		i2c_read(0,DEVICE_ID,cam_reg[i],&(cam_reg[i+1]), 1);
+		i2c_read(I2C_1,0,DEVICE_ID,cam_reg[i],&(cam_reg[i+1]), 1);
 
 }
 
@@ -574,7 +574,7 @@ void po3030k_set_gamma_coef(unsigned char array[12], char color) {
  */
 
 void po3030k_write_gamma_coef(void) {
-	i2c_write(0, DEVICE_ID,cam_reg[GAMMASELCOL_BASE - 1],&(cam_reg[GAMMASELCOL_BASE]), 1);
+	i2c_write(I2C_1,0, DEVICE_ID,cam_reg[GAMMASELCOL_BASE - 1],&(cam_reg[GAMMASELCOL_BASE]), 1);
 	po3030k_sync_register_array(cam_reg[GAMMA_BASE - 1], cam_reg[GAMMA_BASE + 11 * 2 - 1]);
 }
 
@@ -592,7 +592,7 @@ int  po3030k_sync_register_array(unsigned char start, unsigned char stop) {
 	int ret = 0;
 	for(i=0;i < 2*NB_REGISTERS; i+=2 ) {
 			if(cam_reg[i] >= start && cam_reg[i] <= stop) {
-				i2c_write(0,DEVICE_ID,cam_reg[i],&(cam_reg[i+1]), 1);
+				i2c_write(I2C_1,0,DEVICE_ID,cam_reg[i],&(cam_reg[i+1]), 1);
 				ret++;
 			}
 	}

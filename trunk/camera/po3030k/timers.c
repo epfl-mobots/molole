@@ -155,7 +155,7 @@ void po3030k_init_cam(unsigned char * port, gpio cam_reset, int timer, int ic, i
 	for(i=1000;i;i--) Nop();
 
 	/* Test if this is really a po3030k CAM */
-	if(i2c_read(0, PO3030K_DEVICE_ID, 0x0, r, 2) || r[0] != 0x30 || r[1] != 0x30) {
+	if(i2c_read(I2C_1,0, PO3030K_DEVICE_ID, 0x0, r, 2) || r[0] != 0x30 || r[1] != 0x30) {
 		ERROR(PO3030K_IO_ERROR,r);
 	}
 	timer_init(timer, 1, -1);

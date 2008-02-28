@@ -288,7 +288,7 @@ static void ic_tmr2_cb(int __attribute__((unused)) foo, unsigned int value, void
 
 }
 
-static void ic_tmr3_cb(int __attribute__((unused)) foo, unsigned int value, void * __attribute__((unused)) bar
+static void ic_tmr3_cb(int __attribute__((unused)) foo, unsigned int value, void * __attribute__((unused)) bar)
 {
 
 
