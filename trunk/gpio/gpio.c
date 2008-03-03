@@ -34,16 +34,24 @@
 	LATx
 */
 
-/* *x = (*x) & y */
+/** Atomic and operation to prevent race conditions inside interrupts: *x = (*x) & y */
 #define atomic_and(x,y) do { __asm__ volatile ("and.w %[yy], [%[xx]], [%[xx]]": : [xx] "r" (x), [yy] "r"(y): "cc","memory"); } while(0)
-/* *x = (*x) | y */
+/** Atomic or operation to prevent race conditions inside interrupts: *x = (*x) | y */
 #define atomic_or(x,y) do { __asm__ volatile ("ior.w %[yy], [%[xx]], [%[xx]]" : : [xx] "r" (x), [yy] "r"(y): "cc","memory"); } while(0)
 
-void gpio_set_dir(gpio gpio_id, int dir) {
+/**
+	Set the direction of a GPIO.
+	
+	\param	gpio
+			identifier of the GPIO, must be created by GPIO_MAKE_ID()
+	\param	dir
+			direction of the GPIO, either \ref GPIO_OUTPUT or \ref GPIO_INPUT .
+*/
+void gpio_set_dir(gpio gpio_id, int dir)
+{
 	int pin = gpio_id & 0xF;
 	unsigned int mask;
 	volatile unsigned int * ptr =  (volatile unsigned int *) (gpio_id >> 4);
-	
 	
 /*
 	I Cannot do the test since not every PIC has PORTA and PORTG 
@@ -53,17 +61,30 @@ void gpio_set_dir(gpio gpio_id, int dir) {
 	if(ptr == GPIO_NONE) 
 		return;
 
-	if(dir == GPIO_OUTPUT) {
+	if(dir == GPIO_OUTPUT)
+	{
 		mask = ~(1 << pin);
-		atomic_and(ptr, mask);	
-	} else if(dir == GPIO_INPUT) {
+		atomic_and(ptr, mask);
+	}
+	else if (dir == GPIO_INPUT)
+	{
 		mask = 1 << pin;
 		atomic_or(ptr, mask);
-	} else
+	}
+	else
 		ERROR(GPIO_INVALID_DIR, &dir);
 }
 
-void gpio_write(gpio gpio_id, bool value) {
+/**
+	Set the value of a GPIO.
+	
+	\param	gpio
+			identifier of the GPIO, must be created by GPIO_MAKE_ID().
+	\param	value
+			\ref true for VCC, \ref false for GND.
+*/
+void gpio_write(gpio gpio_id, bool value)
+{
 	int pin = gpio_id & 0xF;
 	unsigned int mask;
 	volatile unsigned int * ptr = (volatile unsigned int *) (gpio_id >> 4);
@@ -76,19 +97,31 @@ void gpio_write(gpio gpio_id, bool value) {
 	if(ptr == GPIO_NONE) 
 		return;
 
-
 	ptr += 2;
-	if(value == false) {
+	if(value == false)
+	{
 		mask = ~(1 << pin);
 		atomic_and(ptr, mask);
-	} else if(value == true) {
+	}
+	else if(value == true)
+	{
 		mask = 1 << pin;
 		atomic_or(ptr, mask);
-	} else
+	}
+	else
 		ERROR(GPIO_INVALID_VALUE, &value);
 }
 
-bool gpio_read(gpio gpio_id) {
+/**
+	Get the value of a GPIO.
+	
+	\param	gpio
+			identifier of the GPIO, must be created by GPIO_MAKE_ID().
+	\return
+			\ref true for VCC, \ref false for GND.
+*/
+bool gpio_read(gpio gpio_id)
+{
 	int pin = gpio_id & 0xF;
 	volatile unsigned int * ptr = (volatile unsigned int *) (gpio_id >> 4);
 
@@ -102,10 +135,8 @@ bool gpio_read(gpio gpio_id) {
 		return false;
 	
 	ptr++;
-	if(*ptr & (1 << pin)) 
+	if(*ptr & (1 << pin))
 		return true;
 	else
 		return false;
 }
-	
-

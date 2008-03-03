@@ -45,22 +45,12 @@ enum gpio_errors
 	GPIO_INVALID_VALUE,		  		/**< The specified value is not true of false */
 };
 
-
 /** TRIS configuration mode */
 enum gpio_dir
 {
 	GPIO_OUTPUT = 0,		/**< TRIS configured as output */
 	GPIO_INPUT  = 1,		/**< TRIS configured as input */
 };
-
-typedef unsigned int gpio;
-
-
-// Functions, doc in the .c
-
-void gpio_set_dir(gpio gpio_id, int dir);
-void gpio_write(gpio gpio_id, bool value);
-bool gpio_read(gpio gpio_id);
 
 /** GPIO port number, to use with \ref GPIO_MAKE_ID */
 #define GPIO_PORTA (&TRISA)
@@ -72,11 +62,18 @@ bool gpio_read(gpio gpio_id);
 #define GPIO_PORTG (&TRISG)
 #define GPIO_NONE (0)
 
-
-
-/** Compute the GPIO number from the port and pin number 
- *  We will have a problem if TRISx is more than 12 bits. */
+/** Compute the GPIO number from the port and pin number. */
 #define GPIO_MAKE_ID(port, num) ((gpio) ((((unsigned int)port) << 4) | ((num) & 0xF))) 
+
+/** GPIO identifier */
+typedef unsigned int gpio;
+
+
+// Functions, doc in the .c
+
+void gpio_set_dir(gpio gpio_id, int dir);
+void gpio_write(gpio gpio_id, bool value);
+bool gpio_read(gpio gpio_id);
 
 /*@}*/
 
