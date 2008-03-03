@@ -40,16 +40,16 @@
 enum gpio_errors
 {
 	GPIO_ERROR_BASE = 0x0900,
-	GPIO_INVALID_GPIO,				/**< The specified GPIO doesn't exist */
-	GPIO_INVALID_DIR,				/**< The specified direction doesn't exist */
-	GPIO_INVALID_VALUE,		  		/**< The specified value is not true of false */
+	GPIO_INVALID_GPIO,			/**< The specified GPIO doesn't exist */
+	GPIO_INVALID_DIR,			/**< The specified direction doesn't exist */
+	GPIO_INVALID_VALUE,			/**< The specified value is not true of false */
 };
 
 /** TRIS configuration mode */
 enum gpio_dir
 {
-	GPIO_OUTPUT = 0,		/**< TRIS configured as output */
-	GPIO_INPUT  = 1,		/**< TRIS configured as input */
+	GPIO_OUTPUT = 0,			/**< TRIS configured as output */
+	GPIO_INPUT  = 1,			/**< TRIS configured as input */
 };
 
 /** GPIO port number, to use with \ref GPIO_MAKE_ID */

@@ -44,6 +44,7 @@
 
 #include "error.h"
 #include "../types/types.h"
+#include "../clock/clock.h"
 
 //-----------------------
 // Structures definitions

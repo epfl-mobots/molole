@@ -163,4 +163,23 @@ unsigned clock_get_target_bogomips()
 	return Clock_Data.target_bogomips;
 }
 
+static bool clock_idle_enabled = true;
+
+/**
+	Disable use of idle mode, if using buggy DMA, see Errata 38.
+*/
+void clock_disable_idle()
+{
+	clock_idle_enabled = false;
+}
+
+/**
+	Put the processor in Idle mode, or, if it was disactivated by clock_disable_idle(), just return.
+*/
+void clock_idle()
+{
+	if (clock_idle_enabled)
+		__asm__ volatile ("pwrsav #1");
+}
+
 /*@}*/

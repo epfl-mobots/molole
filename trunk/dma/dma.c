@@ -162,6 +162,10 @@ void dma_init_channel(int channel, int request_source, int data_size, int transf
 	ERROR_CHECK_RANGE(addressing_mode, 0, 2, DMA_ERROR_INVALID_ADDRESSING_MODE);
 	ERROR_CHECK_RANGE(operating_mode, 0, 3, DMA_ERROR_INVALID_OPERATING_MODE);
 	
+	// Work around Errata 38 at the expense of energy consumption
+	if ((operating_mode == DMA_OPERATING_ONE_SHOT) || (operating_mode == DMA_OPERATING_ONE_SHOT_PING_PONG))
+		clock_disable_idle();
+	
 	// setup DMA
 	switch (channel)
 	{

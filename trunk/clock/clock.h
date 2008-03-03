@@ -27,6 +27,8 @@
 #ifndef _MOLOLE_CLOCK_H
 #define _MOLOLE_CLOCK_H
 
+#include "../types/types.h"
+
 /** \addtogroup clock */
 /*@{*/
 
@@ -48,6 +50,20 @@ unsigned long clock_get_cycle_duration();
 unsigned long clock_get_cycle_frequency();
 
 unsigned clock_get_target_bogomips();
+
+void clock_disable_idle();
+
+void clock_idle();
+
+// Microchip Idle() implementation has a "non wanted feature", it doesn't have a barrier
+// So you cannot while(test) Idle(); on a variable with GCC -03 optimisation
+// Gcc will transform it into a if(test) { while(1) { Idle(); } }
+#ifdef Idle
+#undef Idle
+#endif
+
+#define Idle() do { clock_idle(); barrier(); } while(0)
+
 
 /*@}*/
 
