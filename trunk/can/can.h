@@ -62,11 +62,11 @@ typedef void (*can_frame_received_callback)(const can_frame* frame);
 typedef void (*can_frame_sent_callback)(void);
 
 // Functions, doc in the .c
-void can_init(can_frame_received_callback frame_received_callback, can_frame_sent_callback frame_sent_callback, int dma_rx_channel, int dma_tx_channel, gpio trans_pin, unsigned int kbps, int priority);
+void can_init(can_frame_received_callback frame_received_callback, can_frame_sent_callback frame_sent_callback, int dma_rx_channel, int dma_tx_channel, gpio trans_pin, unsigned int kbaud_rate, int priority);
 
-int can_send_frame(const can_frame *frame);
+bool can_send_frame(const can_frame *frame);
 
-int can_is_frame_room(void);
+bool can_is_frame_room(void);
 
 
 #endif

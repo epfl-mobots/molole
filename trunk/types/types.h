@@ -74,6 +74,8 @@ enum bool_literals
 #endif
 #define Idle() do { __asm__ volatile ("pwrsav #1" : : : "memory");} while(0)
 
+// TODO: implement safe idle that use pwrsav excepted if we have disabled it because of buggy peripheral (i.e. SPI)
+
 /*@}*/
 
 #endif

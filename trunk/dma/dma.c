@@ -76,13 +76,15 @@ static dma_callback DMA_Data[8];
 // Privates functions 
 //-------------------
 
-static unsigned int get_offset(void * addr) {
+static unsigned int get_offset(void * addr)
+{
 	unsigned int offset;
 	/* Special handling for addr == 0. It mean "Do not use this buffer" */
 	if(!addr)
 		return 0;
 	offset = ((unsigned int) addr) - ((unsigned int) &_DMA_BASE);
-	if(offset > ((unsigned int) addr) || offset >  ((unsigned int) &_DMA_BASE) + 0x2000) {
+	if(offset > ((unsigned int) addr) || offset >  ((unsigned int) &_DMA_BASE) + 0x2000)
+	{
 		ERROR(DMA_ERROR_INVALID_ADDRESS, &addr)
 	}
 	return offset;

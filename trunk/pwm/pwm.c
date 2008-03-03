@@ -90,7 +90,7 @@ void pwm_init(int prescaler, unsigned period, int mode)
 	\param	callback
 			Pointer to a function that will be called upon interrupt
 	\param 	priority
-			Interrupt priority, from 1 (lowest priority) to 7 (highest priority)
+			Interrupt priority, from 1 (lowest priority) to 6 (highest normal priority)
 */
 void pwm_enable_interrupt(int postscaler, pwm_callback callback, int priority)
 {

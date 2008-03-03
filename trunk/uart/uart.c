@@ -132,7 +132,7 @@ static UART_Data UART_2_Data;
 	\param	byte_transmitted_callback
 			function to call when a byte has been transmitted
 	\param 	priority
-			Interrupt priority, from 1 (lowest priority) to 7 (highest priority)
+			Interrupt priority, from 1 (lowest priority) to 6 (highest normal priority)
 	\param 	user_data
 			Pointer to user-specified data to be passed in interrupt, may be 0
 */

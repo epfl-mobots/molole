@@ -97,7 +97,7 @@ void adc1_disable()
 	\param	callback
 			Pointer to a function that will be called when conversion is completed.
 	\param 	priority
-			Interrupt priority, from 1 (lowest priority) to 7 (highest priority)
+			Interrupt priority, from 1 (lowest priority) to 6 (highest normal priority)
 	\param	inputs
 			Bitfield that specify which physical input to use (AN0..AN31).
 			1 put pins in analogic, 0 in digital.
@@ -384,7 +384,7 @@ void adc2_disable()
 	\param	callback
 			Pointer to a function that will be called when conversion is completed.
 	\param 	priority
-			Interrupt priority, from 1 (lowest priority) to 7 (highest priority)
+			Interrupt priority, from 1 (lowest priority) to 6 (highest normal priority)
 	\param	inputs
 			Bitfield that specify which physical input to use (AN0..AN16).
 			1 put pins in analogic, 0 in digital.

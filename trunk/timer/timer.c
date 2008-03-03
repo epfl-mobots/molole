@@ -613,7 +613,7 @@ void timer_use_gated_time_accumulation(int id, bool enable)
 	\param 	callback
 			Pointer to a function that will be called upon interrupt
 	\param 	priority
-			Interrupt priority, from 1 (lowest priority) to 7 (highest priority)
+			Interrupt priority, from 1 (lowest priority) to 6 (highest normal priority)
 */
 void timer_enable_interrupt(int id, timer_callback callback, int priority)
 {

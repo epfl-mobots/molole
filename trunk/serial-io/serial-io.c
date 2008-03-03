@@ -113,7 +113,7 @@ bool is_digit(char c)
 	\param	hardware_flow_control
 			wether hardware flow control (CTS/RTS) should be used or not
 	\param 	priority
-			Interrupt priority, from 1 (lowest priority) to 7 (highest priority)
+			Interrupt priority, from 1 (lowest priority) to 6 (highest normal priority)
 */
 void serial_io_init(Serial_IO_State* state, int uart_id, unsigned long baud_rate, bool hardware_flow_control, int priority)
 {

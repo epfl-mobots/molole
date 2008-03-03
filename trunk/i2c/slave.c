@@ -93,7 +93,7 @@ static I2C_Slave_Data I2C_2_Slave_Data;
 	\param	data_to_master_callback
 			function to call with data to master
 	\param 	priority
-			Interrupt priority, from 1 (lowest priority) to 7 (highest priority)
+			Interrupt priority, from 1 (lowest priority) to 6 (highest normal priority)
 */
 void i2c_init_slave(
 	int i2c_id,
