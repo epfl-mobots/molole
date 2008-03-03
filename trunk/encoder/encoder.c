@@ -137,6 +137,28 @@ static void init_timer3_encoder(int ipl)
 // Exported functions
 //-------------------
 
+/**
+	Init an encoder.
+	
+	\param	type
+			Type of encoder, either hardware or software, one of \ref encoder_type.
+	\param	encoder_ic
+			Identifier of Input Capture for direction change from the external decoder, one of \ref ic_identifiers ; only used when type is \ref ENCODER_TIMER_2 or \ref ENCODER_TIMER_3 ; ignored when type is \ref ENCODER_TYPE_HARD
+	\param	pos
+			Pointer to where encoder_step() must update the position.
+	\param	speed
+			Pointer to where encoder_step() must update the speed (difference of positions between two calls to encoder_step()).
+	\param	diretion
+			Direction of counting, either \ref ENCODER_DIR_NORMAL or \ref ENCODER_DIR_REVERSE .
+	\param	gpio_dir
+			GPIO on which encoder_ic is routed ; only used when type is \ref ENCODER_TIMER_2 or \ref ENCODER_TIMER_3 ; ignored when type is \ref ENCODER_TYPE_HARD
+	\param	gpio_speed
+			GPIO used to control the decoding_mode if the external decoder ; only used when type is \ref ENCODER_TIMER_2 or \ref ENCODER_TIMER_3 ; ignored when type is \ref ENCODER_TYPE_HARD
+	\param	decoding_mode
+			speed of counting, either \ref ENCODER_MODE_X4 or \ref ENCODER_MODE_X2 .
+	\param 	priority
+			Interrupt priority, from 1 (lowest priority) to 6 (highest normal priority)
+*/
 void encoder_init(int type, int encoder_ic, long* pos, int* speed, int direction, gpio gpio_dir, gpio gpio_speed, int decoding_mode, int priority)
 {
 	switch(type)
@@ -199,6 +221,12 @@ void encoder_init(int type, int encoder_ic, long* pos, int* speed, int direction
 
 }
 
+/**
+	Update the position and speed variables of an encoder.
+	
+	\param	type
+			Type of encoder, either hardware or software, one of \ref encoder_type.
+*/
 void encoder_step(int type)
 {
 	long old_pos;
@@ -207,7 +235,6 @@ void encoder_step(int type)
 	long temp3;
 	int flags;
 
-	// TODO: implement me
 	if (type == ENCODER_TIMER_2)
 	{
 		old_pos = *(Software_Encoder_Data[0].pos);
@@ -228,10 +255,24 @@ void encoder_step(int type)
 	}
 	else if (type == ENCODER_TIMER_3)
 	{
-	
+		old_pos = *(Software_Encoder_Data[1].pos);
+
+		IRQ_DISABLE(flags);
+		temp3 = Software_Encoder_Data[1].tpos;
+		temp1 = TMR3;
+		temp2 = Software_Encoder_Data[1].sens;
+		IRQ_ENABLE(flags);
+
+		if(temp2 == Software_Encoder_Data[1].up) 
+			temp3 += temp1;
+		else
+			temp3 -= temp1;
+
+		*(Software_Encoder_Data[1].pos) = temp3;
+		*(Software_Encoder_Data[1].speed) = *(Software_Encoder_Data[1].pos) - old_pos;
 	}
 	else if (type == ENCODER_TYPE_HARD)
-	{	
+	{
 		old_pos = *QEI_Encoder_Data.pos;
 
 		IRQ_DISABLE(flags);
@@ -248,8 +289,7 @@ void encoder_step(int type)
 	}
 }
 
-// TODO: implement callbacks
-
+//! Callback for Input Capture 
 static void ic_tmr2_cb(int __attribute__((unused)) foo, unsigned int value, void * __attribute__((unused)) bar)
 {
 	unsigned int tmr;
@@ -265,7 +305,8 @@ static void ic_tmr2_cb(int __attribute__((unused)) foo, unsigned int value, void
 	tmr = TMR2;
 	TMR2 = 0;
 
-	if(tmr < value) {
+	if (tmr < value)
+	{
 		/* WTF ?!? the timer has done an overflow while the motor has changed direction ...*/
 		/* what can I do ? ... mmm .... */
 		/* we must account the number of imp. done since the IC trigger */
@@ -283,51 +324,99 @@ static void ic_tmr2_cb(int __attribute__((unused)) foo, unsigned int value, void
 		else
 			Software_Encoder_Data[0].tpos += ((long) tmr) - ((long) value);
 	}
-		
+	
 	Software_Encoder_Data[0].sens = gpio_read(Software_Encoder_Data[0].g_sens);
-
 }
 
+//! Callback for Input Capture 
 static void ic_tmr3_cb(int __attribute__((unused)) foo, unsigned int value, void * __attribute__((unused)) bar)
 {
+	unsigned int tmr;
 
+	if(Software_Encoder_Data[1].sens == Software_Encoder_Data[1].up) 
+		Software_Encoder_Data[1].tpos += value;
+	else
+		Software_Encoder_Data[1].tpos -= value;
 
+	/* Now update the timer with the correct value */
+	/* Yeah, it's a bit racy, but we are a _lot_ more faster than the external clock
+	 * So the race window is small */
+	tmr = TMR3;
+	TMR3 = 0;
+
+	if (tmr < value)
+	{
+		/* WTF ?!? the timer has done an overflow while the motor has changed direction ...*/
+		/* what can I do ? ... mmm .... */
+		/* we must account the number of imp. done since the IC trigger */
+		/* Clear the timer interrupt flag so it don't trigger and account false results */
+		IFS0bits.T3IF = 0;
+		if(Software_Encoder_Data[1].sens == Software_Encoder_Data[1].up) {
+			Software_Encoder_Data[1].tpos -= (((unsigned int) 0xFFFF) - value) + tmr;
+		} else {
+			Software_Encoder_Data[1].tpos += (((unsigned int) 0xFFFF) - value) + tmr;
+		}
+	} else {
+		/* tmr - icval is the number of imp. done since we have changed direction */
+		if(Software_Encoder_Data[1].sens == Software_Encoder_Data[1].up) 
+			Software_Encoder_Data[1].tpos -= ((long) tmr) - ((long) value);
+		else
+			Software_Encoder_Data[1].tpos += ((long) tmr) - ((long) value);
+	}
+	
+	Software_Encoder_Data[1].sens = gpio_read(Software_Encoder_Data[1].g_sens);
 }
 
+//! Callback for Timer
 static void tmr_2_cb(int __attribute__((unused)) foo)
 {
 	/* Ok, so we have an overflow. Let's update the internal count */
-	if(Software_Encoder_Data[0].sens != gpio_read(Software_Encoder_Data[0].g_sens)) {
+	if(Software_Encoder_Data[0].sens != gpio_read(Software_Encoder_Data[0].g_sens))
+	{
 		/* Wow, we changed direction and IC interrupt has still not fired ... 
 		 * Do not do anything */
 		return ;
 	}
-	if(Software_Encoder_Data[0].sens == Software_Encoder_Data[0].up) 
+	if (Software_Encoder_Data[0].sens == Software_Encoder_Data[0].up) 
 		Software_Encoder_Data[0].tpos += 0x00010000;
 	else
 		Software_Encoder_Data[0].tpos -= 0x00010000;
 
 }
 
+//! Callback for Timer
 static void tmr_3_cb(int __attribute__((unused)) foo)
 {
-
-
+	/* Ok, so we have an overflow. Let's update the internal count */
+	if(Software_Encoder_Data[1].sens != gpio_read(Software_Encoder_Data[1].g_sens))
+	{
+		/* Wow, we changed direction and IC interrupt has still not fired ... 
+		 * Do not do anything */
+		return ;
+	}
+	if (Software_Encoder_Data[1].sens == Software_Encoder_Data[1].up)
+		Software_Encoder_Data[1].tpos += 0x00010000;
+	else
+		Software_Encoder_Data[1].tpos -= 0x00010000;
 }
 
 //--------------------------
 // Interrupt service routine
 //--------------------------
 
-
+/**
+	QEI Interrupt Service Routine.
+ 
+	Manage lowest significant int over/under-flow to increment highest significant int.
+*/
 void _ISR _QEIInterrupt(void)
 {
 	if (QEI1CONbits.UPDN)
-		QEI_Encoder_Data.high_word++;				// Forward
-	else														// Backwards
+		QEI_Encoder_Data.high_word++;		// Forward
+	else									// Backwards
 		QEI_Encoder_Data.high_word--;	
 
-	IFS3bits.QEIIF = 0;					// Clear interrupt flag
+	IFS3bits.QEIIF = 0;						// Clear interrupt flag
 }
 
 /*@}*/
