@@ -49,13 +49,31 @@ enum bool_literals
 };
 
 
+enum irq_prio
+{
+	IRQ_PRIO_MIN = 1,			//!< Lowest available priority
+	IRQ_PRIO_1 = IRQ_PRIO_MIN,  
+	IRQ_PRIO_2,
+	IRQ_PRIO_3,
+	IRQ_PRIO_4,
+	IRQ_PRIO_5,
+	IRQ_PRIO_6,
+	IRQ_PRIO_MAX = IRQ_PRIO_6, //!< Highest available priority
+	IRQ_PRIO_NMI = 7		   //!< This level is for non masquable interrupts. Even when IRQ_DISABLE() is used, this interrupt can run
+};	
+
 //! Force GCC to not reorder the instruction before and after this macro 
 #define barrier() __asm__ __volatile__("": : :"memory")
+
+
+//! Return the number of byte availabe on the stack
+#define get_stack_space() ({ SPLIM - *((volatile int *) 0x1E); })
+								
 
 //! Save current interrupt priority level into flags and disable interrupts
 #define IRQ_DISABLE(flags) 	do { \
 								flags = SRbits.IPL; \
-								SRbits.IPL = 7; \
+								SRbits.IPL = IRQ_PRIO_MAX; \
 								barrier();\
 							} while(0)
 
@@ -64,6 +82,23 @@ enum bool_literals
 								SRbits.IPL = flags; \
 								barrier(); \
 							 } while(0)
+
+//! Save current interrupt priority level into flags and disable interrupts. WARNING ! even NMI interrupts are disabled
+#define IRQ_DISABLE_NMI_I_KNOW_WHAT_I_M_DOING(flags) do { \
+														flags = SRbits.IPL; \
+														SRbits.IPL = IRQ_PRIO_NMI; \
+														barrier();\
+													 } while(0)
+
+
+// Microchip Idle() implementation has a "non wanted feature", it doesn't have a barrier
+// So you cannot while(test) Idle(); on a variable with GCC -03 optimisation
+// Gcc will transform it into a if(test) { while(1) { Idle(); } }
+#ifdef Idle
+#undef Idle
+#endif
+#define Idle() do { __asm__ volatile ("pwrsav #1" : : : "memory");} while(0)
+
 
 /*@}*/
 
