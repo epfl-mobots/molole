@@ -324,7 +324,7 @@ void can_init(can_frame_received_callback frame_received_callback, can_frame_sen
 	rx_cb = frame_received_callback;
 	tx_done_cb = frame_sent_callback;
 
-	can_set_speed(kbps);
+	can_set_speed(kbaud_rate);
 
 	can_ask_runlevel(CAN_NORMAL_MODE);
 }
