@@ -78,6 +78,9 @@ static struct
 			User-specified function to call when an input is captured.
 	\param 	priority
 			Interrupt priority, from 1 (lowest priority) to 6 (highest normal priority)
+	\param user_data
+			User data passed as callback argument
+			
 */
 void ic_enable(int ic_id, int source, int mode, ic_callback callback, int priority, void* user_data)
 {
