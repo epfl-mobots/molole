@@ -91,15 +91,6 @@ enum irq_prio
 													 } while(0)
 
 
-// Microchip Idle() implementation has a "non wanted feature", it doesn't have a barrier
-// So you cannot while(test) Idle(); on a variable with GCC -03 optimisation
-// Gcc will transform it into a if(test) { while(1) { Idle(); } }
-#ifdef Idle
-#undef Idle
-#endif
-#define Idle() do { __asm__ volatile ("pwrsav #1" : : : "memory");} while(0)
-
-
 /*@}*/
 
 #endif
