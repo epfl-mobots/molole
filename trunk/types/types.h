@@ -91,6 +91,7 @@ enum irq_prio
 													 } while(0)
 
 
+#define NULL ((void *) 0)
 /*@}*/
 
 #endif
