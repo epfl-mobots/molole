@@ -62,8 +62,9 @@ enum adc_start_conversion_event
 /** DMA Buffer Build Mode */
 enum adc_dma_buffer_build_mode
 {
-	ADC_DMA_SCATTER_GATHER = 0,			/**< DMA buffers are written in Scatter/Gather mode. */
-	ADC_DMA_CONVERSION_ORDER = 1,		/**< DMA buffers are written in the order of conversion. */
+	ADC_DMA_SCATTER_GATHER = 0,				/**< DMA buffers are written in Scatter/Gather mode. */
+	ADC_DMA_CONVERSION_ORDER = 1,			/**< DMA buffers are written in the order of conversion. */
+	ADC_DMA_CONVERSION_ORDER_ONESHOT = 2,	/**< DMA buffers are written in the order of conversion but only once. */
 };
 
 /** ADC callback when conversion is completed */

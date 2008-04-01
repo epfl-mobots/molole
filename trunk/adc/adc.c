@@ -317,6 +317,34 @@ void adc1_init_scan_dma(unsigned long inputs, int start_conversion_event, int sa
 		
 		AD1CON2bits.SMPI = adc_input_count - 1;		// Increments the DMA address after completion of all input scanning operation
 	}
+	else if(buffer_build_mode == ADC_DMA_CONVERSION_ORDER_ONESHOT)
+	{
+		unsigned adc_input_count = amount_of_bits_at_one(inputs);
+		/*	unsigned per_input_buffer_size = buffers_size / adc_input_count;
+
+		 It's perfectly "Legal" to do it, but it's non-sens. It mean the 
+		   ADC won't scan all the imputs ... 
+		if (per_input_buffer_size * adc_input_count != buffers_size) 
+			ERROR(ADC_ERROR_INVALID_BUFFER_SIZE_FOR_SCATTER_GATHER, &buffers_size);
+		*/
+		dma_init_channel(
+			dma_channel,
+			DMA_INTERRUPT_SOURCE_ADC_1,
+			DMA_SIZE_WORD,
+			DMA_DIR_FROM_PERIPHERAL_TO_RAM,
+			DMA_INTERRUPT_AT_FULL,
+			DMA_DO_NOT_NULL_WRITE_TO_PERIPHERAL,
+			DMA_ADDRESSING_REGISTER_INDIRECT_POST_INCREMENT,
+			b ? DMA_OPERATING_ONE_SHOT_PING_PONG : DMA_OPERATING_ONE_SHOT,
+			a,
+			b,
+			(void*)&ADC1BUF0,
+			buffers_size,
+			callback
+		);
+		
+		AD1CON2bits.SMPI = adc_input_count - 1;		// Increments the DMA address after completion of all input scanning operation
+	}
 	else
 	{
 		ERROR(ADC_ERROR_INVALID_BUFFER_BUILD_MODE, &buffer_build_mode);
@@ -546,6 +574,28 @@ void adc2_init_scan_dma(unsigned int inputs, int start_conversion_event, int sam
 			DMA_DO_NOT_NULL_WRITE_TO_PERIPHERAL,
 			DMA_ADDRESSING_REGISTER_INDIRECT_POST_INCREMENT,
 			b ? DMA_OPERATING_CONTINUOUS_PING_PONG : DMA_OPERATING_CONTINUOUS,
+			a,
+			b,
+			(void*)&ADC2BUF0,
+			buffers_size,
+			callback
+		);
+		
+		AD2CON2bits.SMPI = adc_input_count - 1;		// Increments the DMA address after completion of all input scanning operation
+	}
+	else if (buffer_build_mode == ADC_DMA_CONVERSION_ORDER_ONESHOT)
+	{
+		unsigned adc_input_count = amount_of_bits_at_one(inputs);
+
+		dma_init_channel(
+			dma_channel,
+			DMA_INTERRUPT_SOURCE_ADC_2,
+			DMA_SIZE_WORD,
+			DMA_DIR_FROM_PERIPHERAL_TO_RAM,
+			DMA_INTERRUPT_AT_FULL,
+			DMA_DO_NOT_NULL_WRITE_TO_PERIPHERAL,
+			DMA_ADDRESSING_REGISTER_INDIRECT_POST_INCREMENT,
+			b ? DMA_OPERATING_ONE_SHOT_PING_PONG : DMA_OPERATING_ONE_SHOT,
 			a,
 			b,
 			(void*)&ADC2BUF0,
