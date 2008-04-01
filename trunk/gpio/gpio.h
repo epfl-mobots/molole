@@ -62,6 +62,33 @@ enum gpio_dir
 #define GPIO_PORTG (&TRISG)
 #define GPIO_NONE (0)
 
+/** GPIO Pin number, to use with \ref GPIO_MAKE_ID 
+ * The association pin number 0 == value 0 etc ... is alway guaranteed
+ */
+#define GPIO_PIN_0 0
+#define GPIO_PIN_1 1
+#define GPIO_PIN_2 2
+#define GPIO_PIN_3 3
+#define GPIO_PIN_4 4
+#define GPIO_PIN_5 5
+#define GPIO_PIN_6 6
+#define GPIO_PIN_7 7
+#define GPIO_PIN_8 8
+#define GPIO_PIN_9 9
+#define GPIO_PIN_10 10
+#define GPIO_PIN_11 11
+#define GPIO_PIN_12 12
+#define GPIO_PIN_13 13
+#define GPIO_PIN_14 14
+#define GPIO_PIN_15 15
+
+/** GPIO Byte referenced, to use with \ref GPIO_MAKE_ID and the _byte verion of the gpio access function */
+#define GPIO_LOW_BYTE 0
+#define GPIO_HIGH_BYTE 8
+
+/** GPIO Word tag, to use with \ref GPIO_MAKE_ID and the _word version of the gpio access */
+#define GPIO_WORD 0
+
 /** Compute the GPIO number from the port and pin number. */
 #define GPIO_MAKE_ID(port, num) ((gpio) ((((unsigned int)port) << 4) | ((num) & 0xF))) 
 
@@ -74,6 +101,16 @@ typedef unsigned int gpio;
 void gpio_set_dir(gpio gpio_id, int dir);
 void gpio_write(gpio gpio_id, bool value);
 bool gpio_read(gpio gpio_id);
+
+void gpio_set_dir_byte(gpio gpio_id, int dir);
+void gpio_write_byte(gpio gpio_id, unsigned char value);
+unsigned char gpio_read_byte(gpio gpio_id);
+
+void gpio_set_dir_word(gpio gpio_id, int dir);
+unsigned int gpio_read_word(gpio gpio_id);
+void gpio_write_word(gpio gpio_id, unsigned int value);
+
+
 
 /*@}*/
 

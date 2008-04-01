@@ -140,3 +140,155 @@ bool gpio_read(gpio gpio_id)
 	else
 		return false;
 }
+
+
+/**
+	Write to a 16 bits GPIO port
+	
+	\param	gpio
+			identifier of the GPIO, must be created by GPIO_MAKE_ID(). Take only in account the PORT and not the bit number.
+	\param	value
+			the value to write on the port
+*/
+void gpio_write_word(gpio gpio_id, unsigned int value) 
+{
+	volatile unsigned int * ptr = (volatile unsigned int *) (gpio_id >> 4);
+
+	if(ptr == GPIO_NONE) 
+		return;
+
+	ptr += 2;
+
+	*ptr = value;
+}
+
+/**
+	Get the value of a GPIO port
+	
+	\param	gpio
+			identifier of the GPIO, must be created by GPIO_MAKE_ID(). Take only in account the PORT and not the bit number.
+	\return
+			Return the value read on the port
+*/
+unsigned int gpio_read_word(gpio gpio_id) 
+{
+	volatile unsigned int * ptr = (volatile unsigned int *) (gpio_id >> 4);
+	
+	if(ptr == GPIO_NONE)
+		return 0;
+	ptr++;
+	
+	return *ptr;
+}
+
+/**
+	Set the direction of a GPIO.
+	
+	\param	gpio
+			identifier of the GPIO, must be created by GPIO_MAKE_ID(). Take only in account the PORT and not the bit number.
+	\param	dir
+			direction of the GPIO, either \ref GPIO_OUTPUT or \ref GPIO_INPUT .
+*/
+void gpio_set_dir_word(gpio gpio_id, int dir)
+{
+	volatile unsigned int * ptr =  (volatile unsigned int *) (gpio_id >> 4);
+	
+	if(ptr == GPIO_NONE) 
+		return;
+
+	if(dir == GPIO_OUTPUT)
+	{
+		*ptr = 0;
+	}
+	else if (dir == GPIO_INPUT)
+	{
+		*ptr = 0xFFFF;
+	}
+	else
+		ERROR(GPIO_INVALID_DIR, &dir);
+
+}
+
+
+/**
+	Write to a 8 bits GPIO port
+	
+	\param	gpio
+			identifier of the GPIO, must be created by GPIO_MAKE_ID(). Take only in account the PORT and if the bit number > 7 the high byte of the port is read else the low byte is used.
+	\param	value
+			the value to write on the port
+*/
+void gpio_write_byte(gpio gpio_id, unsigned char value) 
+{
+	int pin = gpio_id & 0xF;
+	volatile unsigned char * ptr = (volatile unsigned char *) (gpio_id >> 4);
+
+	if(ptr == GPIO_NONE) 
+		return;
+
+	ptr += 4;
+
+	if(pin > 7) 
+		ptr++;	
+
+	*ptr = value;
+}
+
+/**
+	Get the value of a GPIO port
+	
+	\param	gpio
+			identifier of the GPIO, must be created by GPIO_MAKE_ID(). Take only in account the PORT and if the bit number > 7 the high byte of the port is read else the low byte is used.
+	\return
+			Return the value read on the port
+*/
+unsigned char gpio_read_byte(gpio gpio_id) 
+{
+	int pin = gpio_id & 0xF;
+	volatile unsigned char * ptr = (volatile unsigned char *) (gpio_id >> 4);
+	
+	if(ptr == GPIO_NONE)
+		return 0;
+
+	ptr += 2;
+
+	if(pin > 7)
+		ptr++;
+
+	return *ptr;
+}
+
+/**
+	Set the direction of a GPIO.
+	
+	\param	gpio
+			identifier of the GPIO, must be created by GPIO_MAKE_ID(). Take only in account the PORT and if the bit number > 7 the high byte of the port is read else the low byte is used.
+	\param	dir
+			direction of the GPIO, either \ref GPIO_OUTPUT or \ref GPIO_INPUT .
+*/
+void gpio_set_dir_byte(gpio gpio_id, int dir)
+{
+	int pin = gpio_id & 0xF;
+	volatile unsigned char * ptr =  (volatile unsigned char *) (gpio_id >> 4);
+	
+	if(ptr == GPIO_NONE) 
+		return;
+
+	if(pin > 7)
+		ptr++;
+
+	if(dir == GPIO_OUTPUT)
+	{
+		*ptr = 0;
+	}
+	else if (dir == GPIO_INPUT)
+	{
+		*ptr = 0xFF;
+	}
+	else
+		ERROR(GPIO_INVALID_DIR, &dir);
+
+}
+
+
+
