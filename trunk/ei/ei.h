@@ -42,7 +42,7 @@ enum ei_errors
 
 
 /** External interrupt callback on interrupt */
-typedef void (*ei_callback)(int ic_id, void * user_data);
+typedef void (*ei_callback)(int ei_id, void * user_data);
 
 /** Available External Interrupt signal polarity */
 enum ei_polarity {
