@@ -182,4 +182,33 @@ void clock_idle()
 		__asm__ volatile ("pwrsav #1");
 }
 
+/**
+	Delay the instruction flow of us microsecond. Expect a delay which is about 10-50% larger.
+	\warning
+		It does not take in account the timer lost in interrupt handler if preempted by an interrupt.
+	\warning
+		If the processor MIPS is lower than 4, this function does not work. And for low ( < 10 ) MIPS value the wait time is a lot larger than expected.
+	\param us
+		The number of microsecond to busy-wait
+*/
+
+void clock_delay_us(unsigned int us) 
+{
+
+	__asm__ volatile("inc %[us], %[us]\n\t"
+					 "lsr %[mips], #2, w1\n\t"
+					 "0:\n\t" 
+					 "dec %[us], %[us]\n\t"
+					 "bra z, 2f\n\t"
+					 "mov 2, WREG\n\t" /* /!\ 2 is here for w1 address. since the assembler does not accept a mov w1, WREG to read w1 by accessing the file register so the flags are modified I have hardcoded the address into the assembler mnemonic */
+					 "1:\n\t"
+					 "bra z, 0b\n\t"
+					 "dec w0,w0\n\t"
+					 "bra 1b\n\t"
+					 "2:\n\t" 
+					: /* No output*/ 
+					:[us] "r" (us), [mips] "r" (Clock_Data.target_bogomips)  /* Input */
+					: "w0", "w1" /* We modify w0 and w1 */, "cc" /* alter flags */); 
+}
+
 /*@}*/
