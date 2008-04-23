@@ -960,10 +960,9 @@ void _ISR _T1Interrupt(void)
 */
 void _ISR _T2Interrupt(void)
 {
+	_T2IF = 0;
 	// function must exist because this interrupt is enabled
 	Timer_Data[1].callback(TIMER_2);
-	
-	_T2IF = 0;
 }
 
 #endif
@@ -977,13 +976,13 @@ void _ISR _T2Interrupt(void)
 */
 void _ISR _T3Interrupt(void)
 {
+		
+	_T3IF = 0;
 	// function must exist because this interrupt is enabled
 	if (Timer_Data[1].is_initialized && Timer_Data[1].is_32bits)
 		Timer_Data[2].callback(TIMER_23);
 	else
 		Timer_Data[2].callback(TIMER_3);
-	
-	_T3IF = 0;
 }
 
 #endif
@@ -997,10 +996,10 @@ void _ISR _T3Interrupt(void)
 */
 void _ISR _T4Interrupt(void)
 {
+	_T4IF = 0;
+	
 	// function must exist because this interrupt is enabled
 	Timer_Data[3].callback(TIMER_4);
-	
-	_T4IF = 0;
 }
 
 #endif
@@ -1014,13 +1013,14 @@ void _ISR _T4Interrupt(void)
 */
 void _ISR _T5Interrupt(void)
 {
+	_T5IF = 0;
+
 	// function must exist because this interrupt is enabled
 	if (Timer_Data[3].is_initialized && Timer_Data[3].is_32bits)
 		Timer_Data[4].callback(TIMER_45);
 	else
 		Timer_Data[4].callback(TIMER_5);
 	
-	_T5IF = 0;
 }
 
 #endif
@@ -1034,10 +1034,10 @@ void _ISR _T5Interrupt(void)
 */
 void _ISR _T6Interrupt(void)
 {
+	_T6IF = 0;
 	// function must exist because this interrupt is enabled
 	Timer_Data[5].callback(TIMER_6);
 	
-	_T6IF = 0;
 }
 
 #endif
@@ -1051,13 +1051,14 @@ void _ISR _T6Interrupt(void)
 */
 void _ISR _T7Interrupt(void)
 {
+	_T7IF = 0;
+
 	// function must exist because this interrupt is enabled
 	if (Timer_Data[5].is_initialized && Timer_Data[5].is_32bits)
 		Timer_Data[6].callback(TIMER_67);
 	else
 		Timer_Data[6].callback(TIMER_7);
-	
-	_T7IF = 0;
+
 }
 
 #endif
@@ -1071,10 +1072,11 @@ void _ISR _T7Interrupt(void)
 */
 void _ISR _T8Interrupt(void)
 {
+	_T8IF = 0;	
+	
 	// function must exist because this interrupt is enabled
 	Timer_Data[7].callback(TIMER_8);
 	
-	_T8IF = 0;
 }
 
 #endif
@@ -1088,13 +1090,13 @@ void _ISR _T8Interrupt(void)
 */
 void _ISR _T9Interrupt(void)
 {
+	_T9IF = 0;
+
 	// function must exist because this interrupt is enabled
 	if (Timer_Data[7].is_initialized && Timer_Data[7].is_32bits)
 		Timer_Data[8].callback(TIMER_89);
 	else
 		Timer_Data[8].callback(TIMER_9);
-	
-	_T9IF = 0;
 }
 
 #endif
