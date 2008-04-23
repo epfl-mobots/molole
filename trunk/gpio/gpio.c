@@ -39,6 +39,76 @@
 /** Atomic or operation to prevent race conditions inside interrupts: *x = (*x) | y */
 #define atomic_or(x,y) do { __asm__ volatile ("ior.w %[yy], [%[xx]], [%[xx]]" : : [xx] "r" (x), [yy] "r"(y): "cc","memory"); } while(0)
 
+#define ODC_EXIST(p) ((defined _ODC## p ##0) || (defined _ODC## p ##1) || (defined _ODC## p ##2) || (defined _ODC## p ##3) || (defined _ODC## p ##4) || (defined _ODC## p ##5)  || (defined _ODC## p ##6) || (defined _ODC## p ##7) || (defined _ODC## p ##8) || (defined _ODC## p ##8) || (defined _ODC## p ##9) || (defined _ODC## p ##10) || (defined _ODC## p ##11) || (defined _ODC## p ##12) || (defined _ODC## p ##13) || (defined _ODC## p ##14) || (defined _ODC## p ##15))
+
+/** 
+	Set the OpenDrain functionality of a GPIO
+
+	\param gpio
+			identifier of the GPIO, must be created by GPIO_MAKE_ID()
+	\param opendrain
+			\ref true if must be configured as open-drain, false otherwise
+*/
+
+void gpio_set_opendrain(gpio gpio_id, int opendrain) {
+	/* Since this is a configuration function, it's not time-critical so I can do it the "dumb" way
+	 */
+	int port, pin, mask;
+	volatile unsigned int * ptr;
+	pin = gpio_id & 0xF;
+	port = gpio_id >> 4;
+	
+	if(!(gpio_id & 0xFFF0))	/* GPIO_NONE */
+		return;
+	
+#if ODC_EXIST(A)
+	if(port == (unsigned int) GPIO_PORTA) {
+			ptr = (volatile unsigned int *) ODCA;
+	} else
+#endif
+#if ODC_EXIST(B)
+	if(port == (unsigned int) GPIO_PORTB) {
+			ptr = (volatile unsigned int *) ODCB;
+	} else 
+#endif
+#if ODC_EXIST(C)
+	if(port == (unsigned int) GPIO_PORTC) {
+			ptr = (volatile unsigned int *) ODCC;
+	} else 
+#endif
+#if ODC_EXIST(D)
+	if(port == (unsigned int) GPIO_PORTD) {
+			ptr = (volatile unsigned int *) ODCD;
+	} else 
+#endif
+#if ODC_EXIST(E)
+	if(port == (unsigned int) GPIO_PORTE) {
+			ptr = (volatile unsigned int *) ODCE;	
+	} else 
+#endif
+#if ODC_EXIST(F)
+	if(port == (unsigned int) GPIO_PORTF) {
+			ptr = (volatile unsigned int *) ODCF;
+	} else 
+#endif
+#if ODC_EXIST(G)
+	if(port == (unsigned int) GPIO_PORTG) {
+			ptr = (volatile unsigned int *) ODCG;
+	} 
+#endif
+	else {
+			ERROR(GPIO_INVALID_GPIO, &gpio_id);	
+	}
+
+	if(opendrain) {
+		mask = 1 << pin;
+		atomic_or(ptr, mask);
+	} else {
+		mask = ~(1 << pin);
+		atomic_and(ptr, mask);
+	}
+}
+
 /**
 	Set the direction of a GPIO.
 	
@@ -209,12 +279,27 @@ void gpio_set_dir_word(gpio gpio_id, int dir)
 
 }
 
+/**
+	Set the OpenDrain functionality of a GPIO
+	
+	\param	gpio
+			identifier of the GPIO, must be created by GPIO_MAKE_ID(). Use  \ref GPIO_LOW_BYTE or \ref  GPIO_HIGH_BYTE as pin number to select which byte is used.
+	\param opendrain
+			\ref true if must be configured as open-drain, false otherwise
+*/
+
+void gpio_set_opendrain_word(gpio gpio_id, int opendrain) {
+	int i;
+	/* Do it the dumb and non-atomic way */
+	for(i = 0; i < 16; i++) 
+		gpio_set_opendrain((gpio_id & 0xFFF0) | i, opendrain);
+}
 
 /**
 	Write to a 8 bits GPIO port
 	
 	\param	gpio
-			identifier of the GPIO, must be created by GPIO_MAKE_ID(). Take only in account the PORT and if the bit number > 7 the high byte of the port is read else the low byte is used.
+			identifier of the GPIO, must be created by GPIO_MAKE_ID(). Use  \ref GPIO_LOW_BYTE or \ref  GPIO_HIGH_BYTE as pin number to select which byte is used.
 	\param	value
 			the value to write on the port
 */
@@ -238,7 +323,7 @@ void gpio_write_byte(gpio gpio_id, unsigned char value)
 	Get the value of a GPIO port
 	
 	\param	gpio
-			identifier of the GPIO, must be created by GPIO_MAKE_ID(). Take only in account the PORT and if the bit number > 7 the high byte of the port is read else the low byte is used.
+			identifier of the GPIO, must be created by GPIO_MAKE_ID(). Use  \ref GPIO_LOW_BYTE or \ref  GPIO_HIGH_BYTE as pin number to select which byte is used.
 	\return
 			Return the value read on the port
 */
@@ -262,7 +347,7 @@ unsigned char gpio_read_byte(gpio gpio_id)
 	Set the direction of a GPIO.
 	
 	\param	gpio
-			identifier of the GPIO, must be created by GPIO_MAKE_ID(). Take only in account the PORT and if the bit number > 7 the high byte of the port is read else the low byte is used.
+			identifier of the GPIO, must be created by GPIO_MAKE_ID(). Use  \ref GPIO_LOW_BYTE or \ref  GPIO_HIGH_BYTE as pin number to select which byte is used.
 	\param	dir
 			direction of the GPIO, either \ref GPIO_OUTPUT or \ref GPIO_INPUT .
 */
@@ -290,5 +375,21 @@ void gpio_set_dir_byte(gpio gpio_id, int dir)
 
 }
 
+/**
+	Set the OpenDrain functionality of a GPIO
+	
+	\param	gpio
+			identifier of the GPIO, must be created by GPIO_MAKE_ID(). Use  \ref GPIO_LOW_BYTE or \ref  GPIO_HIGH_BYTE as pin number to select which byte is used.
+	\param opendrain
+			\ref true if must be configured as open-drain, false otherwise
+*/
+void gpio_set_opendrain_byte(gpio gpio_id, int opendrain) {
+	int i;
+	int start = ((gpio_id & 0xF) > 7) ? 8 : 0;
 
+	/* Do it the dumb and non-atomic way */
+
+	for(i = start; i < start + 8; i++) 
+		gpio_set_opendrain((gpio_id & 0xFFF0) | i, opendrain);
+}
 

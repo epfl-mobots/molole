@@ -98,14 +98,17 @@ typedef unsigned int gpio;
 
 // Functions, doc in the .c
 
+void gpio_set_opendrain(gpio gpio_id, int opendrain);
 void gpio_set_dir(gpio gpio_id, int dir);
 void gpio_write(gpio gpio_id, bool value);
 bool gpio_read(gpio gpio_id);
 
+void gpio_set_opendrain_byte(gpio gpio_id, int opendrain);
 void gpio_set_dir_byte(gpio gpio_id, int dir);
 void gpio_write_byte(gpio gpio_id, unsigned char value);
 unsigned char gpio_read_byte(gpio gpio_id);
 
+void gpio_set_opendrain_byte(gpio gpio_id, int opendrain);
 void gpio_set_dir_word(gpio gpio_id, int dir);
 unsigned int gpio_read_word(gpio gpio_id);
 void gpio_write_word(gpio gpio_id, unsigned int value);
