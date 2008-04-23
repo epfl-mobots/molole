@@ -38,6 +38,7 @@ enum generic_errors
 	GENERIC_ERROR_BASE = 0x0000,
 	GENERIC_ERROR_NOT_IMPLEMENTED,				/**< An not yet implemented code was called. */
 	GENERIC_ERROR_INVALID_INTERRUPT_PRIORITY,	/**< A requested interrupt priority was not between 1 and 7 */
+	GENERIC_ERROR_STACK_SPACE_EXHAUSTED			/**< No more room in stack for requested operation */
 };
 
 
