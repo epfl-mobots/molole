@@ -498,13 +498,14 @@ void dma_start_transfer(int channel)
 void _ISR  _DMA0Interrupt(void)
 {
 	static int dmaBuffer = 0;
-	
+
+	// Clear interrupt flag
+	_DMA0IF = 0;	
+
 	// Call use-defined function with true as argument if first buffer, false if second buffer
 	DMA_Data[0](DMA_CHANNEL_0, dmaBuffer == 0);
 	dmaBuffer ^= 1;
 	
-	// Clear interrupt flag
-	_DMA0IF = 0;
 }
 
 /**
@@ -515,13 +516,13 @@ void _ISR  _DMA0Interrupt(void)
 void _ISR  _DMA1Interrupt(void)
 {
 	static int dmaBuffer = 0;
+
+	// Clear interrupt flag
+	_DMA1IF = 0;
 	
 	// Call use-defined function with true as argument if first buffer, false if second buffer
 	DMA_Data[1](DMA_CHANNEL_1, dmaBuffer == 0);
 	dmaBuffer ^= 1;
-	
-	// Clear interrupt flag
-	_DMA1IF = 0;
 }
 
 /**
@@ -533,12 +534,12 @@ void _ISR  _DMA2Interrupt(void)
 {
 	static int dmaBuffer = 0;
 	
+	// Clear interrupt flag
+	_DMA2IF = 0;
+
 	// Call use-defined function with true as argument if first buffer, false if second buffer
 	DMA_Data[2](DMA_CHANNEL_2, dmaBuffer == 0);
 	dmaBuffer ^= 1;
-	
-	// Clear interrupt flag
-	_DMA2IF = 0;
 }
 
 /**
@@ -550,12 +551,12 @@ void _ISR  _DMA3Interrupt(void)
 {
 	static int dmaBuffer = 0;
 	
+	// Clear interrupt flag
+	_DMA3IF = 0;
+
 	// Call use-defined function with true as argument if first buffer, false if second buffer
 	DMA_Data[3](DMA_CHANNEL_3, dmaBuffer == 0);
 	dmaBuffer ^= 1;
-	
-	// Clear interrupt flag
-	_DMA3IF = 0;
 }
 
 /**
@@ -567,12 +568,13 @@ void _ISR  _DMA4Interrupt(void)
 {
 	static int dmaBuffer = 0;
 	
-	// Call use-defined function with true as argument if first buffer, false if second buffer
-	DMA_Data[4](DMA_CHANNEL_4, dmaBuffer == 0);
-	dmaBuffer ^= 1;
 	
 	// Clear interrupt flag
 	_DMA4IF = 0;
+
+	// Call use-defined function with true as argument if first buffer, false if second buffer
+	DMA_Data[4](DMA_CHANNEL_4, dmaBuffer == 0);
+	dmaBuffer ^= 1;
 }
 
 /**
@@ -584,12 +586,12 @@ void _ISR  _DMA5Interrupt(void)
 {
 	static int dmaBuffer = 0;
 	
+	// Clear interrupt flag
+	_DMA5IF = 0;
+
 	// Call use-defined function with true as argument if first buffer, false if second buffer
 	DMA_Data[5](DMA_CHANNEL_5, dmaBuffer == 0);
 	dmaBuffer ^= 1;
-	
-	// Clear interrupt flag
-	_DMA5IF = 0;
 }
 
 /**
@@ -601,12 +603,12 @@ void _ISR  _DMA6Interrupt(void)
 {
 	static int dmaBuffer = 0;
 	
+	// Clear interrupt flag
+	_DMA6IF = 0;
+
 	// Call use-defined function with true as argument if first buffer, false if second buffer
 	DMA_Data[6](DMA_CHANNEL_6, dmaBuffer == 0);
 	dmaBuffer ^= 1;
-	
-	// Clear interrupt flag
-	_DMA6IF = 0;
 }
 
 /**
@@ -618,12 +620,12 @@ void _ISR  _DMA7Interrupt(void)
 {
 	static int dmaBuffer = 0;
 	
+	// Clear interrupt flag
+	_DMA7IF = 0;
+
 	// Call use-defined function with true as argument if first buffer, false if second buffer
 	DMA_Data[7](DMA_CHANNEL_7, dmaBuffer == 0);
 	dmaBuffer ^= 1;
-	
-	// Clear interrupt flag
-	_DMA7IF = 0;
 }
 
 /*@}*/
