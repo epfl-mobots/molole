@@ -217,10 +217,10 @@ void ic_disable(int ic_id)
 */
 void _ISR _IC1Interrupt(void)
 {
-	IC_Data[0].callback(IC_1, IC1BUF, IC_Data[0].user_data);
-	
 	// Clear interrupt flag
 	_IC1IF = 0;
+
+	IC_Data[0].callback(IC_1, IC1BUF, IC_Data[0].user_data);
 }
 
 /**
@@ -230,10 +230,10 @@ void _ISR _IC1Interrupt(void)
 */
 void _ISR _IC2Interrupt(void)
 {
-	IC_Data[1].callback(IC_2, IC2BUF, IC_Data[1].user_data);
-	
 	// Clear interrupt flag
 	_IC2IF = 0;
+
+	IC_Data[1].callback(IC_2, IC2BUF, IC_Data[1].user_data);
 }
 
 /**
@@ -243,10 +243,10 @@ void _ISR _IC2Interrupt(void)
 */
 void _ISR _IC3Interrupt(void)
 {
-	IC_Data[2].callback(IC_3, IC3BUF, IC_Data[2].user_data);
-	
 	// Clear interrupt flag
 	_IC3IF = 0;
+
+	IC_Data[2].callback(IC_3, IC3BUF, IC_Data[2].user_data);
 }
 
 /**
@@ -256,10 +256,10 @@ void _ISR _IC3Interrupt(void)
 */
 void _ISR _IC4Interrupt(void)
 {
-	IC_Data[3].callback(IC_4, IC4BUF, IC_Data[3].user_data);
-	
 	// Clear interrupt flag
 	_IC4IF = 0;
+
+	IC_Data[3].callback(IC_4, IC4BUF, IC_Data[3].user_data);
 }
 
 /**
@@ -269,10 +269,10 @@ void _ISR _IC4Interrupt(void)
 */
 void _ISR _IC5Interrupt(void)
 {
-	IC_Data[4].callback(IC_5, IC5BUF, IC_Data[4].user_data);
-	
 	// Clear interrupt flag
 	_IC5IF = 0;
+
+	IC_Data[4].callback(IC_5, IC5BUF, IC_Data[4].user_data);
 }
 
 /**
@@ -282,10 +282,10 @@ void _ISR _IC5Interrupt(void)
 */
 void _ISR _IC6Interrupt(void)
 {
-	IC_Data[5].callback(IC_6, IC6BUF, IC_Data[5].user_data);
-	
 	// Clear interrupt flag
 	_IC6IF = 0;
+
+	IC_Data[5].callback(IC_6, IC6BUF, IC_Data[5].user_data);
 }
 
 /**
@@ -295,10 +295,10 @@ void _ISR _IC6Interrupt(void)
 */
 void _ISR _IC7Interrupt(void)
 {
-	IC_Data[6].callback(IC_7, IC7BUF, IC_Data[6].user_data);
-	
 	// Clear interrupt flag
 	_IC7IF = 0;
+
+	IC_Data[6].callback(IC_7, IC7BUF, IC_Data[6].user_data);
 }
 
 /**
@@ -308,10 +308,10 @@ void _ISR _IC7Interrupt(void)
 */
 void _ISR _IC8Interrupt(void)
 {
-	IC_Data[7].callback(IC_8, IC8BUF, IC_Data[7].user_data);
-	
 	// Clear interrupt flag
 	_IC8IF = 0;
+
+	IC_Data[7].callback(IC_8, IC8BUF, IC_Data[7].user_data);
 }
 
 /*@}*/
