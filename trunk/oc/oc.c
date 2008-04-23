@@ -61,22 +61,26 @@
 	
 	\param	oc_id
 			Identifier of the Output Compare, from \ref OC_1 to \ref OC_8.
-	\param	source
-			Timer providing clock to the Output Compare. Must be \ref OC_TIMER2 or \ref OC_TIMER3.
+	\param	timer
+			Timer providing clock to the Output Compare. Must be \ref TIMER_2 or \ref TIMER_3.
 	\param	mode
 			Mode of this Output Compare. Must be one of \ref oc_modes but not \ref OC_DISABLED.
 */
-void oc_enable(int oc_id, int source, int mode)
+void oc_enable(int oc_id, int timer, int mode)
 {
-	ERROR_CHECK_RANGE(source, 0, 1, OC_ERROR_INVALID_TIMER_SOURCE);
+	int source;
 	ERROR_CHECK_RANGE(mode, OC_DISABLED + 1, 7, OC_ERROR_INVALID_MODE);
 	
 	oc_disable(oc_id);
 	
-	if (source == OC_TIMER2)
+	if (timer == TIMER_2) {
 		timer_set_enabled(TIMER_2, false);
-	else
+		source = 0;
+	} else if(timer == TIMER_3) {
 		timer_set_enabled(TIMER_3, false);
+		source = 1;
+	} else 
+		ERROR(OC_ERROR_INVALID_TIMER_SOURCE, &timer);
 	
 	switch (oc_id)
 	{
@@ -138,6 +142,30 @@ void oc_set_value(int oc_id, unsigned primary, unsigned secondary)
 		case OC_8: OC8R = primary; OC8RS = secondary; break;
 		default: ERROR(OC_ERROR_INVALID_OC_ID, &oc_id);
 	}
+}
+
+/**
+	Set the register values of an Output Compare for PWM use.
+
+	\param	oc_id
+			Identifier of the Output Compare, from \ref OC_1 to \ref OC_8.
+	\param	duty
+			Set the Secondary Output Compare register, named OCxRS in the documentation.
+*/
+void oc_set_value_pwm(int oc_id, unsigned duty) {
+	switch (oc_id)
+	{
+		case OC_1: OC1RS = duty; break;
+		case OC_2: OC2RS = duty; break;
+		case OC_3: OC3RS = duty; break;
+		case OC_4: OC4RS = duty; break;
+		case OC_5: OC5RS = duty; break;
+		case OC_6: OC6RS = duty; break;
+		case OC_7: OC7RS = duty; break;
+		case OC_8: OC8RS = duty; break;
+		default: ERROR(OC_ERROR_INVALID_OC_ID, &oc_id);
+	}
+
 }
 
 /*@}*/

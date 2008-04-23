@@ -39,7 +39,7 @@ enum oc_errors
 {
 	OC_ERROR_BASE = 0x0400,
 	OC_ERROR_INVALID_OC_ID,				/**< The desired Output Compare does not exists, must be one of \ref oc_identifiers. */
-	OC_ERROR_INVALID_TIMER_SOURCE,		/**< The specified timer source is invalid, must be one of \ref oc_timer_source. */
+	OC_ERROR_INVALID_TIMER_SOURCE,		/**< The specified timer source is invalid, must be \ref TIMER_2 or \ref TIMER_3. */
 	OC_ERROR_INVALID_MODE,				/**< The specified mode is invalid, must be one of \ref oc_modes excepted \ref OC_DISABLED. */
 };
 
@@ -57,13 +57,6 @@ enum oc_identifiers
 };
 
 
-/** Possible Output Compare timer sources */
-enum oc_timer_source
-{
-	OC_TIMER2 = 0,						/**< Output Compare timer source is timer 2 */
-	OC_TIMER3							/**< Output Compare timer source is timer 3 */
-};
-
 /** Available Output Compare modes */
 enum oc_modes
 {
@@ -79,11 +72,13 @@ enum oc_modes
 
 // Functions, doc in the .c
 
-void oc_enable(int oc_id, int source, int mode);
+void oc_enable(int oc_id, int timer, int mode);
 
 void oc_disable(int oc_id);
 
 void oc_set_value(int oc_id, unsigned primary, unsigned secondary);
+
+void oc_set_value_pwm(int oc_id, unsigned duty);
 
 /*@}*/
 
