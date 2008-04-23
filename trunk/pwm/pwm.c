@@ -290,9 +290,9 @@ void pwm_set_special_event_trigger(int direction, int postscale, unsigned value)
 */
 void _ISR _PWMInterrupt(void)
 {
-	PWM_Data.interrupt_callback();
-	
 	_PWMIF = 0;
+
+	PWM_Data.interrupt_callback();
 }
 
 // TODO: In Florient's code, this interrupt used the _ISRFAST flag
