@@ -376,7 +376,7 @@ void adc1_init_scan_dma(unsigned long inputs, int start_conversion_event, int sa
 	adc1_enable();
 }
 
-
+#ifdef _AD2IF
 /**
 	Enable ADC 2.
 	
@@ -511,6 +511,7 @@ void adc2_start_simple_conversion(int channel)
 	\param	callback
 			User-specified function to call when a buffer filled. If 0, DMA interrupt is disabled
 */
+
 void adc2_init_scan_dma(unsigned int inputs, int start_conversion_event, int sample_time, int dma_channel, void * a, void * b, unsigned buffers_size, int buffer_build_mode, dma_callback callback)
 {
 	ERROR_CHECK_RANGE(sample_time, 0, 31, ADC_ERROR_INVALID_SAMPLE_TIME);
@@ -635,6 +636,8 @@ void adc2_init_scan_dma(unsigned int inputs, int start_conversion_event, int sam
 	
 	adc2_enable();
 }
+
+#endif
 //--------------------------
 // Interrupt service routine
 //--------------------------
@@ -646,17 +649,19 @@ void adc2_init_scan_dma(unsigned int inputs, int start_conversion_event, int sam
 */
 void _ISR  _ADC1Interrupt(void)
 {
+	// Clear ADC 1 interrupt flag
+	_AD1IF = 0;
+
 	// Conversion is completed, mark it as such
 	int channel = ADC_Data[0].simple_channel;
 	ADC_Data[0].simple_channel = -1;
 	
 	// Call user-defined function with result of conversion
 	ADC_Data[0].callback(channel, ADC1BUF0);
-	
-	// Clear ADC 1 interrupt flag
-	_AD1IF = 0;
 }
 
+
+#ifdef _AD2IF
 /**
 	ADC 2 Interrupt Service Routine.
  
@@ -665,14 +670,16 @@ void _ISR  _ADC1Interrupt(void)
 void _ISR  _ADC2Interrupt(void)
 {
 	// Conversion is completed, mark it as such
+	// Clear ADC 2 interrupt flag
+	_AD2IF = 0;
+
 	int channel = ADC_Data[1].simple_channel;
 	ADC_Data[1].simple_channel = -1;
 	
 	// Call user-defined function with result of conversion
 	ADC_Data[1].callback(channel, ADC2BUF0);
 	
-	// Clear ADC 2 interrupt flag
-	_AD2IF = 0;
 }
+#endif
 
 /*@}*/
