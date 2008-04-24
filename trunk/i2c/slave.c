@@ -49,7 +49,7 @@
 //-----------------------
 
 /** State of the transmission */
-enum I2C_State
+enum I2C_Slave_State
 {
 	I2C_IDLE,
 	I2C_TO_MASTER,
@@ -176,6 +176,8 @@ void _ISR _SI2C1Interrupt(void)
 {
 	unsigned char data;
 	
+	_SI2C1IF = 0;				// Clear Slave interrupt flag
+
 	// no interrupt is generated at the end of cycle,
 	// nor all way to detect beginning of cycle are buggy
 	// and do not behave as the doc predicts
@@ -220,8 +222,6 @@ void _ISR _SI2C1Interrupt(void)
 		break;
 		
 	}
-	
-	_SI2C1IF = 0;				// Clear Slave interrupt flag
 }
 
 
@@ -233,6 +233,7 @@ void _ISR _SI2C1Interrupt(void)
 void _ISR _SI2C2Interrupt(void)
 {
 	unsigned char data;
+	_SI2C2IF = 0;				// Clear Slave interrupt flag
 	
 	// no interrupt is generated at the end of cycle,
 	// nor all way to detect beginning of cycle are buggy
@@ -278,8 +279,6 @@ void _ISR _SI2C2Interrupt(void)
 		break;
 		
 	}
-	
-	_SI2C2IF = 0;				// Clear Slave interrupt flag
 }
 
 /*@}*/
