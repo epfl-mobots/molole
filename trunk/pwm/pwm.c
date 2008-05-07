@@ -146,8 +146,6 @@ void pwm_disable(int pwm_id)
 
 void pwm_set_duty(int pwm_id, int duty)
 {
-	if (duty > 32676 || duty < -32676)
-		ERROR(PWM_ERROR_INVALID_RANGE, &duty);
 
 	PWMCON2bits.UDIS = 1;
 	switch (pwm_id)
