@@ -139,7 +139,7 @@ static UART_Data UART_2_Data;
 void uart_init(int uart_id, unsigned long baud_rate, bool hardware_flow_control, uart_byte_received byte_received_callback, uart_byte_transmitted byte_transmitted_callback, int priority, void* user_data)
 {
 	ERROR_CHECK_RANGE(priority, 1, 7, GENERIC_ERROR_INVALID_INTERRUPT_PRIORITY);
-	
+
 	if (uart_id == UART_1)
 	{
 		// Store callback functions
@@ -354,7 +354,7 @@ void uart_enable_tx_interrupt(int uart_id, int flags) {
 
 		_U2TXIE = flags;
 
-	} else {
+	} else {	
 		ERROR(UART_ERROR_INVALID_ID, &uart_id);
 	}
 }
@@ -371,24 +371,27 @@ void uart_enable_tx_interrupt(int uart_id, int flags) {
 */
 void _ISR _U1RXInterrupt(void)
 {
+	_U1RXIF = 0;			// Clear reception interrupt flag
+
 	if (!UART_1_Data.user_program_busy)
 	{
-		do
+		while(U1STAbits.URXDA)
 		{
+			_U1RXIF = 0;			// Clear reception interrupt flag
+									// Why ? because if we recieve a character
+									// while the callback run, we don't want to get recalled immediatly 
+									// after going out
 			if (UART_1_Data.byte_received_callback(UART_1, U1RXREG, UART_1_Data.user_data) == false)
 			{
 				UART_1_Data.user_program_busy = true;
 				break;
 			}
 		}
-		while (U1STAbits.URXDA);
 	}
 	
 	// Work around for the dsPIC33 Rev. A2 Silicon Errata
 	// Clear Receive Buffer Overrun Error if any, possible despite the use of hardware handshake
-	U1STAbits.OERR = 0;
-	
-	_U1RXIF = 0;			// Clear reception interrupt flag
+	U1STAbits.OERR = 0;	
 }
 
 /**
@@ -399,10 +402,11 @@ void _ISR _U1RXInterrupt(void)
 void _ISR _U1TXInterrupt(void)
 {
 	unsigned char data;
+
+	_U1TXIF = 0;			// Clear transmission interrupt flag
+
 	if (UART_1_Data.byte_transmitted_callback(UART_1, &data, UART_1_Data.user_data))
 		U1TXREG = data;
-	
-	_U1TXIF = 0;			// Clear transmission interrupt flag
 }
 
 /**
@@ -412,24 +416,27 @@ void _ISR _U1TXInterrupt(void)
 */
 void _ISR _U2RXInterrupt(void)
 {
+	_U2RXIF = 0;			// Clear reception interrupt flag
+
 	if (!UART_2_Data.user_program_busy)
 	{
-		do
+		while(U2STAbits.URXDA)
 		{
+			_U2RXIF = 0;			// Clear reception interrupt flag
+									// Why ? because if we recieve a character
+									// while the callback run, we don't want to get recalled immediatly 
+									// after going out
 			if (UART_2_Data.byte_received_callback(UART_2, U2RXREG, UART_2_Data.user_data) == false)
 			{
 				UART_2_Data.user_program_busy = true;
 				break;
 			}
 		}
-		while (U2STAbits.URXDA);
 	}
 	
 	// Work around for the dsPIC33 Rev. A2 Silicon Errata
 	// Clear Receive Buffer Overrun Error if any, possible despite the use of hardware handshake
-	U2STAbits.OERR = 0;
-	
-	_U2RXIF = 0;			// Clear reception interrupt flag
+	U2STAbits.OERR = 0;	
 }
 
 /**
@@ -440,10 +447,11 @@ void _ISR _U2RXInterrupt(void)
 void _ISR _U2TXInterrupt(void)
 {
 	unsigned char data;
+
+	_U2TXIF = 0;			// Clear transmission interrupt flag
+
 	if (UART_2_Data.byte_transmitted_callback(UART_2, &data, UART_2_Data.user_data))
 		U2TXREG = data;
-	
-	_U2TXIF = 0;			// Clear transmission interrupt flag
 }
 
 
