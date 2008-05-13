@@ -141,6 +141,20 @@ void motor_step(Motor_Controller_Data* module)
 			module->output = module->constraint_callback(MOTOR_CONSTRAINT_UNDERRUN, module->output);
 		}
 	}
+	
+	// Poor's man high-pass filter on integral term
+	if (module->forgetness)
+	{
+		module->forgetness_counter++;
+		if(module->forgetness_counter == module->forgetness)
+		{
+			module->forgetness_counter = 0;
+			if(module->last_integral_term > 0)
+				module->last_integral_term--;
+			else if(module->last_integral_term < 0) 
+				module->last_integral_term++;
+		}
+	}
 }
 
 /*@}*/

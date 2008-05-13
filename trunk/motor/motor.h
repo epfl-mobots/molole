@@ -73,6 +73,9 @@ typedef struct
 	long last_error;					//!< last error
 	long last_integral_term;			//!< last integral term
 	long last_derivative_term;			//!< last derivative term
+	
+	unsigned int forgetness_counter;	//!< Amount of step since last forgetness action
+	unsigned int forgetness;			//!< amount of step to decrease one unity of integral term. 0 mean disabled. (high-pass filter)
 } Motor_Controller_Data;
 
 // Functions, doc in the .c
