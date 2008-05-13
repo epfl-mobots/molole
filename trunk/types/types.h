@@ -69,6 +69,11 @@ enum irq_prio
 //! Return the number of byte availabe on the stack
 #define get_stack_space() ({ SPLIM - *((volatile int *) 0x1E); })
 								
+//! Set the current Interrupt priority level. Warning, use it only if you really know what you're doing.		
+#define SET_IPL(ipl) do { \
+						SRbits.IPL = ipl; \
+						barrier(); \
+					} while(0)
 
 //! Save current interrupt priority level into flags and disable interrupts
 #define IRQ_DISABLE(flags) 	do { \
