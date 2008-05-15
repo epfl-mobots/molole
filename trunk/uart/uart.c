@@ -387,11 +387,12 @@ void _ISR _U1RXInterrupt(void)
 				break;
 			}
 		}
+		// Work around for the dsPIC33 Rev. A2 Silicon Errata
+		// Clear Receive Buffer Overrun Error if any, possible despite the use of hardware handshake
+		if(!U1STAbits.URXDA && U1STAbits.OERR)
+			U1STAbits.OERR = 0;	
 	}
 	
-	// Work around for the dsPIC33 Rev. A2 Silicon Errata
-	// Clear Receive Buffer Overrun Error if any, possible despite the use of hardware handshake
-	U1STAbits.OERR = 0;	
 }
 
 /**
@@ -432,11 +433,12 @@ void _ISR _U2RXInterrupt(void)
 				break;
 			}
 		}
+		// Work around for the dsPIC33 Rev. A2 Silicon Errata
+		// Clear Receive Buffer Overrun Error if any, possible despite the use of hardware handshake
+		if(!U2STAbits.URXDA && U2STAbits.OERR)
+			U2STAbits.OERR = 0;	
 	}
 	
-	// Work around for the dsPIC33 Rev. A2 Silicon Errata
-	// Clear Receive Buffer Overrun Error if any, possible despite the use of hardware handshake
-	U2STAbits.OERR = 0;	
 }
 
 /**
