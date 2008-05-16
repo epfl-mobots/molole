@@ -55,9 +55,9 @@ enum uart_errors
 	Return true if new data is accepted, false otherwise. */
 typedef bool (*uart_byte_received)(int uart_id, unsigned char data, void* user_data);
 
-/** UART callback when a byte has been transmitted
+/** UART callback when tx is available
 	Return true if a new one should be sent, false otherwise. */
-typedef bool (*uart_byte_transmitted)(int uart_id, unsigned char* data, void* user_data);
+typedef bool (*uart_tx_ready)(int uart_id, unsigned char* data, void* user_data);
 
 // Functions, doc in the .c
 
@@ -66,7 +66,7 @@ void uart_init(
 	unsigned long baud_rate,
 	bool hardware_flow_control,
 	uart_byte_received byte_received_callback,
-	uart_byte_transmitted byte_transmitted_callback,
+	uart_tx_ready tx_ready_callback,
 	int priority,
 	void* user_data
 );

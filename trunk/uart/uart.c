@@ -100,7 +100,7 @@ Note that if flow control is disabled and if data are not read in time, they are
 typedef struct 
 {
 	uart_byte_received byte_received_callback; /**< function to call when a new byte is received */
-	uart_byte_transmitted byte_transmitted_callback; /**< function to call when a byte has been transmitted */
+	uart_tx_ready tx_ready_callback; /**< function to call when a byte has been transmitted */
 	bool user_program_busy; /**< true if user program is busy and cannot read any more data, false otherwise */
 	void* user_data; /**< pointer to user-specified data to be passed in interrupt, may be 0 */
 } UART_Data;
@@ -129,14 +129,14 @@ static UART_Data UART_2_Data;
 			wether hardware flow control (CTS/RTS) should be used or not
 	\param	byte_received_callback
 			function to call when a new byte is received
-	\param	byte_transmitted_callback
+	\param  tx_ready_callback
 			function to call when a byte has been transmitted
 	\param 	priority
 			Interrupt priority, from 1 (lowest priority) to 6 (highest normal priority)
 	\param 	user_data
 			Pointer to user-specified data to be passed in interrupt, may be 0
 */
-void uart_init(int uart_id, unsigned long baud_rate, bool hardware_flow_control, uart_byte_received byte_received_callback, uart_byte_transmitted byte_transmitted_callback, int priority, void* user_data)
+void uart_init(int uart_id, unsigned long baud_rate, bool hardware_flow_control, uart_byte_received byte_received_callback, uart_tx_ready tx_ready_callback, int priority, void* user_data)
 {
 	ERROR_CHECK_RANGE(priority, 1, 7, GENERIC_ERROR_INVALID_INTERRUPT_PRIORITY);
 
@@ -144,7 +144,7 @@ void uart_init(int uart_id, unsigned long baud_rate, bool hardware_flow_control,
 	{
 		// Store callback functions
 		UART_1_Data.byte_received_callback = byte_received_callback;
-		UART_1_Data.byte_transmitted_callback = byte_transmitted_callback;
+		UART_1_Data.tx_ready_callback = tx_ready_callback;
 		UART_1_Data.user_data = user_data;
 		
 		// Setup baud rate
@@ -190,7 +190,7 @@ void uart_init(int uart_id, unsigned long baud_rate, bool hardware_flow_control,
 	{
 		// Store callback functions
 		UART_2_Data.byte_received_callback = byte_received_callback;
-		UART_2_Data.byte_transmitted_callback = byte_transmitted_callback;
+		UART_2_Data.tx_ready_callback = tx_ready_callback;
 		UART_2_Data.user_data = user_data;
 		
 		// Setup baud rate
@@ -406,7 +406,7 @@ void _ISR _U1TXInterrupt(void)
 
 	_U1TXIF = 0;			// Clear transmission interrupt flag
 
-	if (UART_1_Data.byte_transmitted_callback(UART_1, &data, UART_1_Data.user_data))
+	if (UART_1_Data.tx_ready_callback(UART_1, &data, UART_1_Data.user_data))
 		U1TXREG = data;
 }
 
@@ -435,7 +435,7 @@ void _ISR _U2RXInterrupt(void)
 		}
 		// Work around for the dsPIC33 Rev. A2 Silicon Errata
 		// Clear Receive Buffer Overrun Error if any, possible despite the use of hardware handshake
-		if(!U2STAbits.URXDA && U2STAbits.OERR)
+		if(!U2STAbits.URXDA && U2STAbits.OERR) 
 			U2STAbits.OERR = 0;	
 	}
 	
@@ -452,7 +452,7 @@ void _ISR _U2TXInterrupt(void)
 
 	_U2TXIF = 0;			// Clear transmission interrupt flag
 
-	if (UART_2_Data.byte_transmitted_callback(UART_2, &data, UART_2_Data.user_data))
+	if (UART_2_Data.tx_ready_callback(UART_2, &data, UART_2_Data.user_data))
 		U2TXREG = data;
 }
 
