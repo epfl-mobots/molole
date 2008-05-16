@@ -173,6 +173,8 @@ void uart_init(int uart_id, unsigned long baud_rate, bool hardware_flow_control,
 			U1MODEbits.UEN = 2;	// Do hardware flow control. Use RTS and CTS, but not use BCLK
 		else
 			U1MODEbits.UEN = 0;	// Do not do any hardware flow control. RTS and CTS are left as GPIO
+			
+		U1STAbits.UTXEN = 1; 	// Enable transmit
 		
 		// Setup interrupts
 		_U1RXIF = 0;			// clear the reception interrupt
@@ -184,7 +186,6 @@ void uart_init(int uart_id, unsigned long baud_rate, bool hardware_flow_control,
 		_U1TXIE = 1;			// enable the transmission interrupt
 	
 		U1MODEbits.UARTEN = 1;	// Enable UART
-		U1STAbits.UTXEN = 1; 	// Enable transmit
 	}
 	else if (uart_id == UART_2)
 	{
@@ -220,6 +221,8 @@ void uart_init(int uart_id, unsigned long baud_rate, bool hardware_flow_control,
 		else
 			U2MODEbits.UEN = 0;	// Do not do any hardware flow control. RTS and CTS are left as GPIO
 		
+		U2STAbits.UTXEN = 1; 	// Enable transmit
+		
 		// Setup interrupts
 		_U2RXIF = 0;			// clear the reception interrupt
 		_U2RXIP = priority;   	// set the reception interrupt priority
@@ -230,7 +233,6 @@ void uart_init(int uart_id, unsigned long baud_rate, bool hardware_flow_control,
 		_U2TXIE = 1;			// enable the transmission interrupt
 	
 		U2MODEbits.UARTEN = 1;	// Enable UART
-		U2STAbits.UTXEN = 1; 	// Enable transmit
 	}
 	else
 	{
