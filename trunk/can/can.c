@@ -289,6 +289,8 @@ static void can_set_speed(unsigned int speed)
 */
 void can_init(can_frame_received_callback frame_received_callback, can_frame_sent_callback frame_sent_callback, int dma_rx_channel, int dma_tx_channel, gpio trans_pin, unsigned int kbaud_rate, int priority)
 {
+	ERROR_CHECK_RANGE(priority, 1, 7, GENERIC_ERROR_INVALID_INTERRUPT_PRIORITY);
+	
 	C1CTRL1bits.WIN = 0;
 	can_ask_runlevel(CAN_CONFIG_MODE);
 	setup_can_buffers();
@@ -300,7 +302,10 @@ void can_init(can_frame_received_callback frame_received_callback, can_frame_sen
     C1INTEbits.RBIE=1;
     C1INTEbits.TBIE=1;
     C1INTEbits.ERRIE=1;
-    IEC2bits.C1IE = 1;
+    _C1IP = priority;
+    _C1IF = 0;
+    _C1IE = 1;
+    
 
 	/* Enable DMA */
 	dma_init_channel(dma_rx_channel, DMA_INTERRUPT_SOURCE_ECAN_1_RX, DMA_SIZE_WORD,
