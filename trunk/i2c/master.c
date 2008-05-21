@@ -156,7 +156,7 @@ void _ISR _MI2C1Interrupt(void)
 
 	_MI2C1IF = 0;			// clear master interrupt flag
 
-	next_op = I2C_Master_Data[I2C_1].operation_completed_callback(I2C_1, data, I2C_Master_Data[I2C_1].user_data, I2C1STATbits.ACKSTAT);
+	next_op = I2C_Master_Data[I2C_1].operation_completed_callback(I2C_1, &data, I2C_Master_Data[I2C_1].user_data, I2C1STATbits.ACKSTAT);
 	
 	if (I2C_Master_Data[I2C_1].prev_operation == I2C_MASTER_READ)
 		*(I2C_Master_Data[I2C_1].prev_data) = I2C1RCV;
