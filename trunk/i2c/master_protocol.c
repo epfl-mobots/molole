@@ -84,7 +84,7 @@ static I2C_Master_Protocol_Data I2C_master_transfert_datas[2];
 //-------------------
 
 /** callback from low-level I2C layer on I2C interrupt */
-static int i2c_master_transfert_op(int i2c_id, unsigned char* data, void* user_data, bool nack)
+static int i2c_master_transfert_op(int i2c_id, unsigned char** data, void* user_data, bool nack)
 {
 	int ret = I2C_MASTER_NONE;
 	switch (I2C_master_transfert_datas[i2c_id].state)
@@ -97,7 +97,7 @@ static int i2c_master_transfert_op(int i2c_id, unsigned char* data, void* user_d
 			else
 				I2C_master_transfert_datas[i2c_id].address |= 0x1;
 
-			*((unsigned char **)data) = &(I2C_master_transfert_datas[i2c_id].address);
+			*data = &(I2C_master_transfert_datas[i2c_id].address);
 			I2C_master_transfert_datas[i2c_id].state = I2C_ADDRESS_DONE;
 			
 		break;
@@ -110,12 +110,12 @@ static int i2c_master_transfert_op(int i2c_id, unsigned char* data, void* user_d
 				break;
 			}
 			if(I2C_master_transfert_datas[i2c_id].write_data_size) {
-				*((unsigned char **)data) = I2C_master_transfert_datas[i2c_id].write_data++;
+				*data = I2C_master_transfert_datas[i2c_id].write_data++;
 				I2C_master_transfert_datas[i2c_id].write_data_size--;
 				ret = I2C_MASTER_WRITE;
 				I2C_master_transfert_datas[i2c_id].state = I2C_WRITE_IN_PROGRESS;
 			} else if(I2C_master_transfert_datas[i2c_id].read_data_size) {
-				*((unsigned char **)data) = I2C_master_transfert_datas[i2c_id].read_data++;
+				*data = I2C_master_transfert_datas[i2c_id].read_data++;
 				I2C_master_transfert_datas[i2c_id].read_data_size--;
 				ret = I2C_MASTER_READ;
 				I2C_master_transfert_datas[i2c_id].state = I2C_READ_IN_PROGRESS;
@@ -134,7 +134,7 @@ static int i2c_master_transfert_op(int i2c_id, unsigned char* data, void* user_d
 				break;
 			}
 			if(I2C_master_transfert_datas[i2c_id].write_data_size) {
-				*((unsigned char **)data) = I2C_master_transfert_datas[i2c_id].write_data++;
+				*data = I2C_master_transfert_datas[i2c_id].write_data++;
 				I2C_master_transfert_datas[i2c_id].write_data_size--;
 				ret = I2C_MASTER_WRITE;
 				I2C_master_transfert_datas[i2c_id].state = I2C_WRITE_IN_PROGRESS;
@@ -166,7 +166,7 @@ static int i2c_master_transfert_op(int i2c_id, unsigned char* data, void* user_d
 			break;
 		case I2C_ACK_DONE:
 			/* We generate an ack only when we want more data, so we can directly reschedule a transfert */
-			*((unsigned char **)data) = I2C_master_transfert_datas[i2c_id].read_data++;
+			*data = I2C_master_transfert_datas[i2c_id].read_data++;
 			I2C_master_transfert_datas[i2c_id].read_data_size--;
 			I2C_master_transfert_datas[i2c_id].state = I2C_READ_IN_PROGRESS;
 			ret = I2C_MASTER_READ;

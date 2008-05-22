@@ -27,8 +27,6 @@
 
 #include "../types/types.h"
 
-#error "Code not tested, ask Philippe so that he can test it and remove this error"
-
 /** Errors I2C can throw */
 enum i2c_errors
 {
@@ -106,7 +104,7 @@ enum i2c_master_operation
 	- If this function returns \ref I2C_MASTER_READ, data points to the destination of read
 	- If this function returns \ref I2C_MASTER_WRITER, data points to the data to write
 */
-typedef int (*i2c_master_operation_completed_callback)(int i2c_id, unsigned char* data, void* user_data, bool nack);
+typedef int (*i2c_master_operation_completed_callback)(int i2c_id, unsigned char** data, void* user_data, bool nack);
 
 // Functions, doc in the .c
 
