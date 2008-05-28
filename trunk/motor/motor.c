@@ -109,7 +109,8 @@ void motor_step(Motor_Controller_Data* module)
 	if (output > module->output_limit_high)
 	{
 		// recompute integral term
-		integral_term = (module->output_limit_high << (long)module->output_shift_factor) - proportional_term - derivative_term;
+		if(module->ki)
+			integral_term = (module->output_limit_high << (long)module->output_shift_factor) - proportional_term - derivative_term;
 		
 		// crop output
 		output = module->output_limit_high;
@@ -117,7 +118,8 @@ void motor_step(Motor_Controller_Data* module)
 	else if (output < module->output_limit_low)
 	{
 		// recompute integral term
-		integral_term = (module->output_limit_low << (long)module->output_shift_factor) - proportional_term - derivative_term;
+		if(module->ki)
+			integral_term = (module->output_limit_low << (long)module->output_shift_factor) - proportional_term - derivative_term;
 		
 		// crop output
 		output = module->output_limit_low;
