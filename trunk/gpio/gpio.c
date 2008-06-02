@@ -34,10 +34,6 @@
 	LATx
 */
 
-/** Atomic and operation to prevent race conditions inside interrupts: *x = (*x) & y */
-#define atomic_and(x,y) do { __asm__ volatile ("and.w %[yy], [%[xx]], [%[xx]]": : [xx] "r" (x), [yy] "r"(y): "cc","memory"); } while(0)
-/** Atomic or operation to prevent race conditions inside interrupts: *x = (*x) | y */
-#define atomic_or(x,y) do { __asm__ volatile ("ior.w %[yy], [%[xx]], [%[xx]]" : : [xx] "r" (x), [yy] "r"(y): "cc","memory"); } while(0)
 
 #define ODC_EXIST(p) ((defined _ODC## p ##0) || (defined _ODC## p ##1) || (defined _ODC## p ##2) || (defined _ODC## p ##3) || (defined _ODC## p ##4) || (defined _ODC## p ##5)  || (defined _ODC## p ##6) || (defined _ODC## p ##7) || (defined _ODC## p ##8) || (defined _ODC## p ##8) || (defined _ODC## p ##9) || (defined _ODC## p ##10) || (defined _ODC## p ##11) || (defined _ODC## p ##12) || (defined _ODC## p ##13) || (defined _ODC## p ##14) || (defined _ODC## p ##15))
 

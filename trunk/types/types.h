@@ -98,6 +98,14 @@ enum irq_prio
 #ifndef NULL
 #define NULL ((void *) 0)
 #endif
+
+
+/** Atomic and operation to prevent race conditions inside interrupts: *x = (*x) & y */
+#define atomic_and(x,y) do { __asm__ volatile ("and.w %[yy], [%[xx]], [%[xx]]": : [xx] "r" (x), [yy] "r"(y): "cc","memory"); } while(0)
+/** Atomic or operation to prevent race conditions inside interrupts: *x = (*x) | y */
+#define atomic_or(x,y) do { __asm__ volatile ("ior.w %[yy], [%[xx]], [%[xx]]" : : [xx] "r" (x), [yy] "r"(y): "cc","memory"); } while(0)
+
+
 /*@}*/
 
 #endif
