@@ -55,7 +55,9 @@
 static struct
 {
 	pwm_callback interrupt_callback; /**< function to call upon PWM interrupt */
-} PWM_Data = { 0 };
+	int mode[4];					 /**< mode */
+	unsigned int period;
+} PWM_Data;
 
 /**
 	Init the PWM subsystem.
@@ -80,6 +82,16 @@ void pwm_init(int prescaler, unsigned period, int mode)
 	PTCONbits.PTEN = 1;					// Enable PWM Time Base Timer
 	DTCON1 = 0;							// Disable any dead time generator
 	DTCON2 = 0;
+	switch(mode) {
+		case PWM_MODE_FREE_RUNNING:
+		case PWM_MODE_SINGLE_EVENT:
+			PWM_Data.period = period;
+			break;
+		case PWM_CONTINUOUS_UP_DOWN:
+		case PWM_CONTINUOUS_UP_DOWN_DOUBLE:
+			PWM_Data.period = period << 1;
+			break;
+	}
 }
 
 /**
@@ -135,6 +147,7 @@ void pwm_disable(int pwm_id)
 	PWMCON2bits.UDIS = 0;
 }
 
+
 /**
 	Set the duty of a PWM. Implicitly enable a PWM output.
 	
@@ -155,21 +168,79 @@ void pwm_set_duty(int pwm_id, int duty)
 			PWMCON1bits.PEN1H = 1; 
 			PWMCON1bits.PMOD1 = 1; 
 
-			if(duty > 0) {
-				/* PWM1L is forced low */
-				OVDCONbits.POUT1L = 0;
+			if(duty == 0) {
 				OVDCONbits.POVD1L = 0;
+				OVDCONbits.POVD1H = 0;
+				switch(PWM_Data.mode[pwm_id]) {
+				case PWM_ONE_DEFAULT_LOW:
+				case PWM_BOTH_DEFAULT_LOW:
+					OVDCONbits.POUT1L = 0;
+					OVDCONbits.POUT1H = 0;
+					break;
+				case PWM_ONE_DEFAULT_HIGH:
+				case PWM_BOTH_DEFAULT_HIGH:
+					OVDCONbits.POUT1L = 1;
+					OVDCONbits.POUT1H = 1;
+					break;
+				}
+			} else if(duty > 0) {
+				/* PWM1L is forced low */
+				switch(PWM_Data.mode[pwm_id]) {
+				case PWM_ONE_DEFAULT_LOW:
+					OVDCONbits.POUT1L = 0;
+					OVDCONbits.POVD1L = 0;
+					OVDCONbits.POVD1H = 1;
+					break;
+				case PWM_BOTH_DEFAULT_LOW:
+					OVDCONbits.POVD1H = 1;
+					OVDCONbits.POVD1L = 1;
+					break;
+				case PWM_ONE_DEFAULT_HIGH:
+					OVDCONbits.POUT1L = 1;
+					OVDCONbits.POVD1L = 0;
+					OVDCONbits.POVD1H = 1;
+					if(duty > PWM_Data.period) 
+						duty = PWM_Data.period;
+					duty = PWM_Data.period - duty;
+					break;
+				case PWM_BOTH_DEFAULT_HIGH:
+					OVDCONbits.POVD1L = 1;
+					OVDCONbits.POVD1H = 1;
+					if(duty > PWM_Data.period) 
+						duty = PWM_Data.period;
+					duty = PWM_Data.period - duty;
+					break;
+				}
 		
-				/* PWM1H is PWM */
-				OVDCONbits.POVD1H = 1;
 				PDC1 = duty; 
 			} else {
-				/* PWM1H is forced low */
-				OVDCONbits.POUT1H = 0;
-				OVDCONbits.POVD1H = 0;
+				switch(PWM_Data.mode[pwm_id]) {
+				case PWM_ONE_DEFAULT_LOW:
+					OVDCONbits.POUT1H = 0;
+					OVDCONbits.POVD1H = 0;
+					OVDCONbits.POVD1L = 1;
+					break;
+				case PWM_BOTH_DEFAULT_LOW:
+					OVDCONbits.POVD1H = 1;
+					OVDCONbits.POVD1L = 1;
+					break;
+				case PWM_ONE_DEFAULT_HIGH:
+					OVDCONbits.POUT1H = 1;
+					OVDCONbits.POVD1H = 0;
+					OVDCONbits.POVD1L = 1;
+					if(duty < -PWM_Data.period) 
+						duty = -PWM_Data.period;
+					duty = -PWM_Data.period - duty;
+					break;
+				case PWM_BOTH_DEFAULT_HIGH:
+					OVDCONbits.POVD1L = 1;
+					OVDCONbits.POVD1H = 1;
+					if(duty < -PWM_Data.period) 
+						duty = -PWM_Data.period;
+					duty = -PWM_Data.period - duty;
+					break;
+				}
 		
-				/* PWM1L is PWM */
-				OVDCONbits.POVD1L = 1;
 				PDC1 = -duty; 
 			}
 				
@@ -179,69 +250,246 @@ void pwm_set_duty(int pwm_id, int duty)
 			PWMCON1bits.PEN2H = 1; 
 			PWMCON1bits.PMOD2 = 1; 
 
-			if(duty > 0) {
-				/* PWM1L is forced low */
-				OVDCONbits.POUT2L = 0;
+			if(duty == 0) {
 				OVDCONbits.POVD2L = 0;
+				OVDCONbits.POVD2H = 0;
+				switch(PWM_Data.mode[pwm_id]) {
+				case PWM_ONE_DEFAULT_LOW:
+				case PWM_BOTH_DEFAULT_LOW:
+					OVDCONbits.POUT2L = 0;
+					OVDCONbits.POUT2H = 0;
+					break;
+				case PWM_ONE_DEFAULT_HIGH:
+				case PWM_BOTH_DEFAULT_HIGH:
+					OVDCONbits.POUT2L = 1;
+					OVDCONbits.POUT2H = 1;
+					break;
+				}
+			} else if(duty > 0) {
+				/* PWM1L is forced low */
+				switch(PWM_Data.mode[pwm_id]) {
+				case PWM_ONE_DEFAULT_LOW:
+					OVDCONbits.POUT2L = 0;
+					OVDCONbits.POVD2L = 0;
+					OVDCONbits.POVD2H = 1;
+					break;
+				case PWM_BOTH_DEFAULT_LOW:
+					OVDCONbits.POVD2H = 1;
+					OVDCONbits.POVD2L = 1;
+					break;
+				case PWM_ONE_DEFAULT_HIGH:
+					OVDCONbits.POUT2L = 1;
+					OVDCONbits.POVD2L = 0;
+					OVDCONbits.POVD2H = 1;
+					if(duty > PWM_Data.period) 
+						duty = PWM_Data.period;
+					duty = PWM_Data.period - duty;
+					break;
+				case PWM_BOTH_DEFAULT_HIGH:
+					OVDCONbits.POVD2L = 1;
+					OVDCONbits.POVD2H = 1;
+					if(duty > PWM_Data.period) 
+						duty = PWM_Data.period;
+					duty = PWM_Data.period - duty;
+					break;
+				}
 		
-				/* PWM1H is PWM */
-				OVDCONbits.POVD2H = 1;
 				PDC2 = duty; 
 			} else {
-				/* PWM1H is forced low */
-				OVDCONbits.POUT2H = 0;
-				OVDCONbits.POVD2H = 0;
+				switch(PWM_Data.mode[pwm_id]) {
+				case PWM_ONE_DEFAULT_LOW:
+					OVDCONbits.POUT2H = 0;
+					OVDCONbits.POVD2H = 0;
+					OVDCONbits.POVD2L = 1;
+					break;
+				case PWM_BOTH_DEFAULT_LOW:
+					OVDCONbits.POVD2H = 1;
+					OVDCONbits.POVD2L = 1;
+					break;
+				case PWM_ONE_DEFAULT_HIGH:
+					OVDCONbits.POUT2H = 1;
+					OVDCONbits.POVD2H = 0;
+					OVDCONbits.POVD2L = 1;
+					if(duty < -PWM_Data.period) 
+						duty = -PWM_Data.period;
+					duty = -PWM_Data.period - duty;
+					break;
+				case PWM_BOTH_DEFAULT_HIGH:
+					OVDCONbits.POVD2L = 1;
+					OVDCONbits.POVD2H = 1;
+					if(duty < -PWM_Data.period) 
+						duty = -PWM_Data.period;
+					duty = -PWM_Data.period - duty;
+					break;
+				}
 		
-				/* PWM1L is PWM */
-				OVDCONbits.POVD2L = 1;
 				PDC2 = -duty; 
 			}
+				
 			break;
 		case PWM_3:
 			PWMCON1bits.PEN3L = 1; 
 			PWMCON1bits.PEN3H = 1; 
 			PWMCON1bits.PMOD3 = 1; 
 
-			if(duty > 0) {
-				/* PWM1L is forced low */
-				OVDCONbits.POUT3L = 0;
+			if(duty == 0) {
 				OVDCONbits.POVD3L = 0;
+				OVDCONbits.POVD3H = 0;
+				switch(PWM_Data.mode[pwm_id]) {
+				case PWM_ONE_DEFAULT_LOW:
+				case PWM_BOTH_DEFAULT_LOW:
+					OVDCONbits.POUT3L = 0;
+					OVDCONbits.POUT3H = 0;
+					break;
+				case PWM_ONE_DEFAULT_HIGH:
+				case PWM_BOTH_DEFAULT_HIGH:
+					OVDCONbits.POUT3L = 1;
+					OVDCONbits.POUT3H = 1;
+					break;
+				}
+			} else if(duty > 0) {
+				/* PWM1L is forced low */
+				switch(PWM_Data.mode[pwm_id]) {
+				case PWM_ONE_DEFAULT_LOW:
+					OVDCONbits.POUT3L = 0;
+					OVDCONbits.POVD3L = 0;
+					OVDCONbits.POVD3H = 1;
+					break;
+				case PWM_BOTH_DEFAULT_LOW:
+					OVDCONbits.POVD3H = 1;
+					OVDCONbits.POVD3L = 1;
+					break;
+				case PWM_ONE_DEFAULT_HIGH:
+					OVDCONbits.POUT3L = 1;
+					OVDCONbits.POVD3L = 0;
+					OVDCONbits.POVD3H = 1;
+					if(duty > PWM_Data.period) 
+						duty = PWM_Data.period;
+					duty = PWM_Data.period - duty;
+					break;
+				case PWM_BOTH_DEFAULT_HIGH:
+					OVDCONbits.POVD3L = 1;
+					OVDCONbits.POVD3H = 1;
+					if(duty > PWM_Data.period) 
+						duty = PWM_Data.period;
+					duty = PWM_Data.period - duty;
+					break;
+				}
 		
-				/* PWM1H is PWM */
-				OVDCONbits.POVD3H = 1;
 				PDC3 = duty; 
 			} else {
-				/* PWM1H is forced low */
-				OVDCONbits.POUT3H = 0;
-				OVDCONbits.POVD3H = 0;
+				switch(PWM_Data.mode[pwm_id]) {
+				case PWM_ONE_DEFAULT_LOW:
+					OVDCONbits.POUT3H = 0;
+					OVDCONbits.POVD3H = 0;
+					OVDCONbits.POVD3L = 1;
+					break;
+				case PWM_BOTH_DEFAULT_LOW:
+					OVDCONbits.POVD3H = 1;
+					OVDCONbits.POVD3L = 1;
+					break;
+				case PWM_ONE_DEFAULT_HIGH:
+					OVDCONbits.POUT3H = 1;
+					OVDCONbits.POVD3H = 0;
+					OVDCONbits.POVD3L = 1;
+					if(duty < -PWM_Data.period) 
+						duty = -PWM_Data.period;
+					duty = -PWM_Data.period - duty;
+					break;
+				case PWM_BOTH_DEFAULT_HIGH:
+					OVDCONbits.POVD3L = 1;
+					OVDCONbits.POVD3H = 1;
+					if(duty < -PWM_Data.period) 
+						duty = -PWM_Data.period;
+					duty = -PWM_Data.period - duty;
+					break;
+				}
 		
-				/* PWM1L is PWM */
-				OVDCONbits.POVD3L = 1;
 				PDC3 = -duty; 
 			}
+				
 			break;
 		case PWM_4:
 			PWMCON1bits.PEN4L = 1; 
 			PWMCON1bits.PEN4H = 1; 
 			PWMCON1bits.PMOD4 = 1; 
 
-			if(duty > 0) {
-				/* PWM1L is forced low */
-				OVDCONbits.POUT4L = 0;
+			if(duty == 0) {
 				OVDCONbits.POVD4L = 0;
+				OVDCONbits.POVD4H = 0;
+				switch(PWM_Data.mode[pwm_id]) {
+				case PWM_ONE_DEFAULT_LOW:
+				case PWM_BOTH_DEFAULT_LOW:
+					OVDCONbits.POUT4L = 0;
+					OVDCONbits.POUT4H = 0;
+					break;
+				case PWM_ONE_DEFAULT_HIGH:
+				case PWM_BOTH_DEFAULT_HIGH:
+					OVDCONbits.POUT4L = 1;
+					OVDCONbits.POUT4H = 1;
+					break;
+				}
+			} else if(duty > 0) {
+				/* PWM1L is forced low */
+				switch(PWM_Data.mode[pwm_id]) {
+				case PWM_ONE_DEFAULT_LOW:
+					OVDCONbits.POUT4L = 0;
+					OVDCONbits.POVD4L = 0;
+					OVDCONbits.POVD4H = 1;
+					break;
+				case PWM_BOTH_DEFAULT_LOW:
+					OVDCONbits.POVD4H = 1;
+					OVDCONbits.POVD4L = 1;
+					break;
+				case PWM_ONE_DEFAULT_HIGH:
+					OVDCONbits.POUT4L = 1;
+					OVDCONbits.POVD4L = 0;
+					OVDCONbits.POVD4H = 1;
+					if(duty > PWM_Data.period) 
+						duty = PWM_Data.period;
+					duty = PWM_Data.period - duty;
+					break;
+				case PWM_BOTH_DEFAULT_HIGH:
+					OVDCONbits.POVD4L = 1;
+					OVDCONbits.POVD4H = 1;
+					if(duty > PWM_Data.period) 
+						duty = PWM_Data.period;
+					duty = PWM_Data.period - duty;
+					break;
+				}
 		
-				/* PWM1H is PWM */
-				OVDCONbits.POVD4H = 1;
 				PDC4 = duty; 
 			} else {
-				/* PWM1H is forced low */
-				OVDCONbits.POUT4H = 0;
-				OVDCONbits.POVD4H = 0;
+				switch(PWM_Data.mode[pwm_id]) {
+				case PWM_ONE_DEFAULT_LOW:
+					OVDCONbits.POUT4H = 0;
+					OVDCONbits.POVD4H = 0;
+					OVDCONbits.POVD4L = 1;
+					break;
+				case PWM_BOTH_DEFAULT_LOW:
+					OVDCONbits.POVD4H = 1;
+					OVDCONbits.POVD4L = 1;
+					break;
+				case PWM_ONE_DEFAULT_HIGH:
+					OVDCONbits.POUT4H = 1;
+					OVDCONbits.POVD4H = 0;
+					OVDCONbits.POVD4L = 1;
+					if(duty < -PWM_Data.period) 
+						duty = -PWM_Data.period;
+					duty = -PWM_Data.period - duty;
+					break;
+				case PWM_BOTH_DEFAULT_HIGH:
+					OVDCONbits.POVD4L = 1;
+					OVDCONbits.POVD4H = 1;
+					if(duty < -PWM_Data.period) 
+						duty = -PWM_Data.period;
+					duty = -PWM_Data.period - duty;
+					break;
+				}
 		
-				/* PWM1L is PWM */
-				OVDCONbits.POVD4L = 1;
 				PDC4 = -duty; 
 			}
+				
 			break;
 		default: ERROR(PWM_ERROR_INVALID_PWM_ID, &pwm_id);
 	}
@@ -276,6 +524,14 @@ void pwm_set_special_event_trigger(int direction, int postscale, unsigned value)
 	// TODO: set or check ADC, for instance: AD1CON1bits.SSRC
 }
 
+void pwm_set_brake(int pwm_id, int mode)
+{
+	ERROR_CHECK_RANGE(pwm_id, 0, 3, PWM_ERROR_INVALID_PWM_ID);
+	ERROR_CHECK_RANGE(mode, 0, 4, PWM_ERROR_INVALID_MODE);
+	
+	PWM_Data.mode[pwm_id] = mode;
+}
+
 
 //--------------------------
 // Interrupt service routine
@@ -292,7 +548,5 @@ void _ISR _PWMInterrupt(void)
 
 	PWM_Data.interrupt_callback();
 }
-
-// TODO: In Florient's code, this interrupt used the _ISRFAST flag
 
 /*@}*/

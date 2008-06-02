@@ -87,6 +87,14 @@ enum pwm_time_base_modes
 	PWM_CONTINUOUS_UP_DOWN_DOUBLE		/**< PWM time base operates in a continuous Up/Down mode with interrupts for double PWM updates */
 };
 
+enum pwm_set_brake_mode
+{
+	PWM_ONE_DEFAULT_LOW = 0,			/**< PWM is done only with one channel at a time while the other is held low (default mode) */			
+	PWM_ONE_DEFAULT_HIGH,				/**< PWM is done only with one channel at a time while the other is held high */
+	PWM_BOTH_DEFAULT_LOW,				/**< PWM is done with both channel and default low */
+	PWM_BOTH_DEFAULT_HIGH				/**< PWM is done with both channel and default high */
+};
+
 /** PWM callback on interrupt */
 typedef void (*pwm_callback)();
 
@@ -104,6 +112,8 @@ void pwm_disable(int pwm_id);
 void pwm_set_duty(int pwm_id, int duty);
 
 void pwm_set_special_event_trigger(int direction, int postscale, unsigned value);
+
+void pwm_set_brake(int pwm_id, int mode);
 
 /*@}*/
 
