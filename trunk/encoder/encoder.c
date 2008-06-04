@@ -61,6 +61,7 @@ static struct
 	int high_word;		/**< High word of the 32 bits position */
 	long* pos;			/**< absolute position */
 	int* speed;			/**< difference of last two absolutes positions (i.e. speed) */
+	unsigned int ipl;	/**< IPL of qei interrupt */
 } QEI_Encoder_Data;
 
 /** Data for the Software (emulated) Encoder Interface */
@@ -74,7 +75,8 @@ static struct
 	int ic;				/**< Input Capture to use, must be one of \ref ic_identifiers */
 	gpio mode;			/**< GPIO used for mode selection */
 	gpio g_sens;		/**< GPIO used for direction read */
-} Software_Encoder_Data[2];
+	unsigned int ipl;	/**< IPL of the timer/IC interrupt */
+} Software_Encoder_Data[9];
 
 
 
@@ -86,9 +88,9 @@ static void ic_tmr2_cb(int __attribute__((unused)) foo, unsigned int value, void
 
 static void ic_tmr3_cb(int __attribute__((unused)) foo, unsigned int value, void * __attribute__((unused)) bar);
 
-static void tmr_2_cb(int __attribute__((unused)) foo);
+static void tmr_cb(int tmr);
 
-static void tmr_3_cb(int __attribute__((unused)) foo);
+static void ic_cb(int __attribute__((unused)) foo, unsigned int __attribute((unused)) bar, void * data);
 
 static void init_qei1_module(int ipl, bool reverse, int x2x4)
 {
@@ -117,20 +119,12 @@ static void init_qei1_module(int ipl, bool reverse, int x2x4)
 	IEC3bits.QEIIE = 1;					// Enable Interrupt
 }
 
-static void init_timer2_encoder(int ipl)
+static void init_timer_encoder(unsigned timer, int ipl)
 {
-	timer_init(TIMER_2, 0xFFFF,-1);
-	timer_set_clock_source(TIMER_2, TIMER_CLOCK_EXTERNAL);
-	timer_enable_interrupt(TIMER_2, tmr_2_cb, ipl);
-	timer_set_enabled(TIMER_2, true);
-}
-
-static void init_timer3_encoder(int ipl)
-{
-	timer_init(TIMER_3, 0xFFFF,-1);
-	timer_set_clock_source(TIMER_3, TIMER_CLOCK_EXTERNAL);
-	timer_enable_interrupt(TIMER_3, tmr_3_cb, ipl);
-	timer_set_enabled(TIMER_3, true);
+	timer_init(timer, 0xFFFF,-1);
+	timer_set_clock_source(timer, TIMER_CLOCK_EXTERNAL);
+	timer_enable_interrupt(timer, tmr_cb, ipl);
+	timer_set_enabled(timer, true);
 }
 
 //-------------------
@@ -164,19 +158,19 @@ void encoder_init(int type, int encoder_ic, long* pos, int* speed, int direction
 	switch(type)
 	{
 	case ENCODER_TYPE_HARD:
+		QEI_Encoder_Data.ipl = priority;
 		QEI_Encoder_Data.pos = pos;
 		QEI_Encoder_Data.speed = speed;
 		init_qei1_module(priority, direction, decoding_mode);
 		return;
-
 	case ENCODER_TIMER_2:
-
-		Software_Encoder_Data[0].pos = pos;
-		Software_Encoder_Data[0].speed = speed;
-		Software_Encoder_Data[0].sens = gpio_read(gpio_dir);
-		Software_Encoder_Data[0].up = !direction;  
-		Software_Encoder_Data[0].mode = gpio_speed;
-		Software_Encoder_Data[0].g_sens = gpio_dir;
+		Software_Encoder_Data[1].ipl = priority;
+		Software_Encoder_Data[1].pos = pos;
+		Software_Encoder_Data[1].speed = speed;
+		Software_Encoder_Data[1].sens = gpio_read(gpio_dir);
+		Software_Encoder_Data[1].up = !direction;  
+		Software_Encoder_Data[1].mode = gpio_speed;
+		Software_Encoder_Data[1].g_sens = gpio_dir;
 
 		ic_enable(encoder_ic, IC_TIMER2, IC_EDGE_CAPTURE, ic_tmr2_cb, priority, 0);
 
@@ -190,16 +184,17 @@ void encoder_init(int type, int encoder_ic, long* pos, int* speed, int direction
 		} else
 			ERROR(ENCODER_INVALID_TYPE, &decoding_mode)
 
-		init_timer2_encoder(priority);
+		init_timer_encoder(TIMER_2, priority);
 		return;
 
 	case ENCODER_TIMER_3:
-		Software_Encoder_Data[1].pos = pos;
-		Software_Encoder_Data[1].speed = speed;
-		Software_Encoder_Data[1].sens = gpio_read(gpio_dir);
-		Software_Encoder_Data[1].up = !direction;
-		Software_Encoder_Data[1].mode = gpio_speed;
-		Software_Encoder_Data[1].g_sens = gpio_dir;
+		Software_Encoder_Data[2].ipl = priority;
+		Software_Encoder_Data[2].pos = pos;
+		Software_Encoder_Data[2].speed = speed;
+		Software_Encoder_Data[2].sens = gpio_read(gpio_dir);
+		Software_Encoder_Data[2].up = !direction;
+		Software_Encoder_Data[2].mode = gpio_speed;
+		Software_Encoder_Data[2].g_sens = gpio_dir;
 		ic_enable(encoder_ic, IC_TIMER3, IC_EDGE_CAPTURE, ic_tmr3_cb, priority, 0);
 		
 		gpio_set_dir(gpio_dir, GPIO_INPUT);
@@ -212,9 +207,39 @@ void encoder_init(int type, int encoder_ic, long* pos, int* speed, int direction
 		} else
 			ERROR(ENCODER_INVALID_TYPE, &decoding_mode)
 
-		init_timer3_encoder(priority);
+		init_timer_encoder(TIMER_3, priority);
 		return;
 		
+	case ENCODER_TIMER_1:
+	case ENCODER_TIMER_4:
+	case ENCODER_TIMER_5:
+	case ENCODER_TIMER_6:
+	case ENCODER_TIMER_7:
+	case ENCODER_TIMER_8:
+	case ENCODER_TIMER_9:
+		Software_Encoder_Data[type].ipl = priority;
+		Software_Encoder_Data[type].pos = pos;
+		Software_Encoder_Data[type].speed = speed;
+		Software_Encoder_Data[type].sens = gpio_read(gpio_dir);
+		Software_Encoder_Data[type].up = !direction;
+		Software_Encoder_Data[type].mode = gpio_speed;
+		Software_Encoder_Data[type].g_sens = gpio_dir;
+		ic_enable(encoder_ic, 0, IC_EDGE_CAPTURE, ic_cb, priority, (void *) type);
+		
+		gpio_set_dir(gpio_dir, GPIO_INPUT);
+
+		if(decoding_mode == ENCODER_MODE_X4) 
+			gpio_set_dir(gpio_speed, GPIO_INPUT);
+		else if(decoding_mode == ENCODER_MODE_X2) {
+			gpio_write(gpio_speed, true);
+			gpio_set_dir(gpio_speed, GPIO_OUTPUT);
+		} else
+			ERROR(ENCODER_INVALID_TYPE, &decoding_mode)
+
+		init_timer_encoder(type, priority);
+		return;
+	
+	
 	default:
 		ERROR(ENCODER_INVALID_TYPE, &type)
 	}
@@ -235,101 +260,43 @@ void encoder_step(int type)
 	long temp3;
 	int flags;
 
-	if (type == ENCODER_TIMER_2)
-	{
-		old_pos = *(Software_Encoder_Data[0].pos);
+	switch(type) {
+		case ENCODER_TIMER_1 ... ENCODER_TIMER_9:
+			old_pos = *(Software_Encoder_Data[type].pos);
+		
+			RAISE_IPL(flags, Software_Encoder_Data[type].ipl);
+			temp3 = Software_Encoder_Data[type].tpos;
+			temp1 = timer_get_value(type);
+			temp2 = Software_Encoder_Data[type].sens;
+			IRQ_ENABLE(flags);		
 
-		IRQ_DISABLE(flags);
-		temp3 = Software_Encoder_Data[0].tpos;
-		temp1 = TMR2;
-		temp2 = Software_Encoder_Data[0].sens;
-		IRQ_ENABLE(flags);
+			if(temp2 == Software_Encoder_Data[type].up) 
+				temp3 += temp1;
+			else
+				temp3 -= temp1;
 
-		if(temp2 == Software_Encoder_Data[0].up) 
-			temp3 += temp1;
-		else
-			temp3 -= temp1;
-
-		*(Software_Encoder_Data[0].pos) = temp3;
-		*(Software_Encoder_Data[0].speed) = *(Software_Encoder_Data[0].pos) - old_pos;
-	}
-	else if (type == ENCODER_TIMER_3)
-	{
-		old_pos = *(Software_Encoder_Data[1].pos);
-
-		IRQ_DISABLE(flags);
-		temp3 = Software_Encoder_Data[1].tpos;
-		temp1 = TMR3;
-		temp2 = Software_Encoder_Data[1].sens;
-		IRQ_ENABLE(flags);
-
-		if(temp2 == Software_Encoder_Data[1].up) 
-			temp3 += temp1;
-		else
-			temp3 -= temp1;
-
-		*(Software_Encoder_Data[1].pos) = temp3;
-		*(Software_Encoder_Data[1].speed) = *(Software_Encoder_Data[1].pos) - old_pos;
-	}
-	else if (type == ENCODER_TYPE_HARD)
-	{
-		old_pos = *QEI_Encoder_Data.pos;
-
-		IRQ_DISABLE(flags);
-		temp1 = POS1CNT;
-		temp2 = QEI_Encoder_Data.high_word;
-		IRQ_ENABLE(flags);
-
-		*QEI_Encoder_Data.pos = ((long) temp2) << 16 | temp1;
-		*QEI_Encoder_Data.speed = *QEI_Encoder_Data.pos - old_pos;
-	}
-	else
-	{
-		ERROR(ENCODER_INVALID_TYPE, &type);
+			*(Software_Encoder_Data[type].pos) = temp3;
+			*(Software_Encoder_Data[type].speed) = *(Software_Encoder_Data[type].pos) - old_pos;
+			break;
+		case ENCODER_TYPE_HARD:
+	
+			old_pos = *QEI_Encoder_Data.pos;
+	
+			RAISE_IPL(flags, QEI_Encoder_Data.ipl);
+			temp1 = POS1CNT;
+			temp2 = QEI_Encoder_Data.high_word;
+			IRQ_ENABLE(flags);
+	
+			*QEI_Encoder_Data.pos = ((long) temp2) << 16 | temp1;
+			*QEI_Encoder_Data.speed = *QEI_Encoder_Data.pos - old_pos;
+			break;
+		default:
+			ERROR(ENCODER_INVALID_TYPE, &type);
 	}
 }
 
 //! Callback for Input Capture 
 static void ic_tmr2_cb(int __attribute__((unused)) foo, unsigned int value, void * __attribute__((unused)) bar)
-{
-	unsigned int tmr;
-
-	if(Software_Encoder_Data[0].sens == Software_Encoder_Data[0].up) 
-		Software_Encoder_Data[0].tpos += value;
-	else
-		Software_Encoder_Data[0].tpos -= value;
-
-	/* Now update the timer with the correct value */
-	/* Yeah, it's a bit racy, but we are a _lot_ more faster than the external clock
-	 * So the race window is small */
-	tmr = TMR2;
-	TMR2 = 0;
-
-	if (tmr < value)
-	{
-		/* WTF ?!? the timer has done an overflow while the motor has changed direction ...*/
-		/* what can I do ? ... mmm .... */
-		/* we must account the number of imp. done since the IC trigger */
-		/* Clear the timer interrupt flag so it don't trigger and account false results */
-		IFS0bits.T2IF = 0;
-		if(Software_Encoder_Data[0].sens == Software_Encoder_Data[0].up) {
-			Software_Encoder_Data[0].tpos -= (((unsigned int) 0xFFFF) - value) + tmr;
-		} else {
-			Software_Encoder_Data[0].tpos += (((unsigned int) 0xFFFF) - value) + tmr;
-		}
-	} else {
-		/* tmr - icval is the number of imp. done since we have changed direction */
-		if(Software_Encoder_Data[0].sens == Software_Encoder_Data[0].up) 
-			Software_Encoder_Data[0].tpos -= ((long) tmr) - ((long) value);
-		else
-			Software_Encoder_Data[0].tpos += ((long) tmr) - ((long) value);
-	}
-	
-	Software_Encoder_Data[0].sens = gpio_read(Software_Encoder_Data[0].g_sens);
-}
-
-//! Callback for Input Capture 
-static void ic_tmr3_cb(int __attribute__((unused)) foo, unsigned int value, void * __attribute__((unused)) bar)
 {
 	unsigned int tmr;
 
@@ -341,8 +308,11 @@ static void ic_tmr3_cb(int __attribute__((unused)) foo, unsigned int value, void
 	/* Now update the timer with the correct value */
 	/* Yeah, it's a bit racy, but we are a _lot_ more faster than the external clock
 	 * So the race window is small */
-	tmr = TMR3;
-	TMR3 = 0;
+	 
+	 // Race window could be closed by doing a "TMR2 -= tmr" atomic instruction and then checking that 
+	 // TMR2 is really at 0 but it's too much pain for a such small race.
+	tmr = TMR2;
+	TMR2 = 0;
 
 	if (tmr < value)
 	{
@@ -350,7 +320,7 @@ static void ic_tmr3_cb(int __attribute__((unused)) foo, unsigned int value, void
 		/* what can I do ? ... mmm .... */
 		/* we must account the number of imp. done since the IC trigger */
 		/* Clear the timer interrupt flag so it don't trigger and account false results */
-		IFS0bits.T3IF = 0;
+		IFS0bits.T2IF = 0;
 		if(Software_Encoder_Data[1].sens == Software_Encoder_Data[1].up) {
 			Software_Encoder_Data[1].tpos -= (((unsigned int) 0xFFFF) - value) + tmr;
 		} else {
@@ -367,37 +337,107 @@ static void ic_tmr3_cb(int __attribute__((unused)) foo, unsigned int value, void
 	Software_Encoder_Data[1].sens = gpio_read(Software_Encoder_Data[1].g_sens);
 }
 
-//! Callback for Timer
-static void tmr_2_cb(int __attribute__((unused)) foo)
+//! Callback for Input Capture 
+static void ic_tmr3_cb(int __attribute__((unused)) foo, unsigned int value, void * __attribute__((unused)) bar)
 {
-	/* Ok, so we have an overflow. Let's update the internal count */
-	if(Software_Encoder_Data[0].sens != gpio_read(Software_Encoder_Data[0].g_sens))
+	unsigned int tmr;
+
+	if(Software_Encoder_Data[2].sens == Software_Encoder_Data[2].up) 
+		Software_Encoder_Data[2].tpos += value;
+	else
+		Software_Encoder_Data[2].tpos -= value;
+
+	/* Now update the timer with the correct value */
+	/* Yeah, it's a bit racy, but we are a _lot_ more faster than the external clock
+	 * So the race window is small */
+	tmr = TMR3;
+	TMR3 = 0;
+
+	if (tmr < value)
+	{
+		/* WTF ?!? the timer has done an overflow while the motor has changed direction ...*/
+		/* what can I do ? ... mmm .... */
+		/* we must account the number of imp. done since the IC trigger */
+		/* Clear the timer interrupt flag so it don't trigger and account false results */
+		IFS0bits.T3IF = 0;
+		if(Software_Encoder_Data[2].sens == Software_Encoder_Data[2].up) {
+			Software_Encoder_Data[2].tpos -= (((unsigned int) 0xFFFF) - value) + tmr;
+		} else {
+			Software_Encoder_Data[2].tpos += (((unsigned int) 0xFFFF) - value) + tmr;
+		}
+	} else {
+		/* tmr - icval is the number of imp. done since we have changed direction */
+		if(Software_Encoder_Data[2].sens == Software_Encoder_Data[2].up) 
+			Software_Encoder_Data[2].tpos -= ((long) tmr) - ((long) value);
+		else
+			Software_Encoder_Data[2].tpos += ((long) tmr) - ((long) value);
+	}
+	
+	Software_Encoder_Data[2].sens = gpio_read(Software_Encoder_Data[2].g_sens);
+}
+
+static void tmr_cb(int tmr) {
+	
+	if(Software_Encoder_Data[tmr].sens != gpio_read(Software_Encoder_Data[tmr].g_sens))
 	{
 		/* Wow, we changed direction and IC interrupt has still not fired ... 
 		 * Do not do anything */
 		return ;
 	}
-	if (Software_Encoder_Data[0].sens == Software_Encoder_Data[0].up) 
-		Software_Encoder_Data[0].tpos += 0x00010000;
+	if (Software_Encoder_Data[tmr].sens == Software_Encoder_Data[1].up) 
+		Software_Encoder_Data[tmr].tpos += 0x00010000;
 	else
-		Software_Encoder_Data[0].tpos -= 0x00010000;
+		Software_Encoder_Data[tmr].tpos -= 0x00010000;
+
 
 }
 
-//! Callback for Timer
-static void tmr_3_cb(int __attribute__((unused)) foo)
-{
-	/* Ok, so we have an overflow. Let's update the internal count */
-	if(Software_Encoder_Data[1].sens != gpio_read(Software_Encoder_Data[1].g_sens))
-	{
-		/* Wow, we changed direction and IC interrupt has still not fired ... 
-		 * Do not do anything */
-		return ;
+static void ic_cb(int __attribute__((unused)) foo, unsigned int __attribute((unused)) bar, void * data) {
+	unsigned int value;
+	unsigned int tmr = (unsigned int) data;
+	
+	
+	// I don't use "molole" timer access function because I want to be _FAST_ to avoid as much
+	// as possible a race between timer read and timer clear
+	switch(tmr) {
+		case TIMER_1:
+			value = TMR1;
+			TMR1 = 0;
+			break;
+		case TIMER_4:
+			value = TMR4;
+			TMR4 = 0;
+			break;
+		case TIMER_5:
+			value = TMR5;
+			TMR5 = 0;
+			break;
+		case TIMER_6:
+			value = TMR6;
+			TMR6 = 0;
+			break;
+		case TIMER_7:
+			value = TMR7;
+			TMR7 = 0;
+			break;
+		case TIMER_8:
+			value = TMR8;
+			TMR8 = 0;
+			break;
+		case TIMER_9:
+			value = TMR9;
+			TMR9 = 0;
+			break;
 	}
-	if (Software_Encoder_Data[1].sens == Software_Encoder_Data[1].up)
-		Software_Encoder_Data[1].tpos += 0x00010000;
+
+
+	if(Software_Encoder_Data[tmr].sens == Software_Encoder_Data[tmr].up) 
+		Software_Encoder_Data[tmr].tpos += value;
 	else
-		Software_Encoder_Data[1].tpos -= 0x00010000;
+		Software_Encoder_Data[tmr].tpos -= value;
+	
+	Software_Encoder_Data[tmr].sens = gpio_read(Software_Encoder_Data[tmr].g_sens);
+	
 }
 
 //--------------------------

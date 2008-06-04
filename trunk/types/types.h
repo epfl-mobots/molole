@@ -94,6 +94,13 @@ enum irq_prio
 														SRbits.IPL = IRQ_PRIO_NMI; \
 														barrier();\
 													 } while(0)
+//! Raise SRbits.IPL to "ipl" if lower do nothing
+#define RAISE_IPL(flags, ipl) do{ \
+								flags = SRbits.IPL; \
+								if(flags < ipl) \
+									SET_IPL(ipl); \
+								barrier(); \
+							} while(0)											
 
 #ifndef NULL
 #define NULL ((void *) 0)

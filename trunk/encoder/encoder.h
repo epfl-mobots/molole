@@ -50,9 +50,16 @@ enum encoder_errors
 /** Type of the encoder; might either be hard (one per dsPIC) or soft (one per 16 bits timer) */
 enum encoder_type
 {
-	ENCODER_TIMER_2 = 0,		/**< encoder is implemented in software using \ref TIMER_2 with an external decoder */
-	ENCODER_TIMER_3 = 1,		/**< encoder is implemented in software using \ref TIMER_3 with an external decoder */
-	ENCODER_TYPE_HARD = 2,		/**< encoder uses Quadrature Encoder Interface */
+	ENCODER_TIMER_1 = 0,
+	ENCODER_TIMER_2,
+	ENCODER_TIMER_3,
+	ENCODER_TIMER_4,
+	ENCODER_TIMER_5,
+	ENCODER_TIMER_6,
+	ENCODER_TIMER_7,
+	ENCODER_TIMER_8,
+	ENCODER_TIMER_9,
+	ENCODER_TYPE_HARD,		/**< encoder uses Quadrature Encoder Interface */
 };
 
 /** Direction of the encoder; might either be normal, or reverse */
