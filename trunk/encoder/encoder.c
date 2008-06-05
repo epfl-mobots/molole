@@ -62,6 +62,7 @@ static struct
 	long* pos;			/**< absolute position */
 	int* speed;			/**< difference of last two absolutes positions (i.e. speed) */
 	unsigned int ipl;	/**< IPL of qei interrupt */
+	unsigned int poscnt_b15; /**< errata 31 "QEI Interrupt Generation" */
 } QEI_Encoder_Data;
 
 /** Data for the Software (emulated) Encoder Interface */
@@ -90,6 +91,8 @@ static void ic_tmr3_cb(int __attribute__((unused)) foo, unsigned int value, void
 
 static void tmr_cb(int tmr);
 
+static void tmr2_3_cb(int tmr);
+
 static void ic_cb(int __attribute__((unused)) foo, unsigned int __attribute((unused)) bar, void * data);
 
 static void init_qei1_module(int ipl, bool reverse, int x2x4)
@@ -105,7 +108,7 @@ static void init_qei1_module(int ipl, bool reverse, int x2x4)
 	DFLT1CONbits.QECK = 0;				// clock divide QEA, QEB: 0=1,1=2,2=4,3=16,4=32,5=64,6=128,7=256
 	QEI1CONbits.POSRES = 0;				// Index pulse does not reset position counter	
 	DFLT1CONbits.CEID = 1;				// Interrups due to position count errors disabled
-	MAX1CNT = 0xFFFF;					
+	MAX1CNT = 0x7FFF;					// Errata 31 "QEI Interrupt Generation"
 	POS1CNT = 0;							// Set Counter to 0	
 	
 	if(x2x4 == ENCODER_MODE_X4)
@@ -123,7 +126,10 @@ static void init_timer_encoder(unsigned timer, int ipl)
 {
 	timer_init(timer, 0xFFFF,-1);
 	timer_set_clock_source(timer, TIMER_CLOCK_EXTERNAL);
-	timer_enable_interrupt(timer, tmr_cb, ipl);
+	if(timer == TIMER_2 || timer == TIMER_3)
+		timer_enable_interrupt(timer, tmr2_3_cb, ipl);
+	else
+		timer_enable_interrupt(timer, tmr_cb, ipl);
 	timer_set_enabled(timer, true);
 }
 
@@ -257,6 +263,7 @@ void encoder_step(int type)
 	long old_pos;
 	unsigned int temp1;
 	unsigned int temp2;
+	unsigned int b15;
 	long temp3;
 	int flags;
 
@@ -285,9 +292,10 @@ void encoder_step(int type)
 			RAISE_IPL(flags, QEI_Encoder_Data.ipl);
 			temp1 = POS1CNT;
 			temp2 = QEI_Encoder_Data.high_word;
+			b15 = QEI_Encoder_Data.poscnt_b15;
 			IRQ_ENABLE(flags);
 	
-			*QEI_Encoder_Data.pos = ((long) temp2) << 16 | temp1;
+			*QEI_Encoder_Data.pos = ((long) temp2) << 16 | (temp1 + b15);
 			*QEI_Encoder_Data.speed = *QEI_Encoder_Data.pos - old_pos;
 			break;
 		default:
@@ -376,18 +384,27 @@ static void ic_tmr3_cb(int __attribute__((unused)) foo, unsigned int value, void
 	Software_Encoder_Data[2].sens = gpio_read(Software_Encoder_Data[2].g_sens);
 }
 
-static void tmr_cb(int tmr) {
+static void tmr2_3_cb(int tmr) {
 	
 	if(Software_Encoder_Data[tmr].sens != gpio_read(Software_Encoder_Data[tmr].g_sens))
 	{
-		/* Wow, we changed direction and IC interrupt has still not fired ... 
+		/* Wow, we changed direction and IC interrupt has still not fired ...
 		 * Do not do anything */
 		return ;
 	}
-	if (Software_Encoder_Data[tmr].sens == Software_Encoder_Data[1].up) 
-		Software_Encoder_Data[tmr].tpos += 0x00010000;
+
+	
+	if (Software_Encoder_Data[tmr].sens == Software_Encoder_Data[tmr].up) 
+		Software_Encoder_Data[tmr].tpos += 0x00010000L;
 	else
-		Software_Encoder_Data[tmr].tpos -= 0x00010000;
+		Software_Encoder_Data[tmr].tpos -= 0x00010000L;
+}
+
+static void tmr_cb(int tmr) {
+	if (Software_Encoder_Data[tmr].sens == Software_Encoder_Data[tmr].up) 
+		Software_Encoder_Data[tmr].tpos += 0x00010000L;
+	else
+		Software_Encoder_Data[tmr].tpos -= 0x00010000L;
 
 
 }
@@ -395,7 +412,6 @@ static void tmr_cb(int tmr) {
 static void ic_cb(int __attribute__((unused)) foo, unsigned int __attribute((unused)) bar, void * data) {
 	unsigned int value;
 	unsigned int tmr = (unsigned int) data;
-	
 	
 	// I don't use "molole" timer access function because I want to be _FAST_ to avoid as much
 	// as possible a race between timer read and timer clear
@@ -451,12 +467,21 @@ static void ic_cb(int __attribute__((unused)) foo, unsigned int __attribute((unu
 */
 void _ISR _QEIInterrupt(void)
 {
-	if (QEI1CONbits.UPDN)
-		QEI_Encoder_Data.high_word++;		// Forward
-	else									// Backwards
-		QEI_Encoder_Data.high_word--;	
-
 	IFS3bits.QEIIF = 0;						// Clear interrupt flag
+	
+	QEI_Encoder_Data.poscnt_b15 ^=0x8000;
+	
+	// If we have done an overflow while b15 was set, then update high_word
+	if((!QEI_Encoder_Data.poscnt_b15) && (POS1CNT < 0x3FFF)) 
+		if (QEI1CONbits.UPDN)
+			QEI_Encoder_Data.high_word++;		// Forward
+		
+	// If we have done an underflow while b15 was not set, then update high_word
+	if((QEI_Encoder_Data.poscnt_b15) && (POS1CNT > 0x3FFF)) 
+		if (!QEI1CONbits.UPDN)
+			QEI_Encoder_Data.high_word--;
+
+	
 }
 
 /*@}*/
