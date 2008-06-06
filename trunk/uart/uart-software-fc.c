@@ -120,6 +120,7 @@ typedef struct
 	gpio rts; /**< RTS line */
 	int timer_id;	/**< Timer to poll the RTS line */
 	int stop_tx; 
+	unsigned int fake_tx;
 } UART_Data;
 
 /** data for UART 1 wrapper */
@@ -488,7 +489,11 @@ void uart_enable_tx_interrupt(int uart_id, int flags) {
  
 	Call the user-defined function if user program is not busy.
 */
-void _ISR _U1RXInterrupt(void)
+static unsigned int __attribute((near)) retaddr1;
+void __attribute((interrupt(preprologue("push w0\n"
+										"mov [w15-4],   w0\n"
+										"mov w0, _retaddr1\n"
+										"pop w0\n"))))  _U1RXInterrupt(void)
 {
 	static int inside_softirq;
 	
@@ -518,6 +523,19 @@ void _ISR _U1RXInterrupt(void)
 	// We are already in the softirq part, avoid recursion
 	if(inside_softirq)
 		return;
+		
+	// We preempted something with same or higher priority, don't run the bh now.
+	if(retaddr1 >> 13 >= UART_1_Data.bh_ipl) {
+		// Defer the irq to the TX interrupt with the same priority
+		UART_1_Data.fake_tx = 1;
+		_U1TXIF = 1;
+		if(!_U1TXIE) {
+			_U1TXIE = 1;
+			UART_1_Data.fake_tx = 2;
+		}
+
+		return;	
+	}
 	
 	inside_softirq = 1;
 	
@@ -569,8 +587,39 @@ void _ISR _U1RXInterrupt(void)
 void _ISR _U1TXInterrupt(void)
 {
 	unsigned char data;
+	unsigned char was_disabled = 0;
 
 	_U1TXIF = 0;			// Clear transmission interrupt flag
+
+	if(UART_1_Data.fake_tx) {
+		if(UART_1_Data.fake_tx == 2)  {
+			was_disabled = 1;
+			_U1TXIE = 0;
+		}
+		UART_1_Data.fake_tx = 0;
+		if (!UART_1_Data.user_program_busy)
+		{
+			while(UART_1_Data.fifo_w - UART_1_Data.fifo_r)
+			{
+				if (UART_1_Data.byte_received_callback(UART_1, UART_1_Data.internal_buffer[(UART_1_Data.fifo_r++) & FIFO_MASK], UART_1_Data.user_data) == false)
+				{
+					if(UART_1_Data.fifo_w - UART_1_Data.fifo_r < STOP_RX_LEVEL) 
+						// Restart RX
+						gpio_write(UART_1_Data.rts, false);
+					
+					UART_1_Data.user_program_busy = true;
+					break;
+				} else {
+					if(UART_1_Data.fifo_w - UART_1_Data.fifo_r < STOP_RX_LEVEL) 
+						// Restart RX
+						gpio_write(UART_1_Data.rts, false);
+				}
+			}
+		}
+		if(was_disabled)
+			return;
+	}
+
 
 	if(gpio_read(UART_1_Data.cts)) {
 		// Stop TX and start polling timer
@@ -608,8 +657,11 @@ void uart1_timer_cb(int __attribute((unused)) timer_id) {
  
 	Call the user-defined function if user program is not busy.
 */
-	
-void _ISR _U2RXInterrupt(void)
+static unsigned int __attribute((near)) retaddr2;
+void __attribute((interrupt(preprologue("push w0\n"
+										"mov [w15-4],   w0\n"
+										"mov w0, _retaddr2\n"
+										"pop w0\n")))) _U2RXInterrupt(void)
 {
 	static int inside_softirq;
 	
@@ -639,6 +691,18 @@ void _ISR _U2RXInterrupt(void)
 	// We are already in the softirq part, avoid recursion
 	if(inside_softirq)
 		return;
+		
+		// We preempted something with same or higher priority, don't run the bh now.
+	if(retaddr2 >> 13 >= UART_2_Data.bh_ipl) {
+		// Defer the irq to the TX interrupt with the same priority
+		UART_2_Data.fake_tx = 1;
+		_U2TXIF = 1;
+		if(!_U2TXIE) {
+			_U2TXIE = 1;
+			UART_2_Data.fake_tx = 2;
+		}
+		return;	
+	}
 	
 	inside_softirq = 1;
 	
@@ -690,8 +754,38 @@ void _ISR _U2RXInterrupt(void)
 void _ISR _U2TXInterrupt(void)
 {
 	unsigned char data;
+	unsigned char was_disabled;
 
 	_U2TXIF = 0;			// Clear transmission interrupt flag
+
+	if(UART_2_Data.fake_tx) {
+		if(UART_2_Data.fake_tx == 2)  {
+			was_disabled = 1;
+			_U2TXIE = 0;
+		}
+		UART_2_Data.fake_tx = 0;
+		if (!UART_2_Data.user_program_busy)
+		{
+			while(UART_2_Data.fifo_w - UART_2_Data.fifo_r)
+			{
+				if (UART_2_Data.byte_received_callback(UART_2, UART_2_Data.internal_buffer[(UART_2_Data.fifo_r++) & FIFO_MASK], UART_2_Data.user_data) == false)
+				{
+					if(UART_2_Data.fifo_w - UART_2_Data.fifo_r < STOP_RX_LEVEL) 
+						// Restart RX
+						gpio_write(UART_2_Data.rts, false);
+					
+					UART_2_Data.user_program_busy = true;
+					break;
+				} else {
+					if(UART_2_Data.fifo_w - UART_2_Data.fifo_r < STOP_RX_LEVEL) 
+						// Restart RX
+						gpio_write(UART_2_Data.rts, false);
+				}
+			}
+		}
+		if(!_U2TXIE)
+			return;
+	}
 
 	if(gpio_read(UART_2_Data.cts)) {
 		// Stop TX and start polling timer
