@@ -44,6 +44,7 @@
 #include <p33fxxxx.h>
 
 #include "adc.h"
+#include "../clock/clock.h"
 #include "../error/error.h"
 
 //-----------------------
@@ -69,16 +70,11 @@ static struct
 	The user should call this function only if she hase previously called adc1_disable() manually.
 */
 void adc1_enable()
-{
-	int i;
-	
+{	
 	// Turn on ADC Module
 	AD1CON1bits.ADON = 1;
 	
-	// Wait 20 us, at 40 MIPS == 800 instructions
-	i = 800/3;
-	while (--i)
-		Nop();
+	clock_delay_us(20);	
 }
 
 /** Disable ADC 1. */
@@ -93,6 +89,7 @@ void adc1_disable()
 	
 	The converter is put in 12 bits / single conversion mode and callback is called when conversion is completed.
 	This function does not start any conversion. Call adc1_start_simple_conversion() to start a conversion.
+	One conversion take about (24+sample_time) * 0.24 uS
 	
 	\param	callback
 			Pointer to a function that will be called when conversion is completed.
@@ -102,11 +99,12 @@ void adc1_disable()
 			Bitfield that specify which physical input to use (AN0..AN31).
 			1 put pins in analogic, 0 in digital.
 	\param	sample_time
-			Sample time, from 0 to 31, in number of ADC Internal RC Clock cycle
+			Sample time, from 0 to 31, in number of ADC clock. The clock is configured at about 4.2Mhz
 
 */
 void adc1_init_simple(adc_simple_callback callback, int priority, unsigned long inputs, int sample_time)
 {
+	int clock;
 	ERROR_CHECK_RANGE(priority, 1, 7, GENERIC_ERROR_INVALID_INTERRUPT_PRIORITY);
 	ERROR_CHECK_RANGE(sample_time, 0, 31, ADC_ERROR_INVALID_SAMPLE_TIME);
 	
@@ -138,9 +136,14 @@ void adc1_init_simple(adc_simple_callback callback, int priority, unsigned long 
 	AD1CON2bits.BUFM = 0;		// Always starts filling the buffer from the start address.
 	AD1CON2bits.ALTS = 0;		// Always uses channel input selects for Sample A
 	
-	AD1CON3bits.ADRC = 1;		// ADC Internal RC Clock: TAD == ADC Internal RC Clock cycle
+	AD1CON3bits.ADRC = 0;		// ADC clock is FCY/(adcs + 1)
 	AD1CON3bits.SAMC = sample_time;	// Auto Sample Time bits sample_time*TAD
-	AD1CON3bits.ADCS = 0;		// ADC Convertion Clock selection bits (ADCS+1)*TCY=TAD
+	
+	// Configure the ADC for 300K samples/s ( see errata )
+	clock = (clock_get_cycle_frequency() / 4200000UL) - 1;
+	if(clock < 0) 
+		clock = 0;
+	AD1CON3bits.ADCS = clock;		// ADC Convertion Clock selection bits (ADCS+1)*TCY=TAD
 	
 	AD1CHS0bits.CH0NA = 0;		// Channel 0 negative input is VREFL
 	AD1CHS0bits.CH0SA = 0;		// Channel 0 positive input is AN0
@@ -234,6 +237,8 @@ unsigned log_2(unsigned value)
 */
 void adc1_init_scan_dma(unsigned long inputs, int start_conversion_event, int sample_time, int dma_channel, void * a, void * b, unsigned buffers_size, int buffer_build_mode, dma_callback callback)
 {
+	int clock;
+	
 	ERROR_CHECK_RANGE(sample_time, 0, 31, ADC_ERROR_INVALID_SAMPLE_TIME);
 	if (start_conversion_event != ADC_START_CONVERSION_MANUAL_CLEAR_SAMPLE_BIT &&
 		start_conversion_event != ADC_START_CONVERSION_EXTERNAL_INT &&
@@ -356,9 +361,14 @@ void adc1_init_scan_dma(unsigned long inputs, int start_conversion_event, int sa
 	AD1CON2bits.BUFM = 0;		// Always starts filling the buffer from the start address.
 	AD1CON2bits.ALTS = 0;		// Always uses channel input selects for Sample A
 	
-	AD1CON3bits.ADRC = 1;		// ADC Internal RC Clock: TAD == ADC Internal RC Clock cycle
-	AD1CON3bits.SAMC = sample_time;	// Auto Sample Time bits sample_time * TAD
-	AD1CON3bits.ADCS = 0;		// ADC Convertion Clock selection bits (ADCS+1)*TCY=TAD
+	AD1CON3bits.ADRC = 0;		// ADC clock is FCY/(adcs + 1)
+	AD1CON3bits.SAMC = sample_time;	// Auto Sample Time bits sample_time*TAD
+	
+	// Configure the ADC for 300K samples/s ( see errata )
+	clock = (clock_get_cycle_frequency() / 4200000UL) - 1;
+	if(clock < 0) 
+		clock = 0;
+	AD1CON3bits.ADCS = clock;		// ADC Convertion Clock selection bits (ADCS+1)*TCY=TAD
 	
 	AD1CON4bits.DMABL = 0;		// Allocates 1 word of DMA buffer to each analog input
 	
@@ -385,15 +395,12 @@ void adc1_init_scan_dma(unsigned long inputs, int start_conversion_event, int sa
 */
 void adc2_enable()
 {
-	int i;
 	
 	// Turn on ADC Module
 	AD2CON1bits.ADON = 1;
 	
-	// Wait 20 us, at 40 MIPS == 800 instructions
-	i = 800/3;
-	while (--i)
-		Nop();
+	// Wait 20 us
+	clock_delay_us(20);	
 }
 
 /** Disable ADC 2. */
@@ -422,6 +429,8 @@ void adc2_disable()
 */
 void adc2_init_simple(adc_simple_callback callback, int priority, unsigned int inputs, int sample_time)
 {
+	int clock;
+	
 	ERROR_CHECK_RANGE(priority, 1, 7, GENERIC_ERROR_INVALID_INTERRUPT_PRIORITY);
 	ERROR_CHECK_RANGE(sample_time, 0, 31, ADC_ERROR_INVALID_SAMPLE_TIME);
 	
@@ -447,9 +456,14 @@ void adc2_init_simple(adc_simple_callback callback, int priority, unsigned int i
 	AD2CON2bits.BUFM = 0;		// Always starts filling the buffer from the start address.
 	AD2CON2bits.ALTS = 0;		// Always uses channel input selects for Sample A
 	
-	AD2CON3bits.ADRC = 1;		// ADC Internal RC Clock: TAD == ADC Internal RC Clock cycle
+	AD2CON3bits.ADRC = 0;		// ADC clock is FCY/(adcs + 1)
 	AD2CON3bits.SAMC = sample_time;	// Auto Sample Time bits sample_time*TAD
-	AD2CON3bits.ADCS = 0;		// ADC Convertion Clock selection bits (ADCS+1)*TCY=TAD
+	
+	// Configure the ADC for 300K samples/s ( see errata )
+	clock = (clock_get_cycle_frequency() / 4200000UL) - 1;
+	if(clock < 0) 
+		clock = 0;
+	AD2CON3bits.ADCS = clock;		// ADC Convertion Clock selection bits (ADCS+1)*TCY=TAD
 	
 	AD2CHS0bits.CH0NA = 0;		// Channel 0 negative input is VREFL
 	AD2CHS0bits.CH0SA = 0;		// Channel 0 positive input is AN0
@@ -514,6 +528,8 @@ void adc2_start_simple_conversion(int channel)
 
 void adc2_init_scan_dma(unsigned int inputs, int start_conversion_event, int sample_time, int dma_channel, void * a, void * b, unsigned buffers_size, int buffer_build_mode, dma_callback callback)
 {
+	int clock;
+	
 	ERROR_CHECK_RANGE(sample_time, 0, 31, ADC_ERROR_INVALID_SAMPLE_TIME);
 	if (start_conversion_event != ADC_START_CONVERSION_MANUAL_CLEAR_SAMPLE_BIT &&
 		start_conversion_event != ADC_START_CONVERSION_EXTERNAL_INT &&
@@ -617,9 +633,14 @@ void adc2_init_scan_dma(unsigned int inputs, int start_conversion_event, int sam
 	AD2CON2bits.BUFM = 0;		// Always starts filling the buffer from the start address.
 	AD2CON2bits.ALTS = 0;		// Always uses channel input selects for Sample A
 	
-	AD2CON3bits.ADRC = 1;		// ADC Internal RC Clock: TAD == ADC Internal RC Clock cycle
-	AD2CON3bits.SAMC = sample_time;	// Auto Sample Time bits sample_time * TAD
-	AD2CON3bits.ADCS = 0;		// ADC Convertion Clock selection bits (ADCS+1)*TCY=TAD
+	AD2CON3bits.ADRC = 0;		// ADC clock is FCY/(adcs + 1)
+	AD2CON3bits.SAMC = sample_time;	// Auto Sample Time bits sample_time*TAD
+	
+	// Configure the ADC for 300K samples/s ( see errata )
+	clock = (clock_get_cycle_frequency() / 4200000UL) - 1;
+	if(clock < 0) 
+		clock = 0;
+	AD2CON3bits.ADCS = clock;		// ADC Convertion Clock selection bits (ADCS+1)*TCY=TAD
 	
 	AD2CON4bits.DMABL = 0;		// Allocates 1 word of DMA buffer to each analog input
 	
