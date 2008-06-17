@@ -202,4 +202,62 @@ void _ISR _MI2C1Interrupt(void)
 	I2C_Master_Data[I2C_1].prev_operation = next_op;
 }
 
+
+/**
+	I2C 2 Interrupt Service Routine.
+ 
+	Call the user-defined function.
+*/
+void _ISR _MI2C2Interrupt(void)
+{
+	unsigned char* data;
+	int next_op;
+
+	_MI2C2IF = 0;			// clear master interrupt flag
+
+	if (I2C_Master_Data[I2C_2].prev_operation == I2C_MASTER_READ)
+		*(I2C_Master_Data[I2C_2].prev_data) = I2C2RCV;
+
+	next_op = I2C_Master_Data[I2C_2].operation_completed_callback(I2C_2, &data, I2C_Master_Data[I2C_2].user_data, I2C2STATbits.ACKSTAT);
+
+	switch (next_op)
+	{
+		case I2C_MASTER_READ:
+			I2C_Master_Data[I2C_2].prev_data = data;
+			I2C2CONbits.RCEN = 1;
+		break;
+
+		case I2C_MASTER_WRITE:
+			I2C2TRN = *data;
+		break;
+
+		case I2C_MASTER_RESTART:
+			I2C2CONbits.RSEN = 1;
+		break;
+
+		case I2C_MASTER_ACK:
+			I2C2CONbits.ACKDT = 0;
+			I2C2CONbits.ACKEN = 1;
+		break;
+
+		case I2C_MASTER_NACK:
+			I2C2CONbits.ACKDT = 1;
+			I2C2CONbits.ACKEN = 1;
+		break;
+
+		case I2C_MASTER_STOP:
+			I2C2CONbits.PEN = 1;
+		break;
+
+		case I2C_MASTER_DONE:
+			I2C_Master_Data[I2C_2].operation_completed_callback = 0;
+		break;
+
+		default:
+			ERROR(I2C_INVALID_OPERATION, &next_op);
+		break;
+	}
+
+	I2C_Master_Data[I2C_2].prev_operation = next_op;
+}
 /*@}*/
