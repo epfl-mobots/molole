@@ -120,7 +120,7 @@ typedef struct
 	gpio rts; /**< RTS line */
 	int timer_id;	/**< Timer to poll the RTS line */
 	int stop_tx; 
-	unsigned int fake_tx;
+	unsigned int fake_timer;
 } UART_Data;
 
 /** data for UART 1 wrapper */
@@ -203,7 +203,10 @@ void uart_init(int uart_id, unsigned long baud_rate, gpio cts, gpio rts, int tim
 		U1MODEbits.BRGH = 0;	// Low Speed mode
 		U1BRG = (clock_get_cycle_frequency()/baud_rate) / 16 - 1;
 		
-		timer_init(timer_id, 1, 3); /* 1ms */
+		if(baud_rate < 1000) 
+			baud_rate = 1000;
+			
+		timer_init(timer_id, (1000000UL/(baud_rate/100)), 6); /* 1/(baud/100) s, maximum 0.1 sec.*/
 		timer_enable_interrupt(timer_id, uart1_timer_cb, bh_priority);
 		
 		// Setup other parameters
@@ -264,7 +267,10 @@ void uart_init(int uart_id, unsigned long baud_rate, gpio cts, gpio rts, int tim
 		U2MODEbits.BRGH = 0;	// Low Speed mode
 		U2BRG = (clock_get_cycle_frequency()/baud_rate) / 16 - 1;
 		
-		timer_init(timer_id, 1, 3); /* 1ms */
+		if(baud_rate < 1000) 
+			baud_rate = 1000;
+			
+		timer_init(timer_id, (1000000UL/(baud_rate/100)), 6); /* 1/(baud/100) s, maximum 0.1 sec.*/
 		timer_enable_interrupt(timer_id, uart2_timer_cb, bh_priority);
 		
 		// Setup other parameters
@@ -527,11 +533,9 @@ void __attribute((interrupt(preprologue("push w0\n"
 	// We preempted something with same or higher priority, don't run the bh now.
 	if(retaddr1 >> 13 >= UART_1_Data.bh_ipl) {
 		// Defer the irq to the TX interrupt with the same priority
-		UART_1_Data.fake_tx = 1;
-		_U1TXIF = 1;
-		if(!_U1TXIE) {
-			_U1TXIE = 1;
-			UART_1_Data.fake_tx = 2;
+		UART_1_Data.fake_timer = 1;
+		if(!timer_force_interrupt(UART_1_Data.timer_id)) {
+			UART_1_Data.fake_timer = 2;
 		}
 
 		return;	
@@ -587,39 +591,8 @@ void __attribute((interrupt(preprologue("push w0\n"
 void _ISR _U1TXInterrupt(void)
 {
 	unsigned char data;
-	unsigned char was_disabled = 0;
 
 	_U1TXIF = 0;			// Clear transmission interrupt flag
-
-	if(UART_1_Data.fake_tx) {
-		if(UART_1_Data.fake_tx == 2)  {
-			was_disabled = 1;
-			_U1TXIE = 0;
-		}
-		UART_1_Data.fake_tx = 0;
-		if (!UART_1_Data.user_program_busy)
-		{
-			while(UART_1_Data.fifo_w - UART_1_Data.fifo_r)
-			{
-				if (UART_1_Data.byte_received_callback(UART_1, UART_1_Data.internal_buffer[(UART_1_Data.fifo_r++) & FIFO_MASK], UART_1_Data.user_data) == false)
-				{
-					if(UART_1_Data.fifo_w - UART_1_Data.fifo_r < STOP_RX_LEVEL) 
-						// Restart RX
-						gpio_write(UART_1_Data.rts, false);
-					
-					UART_1_Data.user_program_busy = true;
-					break;
-				} else {
-					if(UART_1_Data.fifo_w - UART_1_Data.fifo_r < STOP_RX_LEVEL) 
-						// Restart RX
-						gpio_write(UART_1_Data.rts, false);
-				}
-			}
-		}
-		if(was_disabled)
-			return;
-	}
-
 
 	if(gpio_read(UART_1_Data.cts)) {
 		// Stop TX and start polling timer
@@ -639,15 +612,44 @@ void _ISR _U1TXInterrupt(void)
  	Check if the CTS line is still high
 */
  
-void uart1_timer_cb(int __attribute((unused)) timer_id) {
+void uart1_timer_cb(int  timer_id) {
 	unsigned char data;
+	
+	if(UART_1_Data.fake_timer) {
+		if(UART_1_Data.fake_timer == 2) 
+			timer_disable_interrupt(timer_id);
+
+		UART_1_Data.fake_timer = 0;
+		if (!UART_1_Data.user_program_busy)
+		{
+			while(UART_1_Data.fifo_w - UART_1_Data.fifo_r)
+			{
+				if (UART_1_Data.byte_received_callback(UART_1, UART_1_Data.internal_buffer[(UART_1_Data.fifo_r++) & FIFO_MASK], UART_1_Data.user_data) == false)
+				{
+					if(UART_1_Data.fifo_w - UART_1_Data.fifo_r < STOP_RX_LEVEL) 
+						// Restart RX
+						gpio_write(UART_1_Data.rts, false);
+					
+					UART_1_Data.user_program_busy = true;
+					break;
+				} else {
+					if(UART_1_Data.fifo_w - UART_1_Data.fifo_r < STOP_RX_LEVEL) 
+						// Restart RX
+						gpio_write(UART_1_Data.rts, false);
+				}
+			}
+		}
+		return;
+	}
 	
 	if(!gpio_read(UART_1_Data.cts)) {
 		// Restart TX
-		if(!U1STAbits.UTXBF && UART_1_Data.tx_ready_callback(UART_1, &data, UART_1_Data.user_data))
-			U1TXREG = data;
+		if(UART_1_Data.stop_tx)
+			if(!U1STAbits.UTXBF && UART_1_Data.tx_ready_callback(UART_1, &data, UART_1_Data.user_data))
+				U1TXREG = data;
+		
 		timer_disable(UART_1_Data.timer_id);
-		UART_1_Data.stop_tx = 0;
+		UART_1_Data.stop_tx = 0;	
 	}
 }
  
@@ -694,14 +696,11 @@ void __attribute((interrupt(preprologue("push w0\n"
 		
 		// We preempted something with same or higher priority, don't run the bh now.
 	if(retaddr2 >> 13 >= UART_2_Data.bh_ipl) {
-		// Defer the irq to the TX interrupt with the same priority
-		UART_2_Data.fake_tx = 1;
-		_U2TXIF = 1;
-		if(!_U2TXIE) {
-			_U2TXIE = 1;
-			UART_2_Data.fake_tx = 2;
+		UART_2_Data.fake_timer = 1;
+		if(!timer_force_interrupt(UART_2_Data.timer_id)) {
+			UART_2_Data.fake_timer = 2;
 		}
-		return;	
+		return;
 	}
 	
 	inside_softirq = 1;
@@ -758,35 +757,6 @@ void _ISR _U2TXInterrupt(void)
 
 	_U2TXIF = 0;			// Clear transmission interrupt flag
 
-	if(UART_2_Data.fake_tx) {
-		if(UART_2_Data.fake_tx == 2)  {
-			was_disabled = 1;
-			_U2TXIE = 0;
-		}
-		UART_2_Data.fake_tx = 0;
-		if (!UART_2_Data.user_program_busy)
-		{
-			while(UART_2_Data.fifo_w - UART_2_Data.fifo_r)
-			{
-				if (UART_2_Data.byte_received_callback(UART_2, UART_2_Data.internal_buffer[(UART_2_Data.fifo_r++) & FIFO_MASK], UART_2_Data.user_data) == false)
-				{
-					if(UART_2_Data.fifo_w - UART_2_Data.fifo_r < STOP_RX_LEVEL) 
-						// Restart RX
-						gpio_write(UART_2_Data.rts, false);
-					
-					UART_2_Data.user_program_busy = true;
-					break;
-				} else {
-					if(UART_2_Data.fifo_w - UART_2_Data.fifo_r < STOP_RX_LEVEL) 
-						// Restart RX
-						gpio_write(UART_2_Data.rts, false);
-				}
-			}
-		}
-		if(!_U2TXIE)
-			return;
-	}
-
 	if(gpio_read(UART_2_Data.cts)) {
 		// Stop TX and start polling timer
 		if(!UART_2_Data.stop_tx) {
@@ -808,10 +778,38 @@ void _ISR _U2TXInterrupt(void)
 void uart2_timer_cb(int __attribute((unused)) timer_id) {
 	unsigned char data;
 	
+	if(UART_2_Data.fake_timer) {
+		if(UART_2_Data.fake_timer == 2) 
+			timer_disable_interrupt(timer_id);
+			
+		UART_2_Data.fake_timer = 0;
+		if (!UART_2_Data.user_program_busy)
+		{
+			while(UART_2_Data.fifo_w - UART_2_Data.fifo_r)
+			{
+				if (UART_2_Data.byte_received_callback(UART_2, UART_2_Data.internal_buffer[(UART_2_Data.fifo_r++) & FIFO_MASK], UART_2_Data.user_data) == false)
+				{
+					if(UART_2_Data.fifo_w - UART_2_Data.fifo_r < STOP_RX_LEVEL) 
+						// Restart RX
+						gpio_write(UART_2_Data.rts, false);
+					
+					UART_2_Data.user_program_busy = true;
+					break;
+				} else {
+					if(UART_2_Data.fifo_w - UART_2_Data.fifo_r < STOP_RX_LEVEL) 
+						// Restart RX
+						gpio_write(UART_2_Data.rts, false);
+				}
+			}
+		}
+		return;
+	}
+	
 	if(!gpio_read(UART_2_Data.cts)) {
 		// Restart TX
-		if(!U2STAbits.UTXBF && UART_2_Data.tx_ready_callback(UART_2, &data, UART_2_Data.user_data))
-			U2TXREG = data;
+		if(UART_2_Data.stop_tx)
+			if(!U2STAbits.UTXBF && UART_2_Data.tx_ready_callback(UART_2, &data, UART_2_Data.user_data))
+				U2TXREG = data;
 		timer_disable(UART_2_Data.timer_id);
 		UART_2_Data.stop_tx = 0;
 	}
