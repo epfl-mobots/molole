@@ -383,11 +383,15 @@ void _ISR _U1RXInterrupt(void)
 									// Why ? because if we recieve a character
 									// while the callback run, we don't want to get recalled immediatly 
 									// after going out
-			if (UART_1_Data.byte_received_callback(UART_1, U1RXREG, UART_1_Data.user_data) == false)
-			{
-				UART_1_Data.user_program_busy = true;
-				break;
-			}
+			if(U1STAbits.FERR)
+				// Frame error, grabbage on uart
+				(void *) U1RXREG;
+			else
+				if (UART_1_Data.byte_received_callback(UART_1, U1RXREG, UART_1_Data.user_data) == false)
+				{
+					UART_1_Data.user_program_busy = true;
+					break;
+				}
 		}
 		// Work around for the dsPIC33 Rev. A2 Silicon Errata
 		// Clear Receive Buffer Overrun Error if any, possible despite the use of hardware handshake
@@ -429,11 +433,15 @@ void _ISR _U2RXInterrupt(void)
 									// Why ? because if we recieve a character
 									// while the callback run, we don't want to get recalled immediatly 
 									// after going out
-			if (UART_2_Data.byte_received_callback(UART_2, U2RXREG, UART_2_Data.user_data) == false)
-			{
-				UART_2_Data.user_program_busy = true;
-				break;
-			}
+			if(U2STAbits.FERR)
+				// Frame error, grabbage on uart
+				(void *) U2RXREG;
+			else
+				if (UART_2_Data.byte_received_callback(UART_2, U2RXREG, UART_2_Data.user_data) == false)
+				{
+					UART_2_Data.user_program_busy = true;
+					break;
+				}
 		}
 		// Work around for the dsPIC33 Rev. A2 Silicon Errata
 		// Clear Receive Buffer Overrun Error if any, possible despite the use of hardware handshake

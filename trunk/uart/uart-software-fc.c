@@ -513,8 +513,11 @@ void __attribute((interrupt(preprologue("push w0\n"
 								// while the callback run, we don't want to get recalled immediatly 
 								// after going out
 		// warning: I do not protect the fifo against overrun, because flow control will not allow us to fill it completly
-
-		UART_1_Data.internal_buffer[(UART_1_Data.fifo_w++) & FIFO_MASK] = U1RXREG;
+		if(U1STAbits.FERR)
+			// Frame error, grabbage on uart
+			(void *) U1RXREG;
+		else
+			UART_1_Data.internal_buffer[(UART_1_Data.fifo_w++) & FIFO_MASK] = U1RXREG;
 		if(UART_1_Data.fifo_w - UART_1_Data.fifo_r > STOP_RX_LEVEL) 
 			gpio_write(UART_1_Data.rts, true);
 			
@@ -677,8 +680,11 @@ void __attribute((interrupt(preprologue("push w0\n"
 								// while the callback run, we don't want to get recalled immediatly 
 								// after going out
 		// warning: I do not protect the fifo against overrun, because flow control will not allow us to fill it completly
-
-		UART_2_Data.internal_buffer[(UART_2_Data.fifo_w++) & FIFO_MASK] = U2RXREG;
+		if(U2STAbits.FERR)
+			// Frame error, grabbage on uart
+			(void *) U2RXREG;
+		else
+			UART_2_Data.internal_buffer[(UART_2_Data.fifo_w++) & FIFO_MASK] = U2RXREG;
 		if(UART_2_Data.fifo_w - UART_2_Data.fifo_r > STOP_RX_LEVEL) 
 			gpio_write(UART_2_Data.rts, true);
 			
@@ -753,7 +759,6 @@ void __attribute((interrupt(preprologue("push w0\n"
 void _ISR _U2TXInterrupt(void)
 {
 	unsigned char data;
-	unsigned char was_disabled;
 
 	_U2TXIF = 0;			// Clear transmission interrupt flag
 
