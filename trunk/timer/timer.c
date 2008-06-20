@@ -690,6 +690,82 @@ void timer_enable_interrupt(int id, timer_callback callback, int priority)
 	}
 }
 
+/**
+	Force the interrupt of a timer.
+	
+	Force the timer interrupt to be called. Even if the timer is disabled.
+	
+	\param	id
+			The timer can be one of the 16-bits timer (\ref TIMER_1 -> \ref TIMER_9) or one of the 32-bits timer (\ref TIMER_23 -> \ref TIMER_89).
+
+	\return 
+			\true if the timer interrupt was perviously enabled, false otherwise
+*/
+
+bool timer_force_interrupt(int id)
+{
+	// _TxIE					Disable interrupt
+	// _TxIF					Clear interrupt flag
+	bool ret;
+	switch(id)
+	{
+		case TIMER_1:
+			ret = _T1IE;
+			_T1IE = 1;
+			_T1IF = 1;
+			break;
+		case TIMER_2:
+			ret = _T2IE;
+			_T2IE = 1;
+			_T2IF = 1;
+			break;
+		case TIMER_23:
+		case TIMER_3:
+			ret = _T3IE;
+			_T3IE = 1;
+			_T3IF = 1;
+			break;
+		case TIMER_4:
+			ret = _T4IE;
+			_T4IE = 1;
+			_T4IF = 1;
+			break;  
+		case TIMER_45:
+		case TIMER_5:
+			ret = _T5IE;
+			_T5IE = 1;
+			_T5IF = 1;
+			break;
+		case TIMER_6:
+			ret = _T6IE;
+			_T6IE = 1;
+			_T6IF = 1;
+			break;
+		case TIMER_67:
+		case TIMER_7:
+			ret = _T7IE;
+			_T7IE = 1;
+			_T7IF = 1;
+			break;
+		case TIMER_8:
+			ret = _T8IE;
+			_T8IE = 1;
+			_T8IF = 1;
+			break;
+		case TIMER_89:
+		case TIMER_9:
+			ret = _T9IE;
+			_T9IE = 1;
+			_T9IF = 1;
+			break;
+		default:
+			ERROR(TIMER_ERROR_INVALID_TIMER_ID, &id);
+			break;
+	}
+	return ret;
+}
+
+
 
 /**
 	Disable the interrupt of a timer.

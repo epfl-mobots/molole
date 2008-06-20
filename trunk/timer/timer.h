@@ -110,6 +110,8 @@ void timer_enable_interrupt(int id, timer_callback callback, int priority);
 
 void timer_disable_interrupt(int id);
 
+bool timer_force_interrupt(int id);
+
 /*@}*/
 
 #endif
