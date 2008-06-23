@@ -319,10 +319,10 @@ void timer_set_period(int id, unsigned long int sample_time, int unit)
 				ERROR(TIMER_ERROR_SAMPLE_TIME_NOT_IN_RANGE, &real_sample_time)
 		
 			// compute the prescaler
-			for (prescaler=0; real_sample_time > ((unsigned long long)clock_get_cycle_duration() * 0x0000ffffULL * (unsigned long long)prescaler_value[prescaler]); prescaler++)
+			for (prescaler=0; real_sample_time / (clock_get_cycle_duration()*prescaler_value[prescaler]) > 0xFFFFFFFFULL; prescaler++)
 				;
 			// compute the period value
-			period = real_sample_time / ((unsigned long long)clock_get_cycle_duration() * (unsigned long long)prescaler_value[prescaler]);
+			period = (real_sample_time / clock_get_cycle_duration()) / prescaler_value[prescaler];
 		} else {
 			prescaler = -unit - 1;
 			ERROR_CHECK_RANGE(sample_time, 0, 0xFFFFFFFFUL, TIMER_ERROR_SAMPLE_TIME_NOT_IN_RANGE);
@@ -1056,7 +1056,7 @@ void _ISR _T3Interrupt(void)
 	_T3IF = 0;
 	// function must exist because this interrupt is enabled
 	if (Timer_Data[1].is_initialized && Timer_Data[1].is_32bits)
-		Timer_Data[2].callback(TIMER_23);
+		Timer_Data[1].callback(TIMER_23);
 	else
 		Timer_Data[2].callback(TIMER_3);
 }
@@ -1093,7 +1093,7 @@ void _ISR _T5Interrupt(void)
 
 	// function must exist because this interrupt is enabled
 	if (Timer_Data[3].is_initialized && Timer_Data[3].is_32bits)
-		Timer_Data[4].callback(TIMER_45);
+		Timer_Data[3].callback(TIMER_45);
 	else
 		Timer_Data[4].callback(TIMER_5);
 	
@@ -1131,7 +1131,7 @@ void _ISR _T7Interrupt(void)
 
 	// function must exist because this interrupt is enabled
 	if (Timer_Data[5].is_initialized && Timer_Data[5].is_32bits)
-		Timer_Data[6].callback(TIMER_67);
+		Timer_Data[5].callback(TIMER_67);
 	else
 		Timer_Data[6].callback(TIMER_7);
 
@@ -1170,7 +1170,7 @@ void _ISR _T9Interrupt(void)
 
 	// function must exist because this interrupt is enabled
 	if (Timer_Data[7].is_initialized && Timer_Data[7].is_32bits)
-		Timer_Data[8].callback(TIMER_89);
+		Timer_Data[7].callback(TIMER_89);
 	else
 		Timer_Data[8].callback(TIMER_9);
 }
