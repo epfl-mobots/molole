@@ -116,8 +116,12 @@ void i2c_init_slave(
 		I2C_1_Slave_Data.data_to_master_callback = data_to_master_callback;
 		
 		I2C_1_Slave_Data.state = I2C_IDLE;
+			
+		I2C1STAT = 0;
 		
 		I2C1ADD = address;			// Set the module address 
+		I2C1MSK = 0x00;
+		
 		_SI2C1IF = 0;				// clear the slave interrupt
 		_SI2C1IP = priority;   		// set the slave interrupt priority
 		_SI2C1IE = 1;				// enable the slave interrupt
@@ -131,8 +135,11 @@ void i2c_init_slave(
 		I2C_2_Slave_Data.data_to_master_callback = data_to_master_callback;
 		
 		I2C_2_Slave_Data.state = I2C_IDLE;
-		
+
+		I2C2STAT = 0;
+
 		I2C2ADD = address;			// Set the module address 
+		I2C2MSK = 0x00;
 		_SI2C2IF = 0;				// clear the slave interrupt
 		_SI2C2IP = priority;   		// set the slave interrupt priority
 		_SI2C2IE = 1;				// enable the slave interrupt
@@ -185,14 +192,16 @@ void _ISR _SI2C1Interrupt(void)
 	{
 		if (I2C1STATbits.R_W)
 		{
+			data = I2C1RCV;
 			I2C_1_Slave_Data.state = I2C_TO_MASTER;
-			I2C_1_Slave_Data.message_to_master_callback(I2C_1);
+			I2C_1_Slave_Data.message_to_master_callback(I2C_1);	
 		}
 		else
 		{
+			data = I2C1RCV;
 			I2C_1_Slave_Data.state = I2C_FROM_MASTER;
 			I2C_1_Slave_Data.message_from_master_callback(I2C_1);
-			_SI2C1IF = 0;										// Clear Slave interrupt flag
+			I2C1CONbits.SCLREL = 1;
 			return;
 		}
 	}
@@ -210,9 +219,11 @@ void _ISR _SI2C1Interrupt(void)
 		
 		case I2C_FROM_MASTER:
 		{
-			data = I2C1RCV;										// Read data
+			data = I2C1RCV;	
+			
 			if (I2C_1_Slave_Data.data_from_master_callback(I2C_1, data))
 				I2C_1_Slave_Data.state = I2C_IDLE;
+			I2C1CONbits.SCLREL = 1;								// Release clock
 		}
 		break;
 		
@@ -242,14 +253,16 @@ void _ISR _SI2C2Interrupt(void)
 	{
 		if (I2C2STATbits.R_W)
 		{
+			data = I2C2RCV;
 			I2C_2_Slave_Data.state = I2C_TO_MASTER;
 			I2C_2_Slave_Data.message_to_master_callback(I2C_2);
 		}
 		else
 		{
+			data = I2C2RCV;
 			I2C_2_Slave_Data.state = I2C_FROM_MASTER;
 			I2C_2_Slave_Data.message_from_master_callback(I2C_2);
-			_SI2C2IF = 0;										// Clear Slave interrupt flag
+			I2C2CONbits.SCLREL = 1;
 			return;
 		}
 	}
@@ -270,6 +283,7 @@ void _ISR _SI2C2Interrupt(void)
 			data = I2C2RCV;										// Read data
 			if (I2C_2_Slave_Data.data_from_master_callback(I2C_2, data))
 				I2C_2_Slave_Data.state = I2C_IDLE;
+			I2C2CONbits.SCLREL = 1;
 		}
 		break;
 		
