@@ -94,6 +94,14 @@ void spi_init_master(int spi_id, unsigned int speed_khz, int dma_rx, int dma_tx,
 void spi_start_transfert(int spi_id, void * tx_buffer, void * rx_buffer, unsigned int xch_count, gpio ss, spi_transfert_done callback);
 
 void spi_transfert_sync(int spi_id, void * tx_buffer, void * rx_buffer, unsigned int xch_count, gpio ss);
+
+	
+typedef void (*spi_slave_data_cb)(int spi_id, unsigned int data);	
+	
+void spi_init_slave(int spi_id, int transfert_mode, int polarity, int data_out_mode, spi_slave_data_cb data_cb, int priority);	
+
+void spi_slave_write(int spi_id, unsigned int data);
+
 	
 /*@}*/
 

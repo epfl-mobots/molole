@@ -43,11 +43,13 @@ static struct {
 	int dma_rx;
 	int dma_tx;
 	spi_transfert_done callback;
+	spi_slave_data_cb slave_callback;
 	int priority;
 	int data_size;
 	gpio ss;
 	int waiting;
 } spi_status[2];
+
 
 
 //------------------
@@ -74,6 +76,22 @@ static void spi2_dma_cb(int __attribute__((unused)) channel, bool __attribute__(
 static void spi_dummy_wait(int spi) {
 	spi_status[spi].waiting = 0;
 }
+
+/* Interrupt function (slave mode) */
+void _ISR _SPI2Interrupt(void) {
+	_SPI2IF = 0;
+	
+	spi_status[1].slave_callback(SPI_2, SPI2BUF);
+	SPI2STATbits.SPIROV = 0; // clear any overflow
+}
+
+void _ISR _SPI1Interrupt(void) {
+	_SPI1IF = 0;
+	
+	spi_status[0].slave_callback(SPI_1, SPI1BUF);
+	SPI1STATbits.SPIROV = 0; // clear any overflow
+}
+	
 
 
 //-------------------
@@ -376,5 +394,69 @@ void spi_transfert_sync(int spi_id, void * tx_buffer, void * rx_buffer, unsigned
 		Idle();
 }
 	
+void spi_init_slave(int spi_id, int transfert_mode, int polarity, int data_out_mode, spi_slave_data_cb data_cb, int priority) {
+	ERROR_CHECK_RANGE(priority, 1, 7, GENERIC_ERROR_INVALID_INTERRUPT_PRIORITY);
+	ERROR_CHECK_RANGE(transfert_mode, SPI_TRSF_BYTE, SPI_TRSF_WORD, SPI_INVALID_TRANFERT_MODE);
+	ERROR_CHECK_RANGE(polarity, SPI_CLOCK_IDLE_LOW, SPI_CLOCK_ACTIVE_LOW, SPI_INVALID_POLARITY);
+	ERROR_CHECK_RANGE(data_out_mode, SPI_DATA_OUT_CLK_IDLE_TO_ACTIVE, SPI_DATA_OUT_CLK_ACTIVE_TO_IDLE, SPI_INVALID_DATA_OUT_MODE);
+
+	
+	if(spi_id == SPI_1) {
+		SPI1STAT = 0;
+		SPI1CON1bits.DISSCK = 0;			/* Enable SCK */
+		SPI1CON1bits.DISSDO = 0;			/* Enable SDO */
+		SPI1CON1bits.SMP = 0;
+		SPI1CON1bits.MODE16 = transfert_mode;
+		SPI1CON1bits.CKE = data_out_mode;
+		SPI1CON1bits.SSEN = 0;				/* Errata 8, Slave Select pin is not working */
+		SPI1CON1bits.CKP = polarity;
+		SPI1CON1bits.MSTEN = 0;				/* I'm a slave ! */
+		SPI1CON2 = 0x0;						/* Framing support completly disabled */
+		_SPI1IP = priority;
+		
+		SPI1STATbits.SPIEN = 1;				/* Enable module */
+	
+		_SPI1IF = 0;
+		_SPI1IE = 1;
+		
+		spi_status[0].slave_callback = data_cb;
+		
+	} else if(spi_id == SPI_2) {
+		SPI2STAT = 0;
+		SPI2CON1bits.DISSCK = 0;			/* Enable SCK */
+		SPI2CON1bits.DISSDO = 0;			/* Enable SDO */
+		SPI2CON1bits.SMP = 0;
+		SPI2CON1bits.MODE16 = transfert_mode;
+		SPI2CON1bits.CKE = data_out_mode;
+		SPI2CON1bits.SSEN = 0;				/* Errata 8, Slave Select pin is not working */
+		SPI2CON1bits.CKP = polarity;
+		SPI2CON1bits.MSTEN = 0;				/* I'm a slave ! */
+		SPI2CON2 = 0x0;						/* Framing support completly disabled */
+		_SPI2IP = priority;
+		
+		SPI2STATbits.SPIEN = 1;				/* Enable module */
+	
+		_SPI2IF = 0;
+		_SPI2IE = 1;
+		
+		spi_status[1].slave_callback = data_cb;
+	
+	} else {
+		ERROR(SPI_INVALID_ID, &spi_id);
+	}
+	
+	
+}
+void spi_slave_write(int spi_id, unsigned int data) {
+	if(spi_id == SPI_1) 
+		SPI1BUF = data;
+	else if(spi_id == SPI_2)
+		SPI2BUF = data;
+	else {
+		ERROR(SPI_INVALID_ID, &spi_id);
+	}
+}
+	
+
 /*@}*/
 
