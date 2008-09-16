@@ -32,8 +32,7 @@
 #define PROGRAM_ROW         0x4001
 #define PROGRAM_WORD        0x4003
 
-#define INSTRUCTIONS_PER_PAGE  512
-#define INSTRUCTION_PER_ROW   64
+
 
 #define tblwtl(offset, data) do { \
 			asm __volatile__ ("tblwtl %[d], [%[o]]" : /* No output */ \
@@ -135,10 +134,10 @@ static void _frc_nc(unsigned long addr, size_t size, unsigned char * buffer) {
 		data =  __builtin_tblrdh(addr & 0xFFFF);
 		*buffer++ = data & 0xFF;
 	}
-	if(left > 1) {
+	if(left >= 1) {
 		data = __builtin_tblrdl(addr & 0xFFFF);
 		*buffer++ = data & 0xFF;
-		if(left > 2) 
+		if(left >= 2) 
 			*buffer = data >> 8;
 	}
 	TBLPAG = tmp;
@@ -175,7 +174,7 @@ void flash_erase_page(unsigned long addr) {
 }
 
 void flash_prepare_write(unsigned long addr) {
-	if(addr & (INSTRUCTIONS_PER_PAGE * 2 - 1)) 
+	if(addr & (INSTRUCTIONS_PER_ROW * 2 - 1)) 
 		ERROR(FLASH_UNALIGNED_ADDRESS, &addr);
 	current_addr = addr;
 	row_counter = 0;
@@ -190,7 +189,7 @@ void flash_write_instruction(unsigned long data) {
 	tblwth(current_addr & 0xFFFF, data >> 16);
 	current_addr += 2;
 	row_counter++;
-	if(row_counter == INSTRUCTION_PER_ROW) {
+	if(row_counter == INSTRUCTIONS_PER_ROW) {
 		do_key_seq(); 
 		TBLPAG = current_addr >> 16; 
 		NVMCON = PROGRAM_ROW;
@@ -209,7 +208,7 @@ void flash_write_buffer(unsigned char * data, size_t size) {
 	if(left == 1) 
 		flash_write_instruction(data[0]);
 	if(left == 2)
-		flash_write_instruction(data[0] | (unsigned long) data[1]);
+		flash_write_instruction(data[0] | ((unsigned long) data[1] << 8));
 	
 }
 

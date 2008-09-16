@@ -47,6 +47,9 @@ enum flash_errors
 	FLASH_BAD_SIZE,
 };
 
+#define INSTRUCTIONS_PER_PAGE  512
+#define INSTRUCTIONS_PER_ROW   64
+
 // Read the whole 24 bit word
 unsigned long flash_read_instr(unsigned long addr);
 
