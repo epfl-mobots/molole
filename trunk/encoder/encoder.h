@@ -82,6 +82,8 @@ void encoder_init(int type, int encoder_ic, long* pos, int* speed, int direction
 
 void encoder_step(int type);
 
+long encoder_get_position(int type);
+
 /*@}*/
 
 #endif

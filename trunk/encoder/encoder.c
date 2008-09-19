@@ -252,6 +252,47 @@ void encoder_init(int type, int encoder_ic, long* pos, int* speed, int direction
 
 }
 
+/** 
+	Get the position of the encoder without interfering with the speed mesurment
+	
+	\param 	type
+			Type of encoder, either hardware of software, one of \ref encoder_type.
+*/
+long encoder_get_position(int type) {
+	unsigned int temp1;
+	unsigned int temp2;
+	unsigned int b15;
+	long temp3;
+	int flags;
+	switch(type) {
+		case ENCODER_TIMER_1 ... ENCODER_TIMER_9:
+			RAISE_IPL(flags, Software_Encoder_Data[type].ipl);
+			temp3 = Software_Encoder_Data[type].tpos;
+			temp1 = timer_get_value(type);
+			temp2 = Software_Encoder_Data[type].sens;
+			IRQ_ENABLE(flags);		
+			if(temp2 == Software_Encoder_Data[type].up) 
+				temp3 += temp1;
+			else
+				temp3 -= temp1;
+			return temp3;
+			
+		case ENCODER_TYPE_HARD:	
+			RAISE_IPL(flags, QEI_Encoder_Data.ipl);
+			temp1 = POS1CNT;
+			temp2 = QEI_Encoder_Data.high_word;
+			b15 = QEI_Encoder_Data.poscnt_b15;
+			IRQ_ENABLE(flags);
+	
+			return ((long) temp2) << 16 | (temp1 + b15);
+		default:
+			ERROR(ENCODER_INVALID_TYPE, &type);
+	}
+}
+			
+
+	
+
 /**
 	Update the position and speed variables of an encoder.
 	
@@ -260,43 +301,20 @@ void encoder_init(int type, int encoder_ic, long* pos, int* speed, int direction
 */
 void encoder_step(int type)
 {
-	long old_pos;
-	unsigned int temp1;
-	unsigned int temp2;
-	unsigned int b15;
-	long temp3;
-	int flags;
+	long pos = encoder_get_position(type);
 
 	switch(type) {
 		case ENCODER_TIMER_1 ... ENCODER_TIMER_9:
-			old_pos = *(Software_Encoder_Data[type].pos);
 		
-			RAISE_IPL(flags, Software_Encoder_Data[type].ipl);
-			temp3 = Software_Encoder_Data[type].tpos;
-			temp1 = timer_get_value(type);
-			temp2 = Software_Encoder_Data[type].sens;
-			IRQ_ENABLE(flags);		
+			*(Software_Encoder_Data[type].speed) = pos - *(Software_Encoder_Data[type].pos);
+			*(Software_Encoder_Data[type].pos) = pos;
 
-			if(temp2 == Software_Encoder_Data[type].up) 
-				temp3 += temp1;
-			else
-				temp3 -= temp1;
-
-			*(Software_Encoder_Data[type].pos) = temp3;
-			*(Software_Encoder_Data[type].speed) = *(Software_Encoder_Data[type].pos) - old_pos;
 			break;
 		case ENCODER_TYPE_HARD:
 	
-			old_pos = *QEI_Encoder_Data.pos;
-	
-			RAISE_IPL(flags, QEI_Encoder_Data.ipl);
-			temp1 = POS1CNT;
-			temp2 = QEI_Encoder_Data.high_word;
-			b15 = QEI_Encoder_Data.poscnt_b15;
-			IRQ_ENABLE(flags);
-	
-			*QEI_Encoder_Data.pos = ((long) temp2) << 16 | (temp1 + b15);
-			*QEI_Encoder_Data.speed = *QEI_Encoder_Data.pos - old_pos;
+			*QEI_Encoder_Data.speed = pos - *QEI_Encoder_Data.pos;
+			*QEI_Encoder_Data.pos = pos;
+			
 			break;
 		default:
 			ERROR(ENCODER_INVALID_TYPE, &type);
@@ -410,7 +428,7 @@ static void tmr_cb(int tmr) {
 }
 
 static void ic_cb(int __attribute__((unused)) foo, unsigned int __attribute((unused)) bar, void * data) {
-	unsigned int value;
+	unsigned int value = 0;
 	unsigned int tmr = (unsigned int) data;
 	
 	// I don't use "molole" timer access function because I want to be _FAST_ to avoid as much
