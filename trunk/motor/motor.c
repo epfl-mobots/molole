@@ -80,6 +80,23 @@ void motor_init(Motor_Controller_Data* module)
 	module->output_limit_high = INT_MAX;
 }
 
+void motor_init_32bits(Motor_Controller_Data* module)
+{
+	memset(module, 0, sizeof(Motor_Controller_Data));
+	
+	module->setpoint_limit_low = LONG_MIN;
+	module->setpoint_limit_high = LONG_MAX;
+	
+	module->constraint_limit_low = INT_MIN;
+	module->constraint_limit_high = INT_MAX;
+	
+	module->output_limit_low = INT_MIN;
+	module->output_limit_high = INT_MAX;
+	
+	module->is_32bits = true;
+		
+}
+
 /**
 	Do a step of motor control.
 	
@@ -88,7 +105,17 @@ void motor_init(Motor_Controller_Data* module)
 void motor_step(Motor_Controller_Data* module)
 {
 	// check setpoint limit
-	int setpoint = *(module->setpoint);
+	long setpoint;
+	long measure;
+
+	if(module->is_32bits) {
+		measure = *((long *) module->measure);
+		setpoint = *((long *)module->setpoint);
+	} else {
+		setpoint = *((int *)module->setpoint);
+		measure = *((int *) module->measure);
+	}
+	
 	if (setpoint > module->setpoint_limit_high)
 	{
 		setpoint = module->setpoint_limit_high;
@@ -99,7 +126,7 @@ void motor_step(Motor_Controller_Data* module)
 	}
 	
 	// compute terms
-	long error = (long)setpoint - (long)(*(module->measure));
+	long error = setpoint - measure;
 	long proportional_term = module->kp * error;
 	long integral_term = module->ki * error + module->last_integral_term;
 	long derivative_term = module->kd * (error - module->last_error);

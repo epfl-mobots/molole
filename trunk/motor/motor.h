@@ -51,10 +51,10 @@ typedef int (*motor_constraint_violation_callback)(int violation_type, int outpu
 /** Data associated with a motor controller. */
 typedef struct
 {
-	int* setpoint;						//!< pointer to a variable containing the setpoint
-	int setpoint_limit_low;				//!< minimum acceptable value for setpoint
-	int setpoint_limit_high;			//!< maximum acceptable value for setpoint
-	int* measure;						//!< pointer to a variable containing the latest measure
+	void* setpoint;						//!< pointer to a variable containing the setpoint
+	long setpoint_limit_low;			//!< minimum acceptable value for setpoint
+	long setpoint_limit_high;			//!< maximum acceptable value for setpoint
+	void* measure;						//!< pointer to a variable containing the latest measure
 	
 	int* constraint;					//!< pointer to a variable containing a constraint; if 0, constraint is disabled
 	int constraint_limit_low;			//!< minimum acceptable value for constraint
@@ -76,11 +76,16 @@ typedef struct
 	
 	unsigned int forgetness_counter;	//!< Amount of step since last forgetness action
 	unsigned int forgetness;			//!< amount of step to decrease one unity of integral term. 0 mean disabled. (high-pass filter)
+	
+	bool is_32bits;						//!< True if input and setpoint is 32bits
+	
 } Motor_Controller_Data;
 
 // Functions, doc in the .c
 
 void motor_init(Motor_Controller_Data* module);
+
+void motor_init_32bits(Motor_Controller_Data* module);
 
 void motor_step(Motor_Controller_Data* module);
 
