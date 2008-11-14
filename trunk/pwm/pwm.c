@@ -56,6 +56,7 @@ static struct
 {
 	pwm_callback interrupt_callback; /**< function to call upon PWM interrupt */
 	int mode[4];					 /**< mode */
+	int inverted[4];				 /**< state of the PMOD bbit in PWMxCON1 */
 	unsigned int period;
 } PWM_Data;
 
@@ -71,6 +72,7 @@ static struct
 */
 void pwm_init(int prescaler, unsigned period, int mode)
 {
+	int i;
 	ERROR_CHECK_RANGE(prescaler, 0, 3, PWM_ERROR_INVALID_PRESCALER);
 	ERROR_CHECK_RANGE(period, 0, 32767, PWM_ERROR_INVALID_RANGE);
 	ERROR_CHECK_RANGE(mode, 0, 3, PWM_ERROR_INVALID_MODE);
@@ -82,6 +84,10 @@ void pwm_init(int prescaler, unsigned period, int mode)
 	PTCONbits.PTEN = 1;					// Enable PWM Time Base Timer
 	DTCON1 = 0;							// Disable any dead time generator
 	DTCON2 = 0;
+	
+	for(i = 0; i < 4; i++) 
+		PWM_Data.inverted[i] = 1; // Independant mode by default 
+	
 	switch(mode) {
 		case PWM_MODE_FREE_RUNNING:
 		case PWM_MODE_SINGLE_EVENT:
@@ -166,7 +172,7 @@ void pwm_set_duty(int pwm_id, int duty)
 		case PWM_1:
 			PWMCON1bits.PEN1L = 1; 
 			PWMCON1bits.PEN1H = 1; 
-			PWMCON1bits.PMOD1 = 1; 
+			PWMCON1bits.PMOD1 = PWM_Data.inverted[pwm_id]; 
 
 			if(duty == 0) {
 				OVDCONbits.POVD1L = 0;
@@ -248,7 +254,7 @@ void pwm_set_duty(int pwm_id, int duty)
 		case PWM_2:
 			PWMCON1bits.PEN2L = 1; 
 			PWMCON1bits.PEN2H = 1; 
-			PWMCON1bits.PMOD2 = 1; 
+			PWMCON1bits.PMOD2 = PWM_Data.inverted[pwm_id]; 
 
 			if(duty == 0) {
 				OVDCONbits.POVD2L = 0;
@@ -330,7 +336,7 @@ void pwm_set_duty(int pwm_id, int duty)
 		case PWM_3:
 			PWMCON1bits.PEN3L = 1; 
 			PWMCON1bits.PEN3H = 1; 
-			PWMCON1bits.PMOD3 = 1; 
+			PWMCON1bits.PMOD3 = PWM_Data.inverted[pwm_id]; 
 
 			if(duty == 0) {
 				OVDCONbits.POVD3L = 0;
@@ -412,7 +418,7 @@ void pwm_set_duty(int pwm_id, int duty)
 		case PWM_4:
 			PWMCON1bits.PEN4L = 1; 
 			PWMCON1bits.PEN4H = 1; 
-			PWMCON1bits.PMOD4 = 1; 
+			PWMCON1bits.PMOD4 = PWM_Data.inverted[pwm_id]; 
 
 			if(duty == 0) {
 				OVDCONbits.POVD4L = 0;
@@ -527,8 +533,18 @@ void pwm_set_special_event_trigger(int direction, int postscale, unsigned value)
 void pwm_set_brake(int pwm_id, int mode)
 {
 	ERROR_CHECK_RANGE(pwm_id, 0, 3, PWM_ERROR_INVALID_PWM_ID);
-	ERROR_CHECK_RANGE(mode, 0, 4, PWM_ERROR_INVALID_MODE);
+	ERROR_CHECK_RANGE(mode, 0, 6, PWM_ERROR_INVALID_MODE);
 	
+	if(mode == PWM_BOTH_INVERTED_DEFAULT_LOW) {
+		mode = PWM_BOTH_DEFAULT_LOW;
+		PWM_Data.inverted[pwm_id] = 0;
+	} else if ( mode == PWM_BOTH_INVERTED_DEFAULT_HIGH) {
+		mode = PWM_BOTH_DEFAULT_HIGH;
+		PWM_Data.inverted[pwm_id] = 0;
+	} else {
+		PWM_Data.inverted[pwm_id] = 1;
+	
+	}
 	PWM_Data.mode[pwm_id] = mode;
 }
 

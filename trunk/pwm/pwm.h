@@ -92,7 +92,9 @@ enum pwm_set_brake_mode
 	PWM_ONE_DEFAULT_LOW = 0,			/**< PWM is done only with one channel at a time while the other is held low (default mode) */			
 	PWM_ONE_DEFAULT_HIGH,				/**< PWM is done only with one channel at a time while the other is held high */
 	PWM_BOTH_DEFAULT_LOW,				/**< PWM is done with both channel and default low */
-	PWM_BOTH_DEFAULT_HIGH				/**< PWM is done with both channel and default high */
+	PWM_BOTH_DEFAULT_HIGH,				/**< PWM is done with both channel and default high */
+	PWM_BOTH_INVERTED_DEFAULT_LOW,		/**< PWM is done with both channel inverted and default low */
+	PWM_BOTH_INVERTED_DEFAULT_HIGH,		/**< PWM is done with both channel inverted and default high */
 };
 
 /** PWM callback on interrupt */
