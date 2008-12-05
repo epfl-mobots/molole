@@ -10,7 +10,7 @@
 #define 	ARRAY_ORIGINE_X	80
 #define		ARRAY_ORIGINE_Y 8
 
-#define IRQ_PIX_LAT 4
+#define IRQ_PIX_LAT 1
 
 extern int _po6030k_slow_path;
 
