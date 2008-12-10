@@ -54,6 +54,7 @@ static ei_callback cb[EI_MAX + 1];
 
 #define GENERATE_EI_INIT(ei) if(ei_id == EI_## ei ) { \
 									_INT## ei ##EP = polarity; \
+									_INT## ei ##IP = priority; \
 									_INT## ei ##IF = 0; \
 									_INT## ei ##IE = 0; /* Do not enable it */}
 #define GENERATE_EI_DISABLE(ei) if(ei_id == EI_ ## ei ) { \
@@ -88,28 +89,28 @@ void ei_init(int ei_id, int polarity, int priority) {
 	ERROR_CHECK_RANGE(polarity, EI_POSITIVE_EDGE, EI_NEGATIVE_EDGE, EI_INVALID_POLARITY);
 
 #ifdef _INT0EP
-	GENERATE_EI_ENABLE(0)
+	GENERATE_EI_INIT(0)
 #endif
 #ifdef _INT1EP
-	GENERATE_EI_ENABLE(1)
+	GENERATE_EI_INIT(1)
 #endif
 #ifdef _INT2EP
-	GENERATE_EI_ENABLE(2)
+	GENERATE_EI_INIT(2)
 #endif
 #ifdef _INT3EP
-	GENERATE_EI_ENABLE(3)
+	GENERATE_EI_INIT(3)
 #endif
 #ifdef _INT4EP
-	GENERATE_EI_ENABLE(4)
+	GENERATE_EI_INIT(4)
 #endif
 #ifdef _INT5EP
-	GENERATE_EI_ENABLE(5)
+	GENERATE_EI_INIT(5)
 #endif
 #ifdef _INT6EP
-	GENERATE_EI_ENABLE(6)
+	GENERATE_EI_INIT(6)
 #endif
 #ifdef _INT7EP
-	GENERATE_EI_ENABLE(7)
+	GENERATE_EI_INIT(7)
 #endif
 }
 
