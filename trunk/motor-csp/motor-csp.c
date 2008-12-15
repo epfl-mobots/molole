@@ -1,6 +1,6 @@
 #include "motor-csp.h"
 #include <string.h>
-// use (lont)  __builtin_mulss(a,b) to perform int*int => long
+// use (long)  __builtin_mulss(a,b) to perform int*int => long
 
 // use (int) __builtin_divsd(a,b) to perfrom long/int => int
 // CHECK OV bit after the division to know if an overflow occured
@@ -41,9 +41,9 @@ static void __attribute__((always_inline)) s_control(motor_csp_data *d) {
 		
 		if(d->ki_s) {
 			if(d->scaler_s)
-				d->integral_s = __builtin_mulss(d->current_max, d->scaler_s) / d->ki_s - __builtin_mulss(d->kp_s, error);
+				d->integral_s = (__builtin_mulss(d->current_max, d->scaler_s)  - __builtin_mulss(d->kp_s, error) - __builtin_mulss(d->kd_s, error_d)) / d->ki_s;
 			else
-				d->integral_s =  d->current_max / d->ki_s - __builtin_mulss(d->kp_s, error);
+				d->integral_s =  (d->current_max - __builtin_mulss(d->kp_s, error) - __builtin_mulss(d->kd_s, error_d)) / d->ki_s;
 		}
 		
 			
@@ -51,9 +51,9 @@ static void __attribute__((always_inline)) s_control(motor_csp_data *d) {
 		output = d->current_min;
 		if(d->ki_s) {
 			if(d->scaler_s) 
-				d->integral_s = __builtin_mulss(d->pwm_min, d->scaler_i) / d->ki_s - __builtin_mulss(d->kp_s, error);
+				d->integral_s = (__builtin_mulss(d->current_min, d->scaler_s)  - __builtin_mulss(d->kp_s, error) - __builtin_mulss(d->kd_s, error_d)) / d->ki_s;
 			else
-				d->integral_s = d->current_min / d->ki_s  - __builtin_mulss(d->kp_s, error);
+				d->integral_s = (d->current_min - __builtin_mulss(d->kp_s, error) - __builtin_mulss(d->kd_s, error_d)) / d->ki_s;
 		}
 		
 	} else if(d->sat_status & 0x1) {
@@ -195,9 +195,9 @@ void motor_csp_step(motor_csp_data * d) {
 		
 		if(d->ki_i) {
 			if(d->scaler_i) 
-				d->integral_i = __builtin_mulss(d->pwm_max, d->scaler_i) / d->ki_i - __builtin_mulss(d->kp_i, error);
+				d->integral_i = (__builtin_mulss(d->pwm_max, d->scaler_i)  - __builtin_mulss(d->kp_i, error)) / d->ki_i;
 			else
-				d->integral_i = (d->pwm_max / d->ki_i) - __builtin_mulss(d->kp_i, error);
+				d->integral_i = (d->pwm_max - __builtin_mulss(d->kp_i, error)) / d->ki_i;
 		}
 		
 		d->sat_status |= 0x1;
@@ -206,9 +206,9 @@ void motor_csp_step(motor_csp_data * d) {
 		output = d->pwm_min;
 		if(d->ki_i) {
 			if(d->scaler_i) 
-				d->integral_i = __builtin_mulss(d->pwm_min, d->scaler_i) / d->ki_i - __builtin_mulss(d->kp_i, error);
+				d->integral_i = (__builtin_mulss(d->pwm_min, d->scaler_i) - __builtin_mulss(d->kp_i, error)) / d->ki_i;
 			else
-				d->integral_i =  (d->pwm_min / d->ki_i) - __builtin_mulss(d->kp_i, error);
+				d->integral_i =  (d->pwm_min  - __builtin_mulss(d->kp_i, error)) / d->ki_i;
 		}
 		d->sat_status |= 0x2;
 	} else
