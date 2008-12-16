@@ -45,10 +45,16 @@
 enum po6030k_errors
 {
 	PO6030K_ERROR_BASE = 0x0F00,
+	PO6030K_INVALID_ZOOM,
+	PO6030K_ARRAY_OUT_OF_BOUND,
+	PO6030K_NONMULTIPLE_SIZE,
+	PO6030K_UNKNOW_COLOR_MODE,
+	PO6030K_INTERNAL_ERROR,
+	PO6030K_NOMEM,
 	PO6030K_IO_ERROR,
 };
 
-int po6030k_config_cam(unsigned int sensor_x1,unsigned int sensor_y1,
+void po6030k_config_cam(unsigned int sensor_x1,unsigned int sensor_y1,
 			 unsigned int sensor_width,unsigned int sensor_height,
 			 unsigned int zoom_fact_width,unsigned int zoom_fact_height,  
 			 int color_mode);

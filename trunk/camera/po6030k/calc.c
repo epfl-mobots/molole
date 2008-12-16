@@ -26,10 +26,9 @@ extern int _po6030k_slow_path;
  * \param zoom_fact_width The subsampling to apply for the window's Width
  * \param zoom_fact_height The subsampling to apply for the window's Height
  * \param color_mode The color mode in which the camera should be configured
- * \return Zero if the settings are correct, non-zero if an error occur  
  */
 
-int po6030k_config_cam(unsigned int sensor_x1,unsigned int sensor_y1,
+void po6030k_config_cam(unsigned int sensor_x1,unsigned int sensor_y1,
 				unsigned int sensor_width,unsigned int sensor_height,
 				unsigned int zoom_fact_width,unsigned int zoom_fact_height,  
 				int color_mode) {
@@ -43,19 +42,19 @@ int po6030k_config_cam(unsigned int sensor_x1,unsigned int sensor_y1,
 	sensor_y1 += ARRAY_ORIGINE_Y;
 	/* testing if the mode is acceptable */
 	if(zoom_fact_height < 1 || zoom_fact_width < 1)
-		return -1;
+		ERROR(PO6030K_INVALID_ZOOM, NULL);
 
 	/* Check if the area is out of bound */
 	if((sensor_x1 + sensor_width) > (ARRAY_ORIGINE_X + ARRAY_WIDTH)) 
-		return -1;
+		ERROR(PO6030K_ARRAY_OUT_OF_BOUND,sensor_x1 + sensor_width);
 	if((sensor_y1 + sensor_height) > (ARRAY_ORIGINE_Y + ARRAY_HEIGHT))
-		return -1;
+		ERROR(PO6030K_ARRAY_OUT_OF_BOUND, sensor_y1 + sensor_height);
 	
 	/* Check if Sensor[Width|Height] is a multiple of Zoom */
 	if(sensor_width % zoom_fact_width)
-		return -1;
+		ERROR(PO6030K_NONMULTIPLE_SIZE, sensor_width);
 	if(sensor_height % zoom_fact_height)
-		return -1;	
+		ERROR(PO6030K_NONMULTIPLE_SIZE, sensor_height);	
 
 	/* Search the best subsampling aviable */
 	if(!(zoom_fact_height%4)) {
@@ -119,13 +118,13 @@ int po6030k_config_cam(unsigned int sensor_x1,unsigned int sensor_y1,
 	/* set camera configuration */
 
 	if(po6030k_set_wx(sensor_x1 /zoom_sample,(ARRAY_ORIGINE_X + ARRAY_WIDTH + 1)/zoom_sample)) 
-		return -1;
+		ERROR(PO6030K_INTERNAL_ERROR, 1);
 
 	if(po6030k_set_wy(sensor_y1 /zoom_sample,(ARRAY_ORIGINE_Y + ARRAY_HEIGHT + 1)/zoom_sample))
-		return -1;
+		ERROR(PO6030K_INTERNAL_ERROR, 2);
 
 	if(po6030k_set_vsync(sensor_y1,ARRAY_ORIGINE_Y + ARRAY_HEIGHT))
-		return -1;
+		ERROR(PO6030K_INTERNAL_ERROR, 3);
 
 	_po6030k_slow_path = 0;
 
@@ -157,14 +156,12 @@ int po6030k_config_cam(unsigned int sensor_x1,unsigned int sensor_y1,
 	}
 
 	if(po6030k_set_mode(color_mode, sampl_mode))
-		return -1;
+		ERROR(PO6030K_UNKNOW_COLOR_MODE, color_mode);
 
 	
 	/* set timer configuration */
 	if(po6030k_apply_timer_config(nb_lines,nb_pixels,po6030k_get_bytes_per_pixel(color_mode),pbp_w,pbp_h))
-		return -1;
-
-	return 0;
+		ERROR(PO6030K_NOMEM, NULL);
 
 }
 

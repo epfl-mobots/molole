@@ -50,11 +50,10 @@ extern int _po3030k_slow_path;
  * \param zoom_fact_width The subsampling to apply for the window's Width
  * \param zoom_fact_height The subsampling to apply for the window's Height
  * \param color_mode The color mode in which the camera should be configured
- * \return Zero if the settings are correct, non-zero if an error occur 
  * \sa po3030k_write_cam_registers 
  */
 
-int po3030k_config_cam(unsigned int sensor_x1,unsigned int sensor_y1,
+void po3030k_config_cam(unsigned int sensor_x1,unsigned int sensor_y1,
 				unsigned int sensor_width,unsigned int sensor_height,
 				unsigned int zoom_fact_width,unsigned int zoom_fact_height,  
 				int color_mode) {
@@ -67,19 +66,19 @@ int po3030k_config_cam(unsigned int sensor_x1,unsigned int sensor_y1,
 	sensor_y1 += ARRAY_ORIGINE_Y;
 	/* testing if the mode is acceptable */
 	if(zoom_fact_height < 1 || zoom_fact_width < 1)
-		return -1;
+		ERROR(PO3030K_INVALID_ZOOM, NULL);
 
 	/* Check if the area is out of bound */
 	if((sensor_x1 + sensor_width) > (ARRAY_ORIGINE_X + ARRAY_WIDTH)) 
-		return -1;
+		ERROR(PO3030K_ARRAY_OUT_OF_BOUND,sensor_x1 + sensor_width);
 	if((sensor_y1 + sensor_height) > (ARRAY_ORIGINE_Y + ARRAY_HEIGHT))
-		return -1;
+		ERROR(PO3030K_ARRAY_OUT_OF_BOUND, sensor_y1 + sensor_height);
 	
 	/* Check if Sensor[Width|Height] is a multiple of Zoom */
 	if(sensor_width % zoom_fact_width)
-		return -1;
+		ERROR(PO3030K_NONMULTIPLE_SIZE, sensor_width);
 	if(sensor_height % zoom_fact_height)
-		return -1;	
+		ERROR(PO3030K_NONMULTIPLE_SIZE, sensor_height);
 
 	/* Search the best subsampling aviable */
 	if(!(zoom_fact_height%4)) {
@@ -136,10 +135,11 @@ int po3030k_config_cam(unsigned int sensor_x1,unsigned int sensor_y1,
 
 	/* set camera configuration */
 	if(po3030k_set_color_mode(color_mode))
-		return -1;
+		ERROR(PO3030K_UNKNOW_COLOR_MODE, color_mode);
 
 	if(po3030k_set_sampling_mode(sampl_mode)) 
-		return -1;
+		ERROR(PO3030K_INTERNAL_ERROR, 0);
+
 	_po3030k_slow_path = 0;
 	if(color_mode == GREY_SCALE_MODE) {
 		switch (sampl_mode) {
@@ -169,19 +169,17 @@ int po3030k_config_cam(unsigned int sensor_x1,unsigned int sensor_y1,
 	}
 
 	if(po3030k_set_wx(sensor_x1,ARRAY_ORIGINE_X + ARRAY_WIDTH + 1)) 
-		return -1;
+		ERROR(PO3030K_INTERNAL_ERROR, 1);
 
 	if(po3030k_set_wy(sensor_y1,ARRAY_ORIGINE_Y + ARRAY_HEIGHT + 1))
-		return -1;
+		ERROR(PO3030K_INTERNAL_ERROR, 2);
 
 	if(po3030k_set_vsync(sensor_y1,ARRAY_ORIGINE_Y + ARRAY_HEIGHT, sensor_x1 + 1))
-		return -1;
+		ERROR(PO3030K_INTERNAL_ERROR, 3);
 	
 	/* set timer configuration */
 	if(po3030k_apply_timer_config(nb_lines,nb_pixels,po3030k_get_bytes_per_pixel(color_mode),pbp_w,pbp_h))
-		return -1;
-
-	return 0;
+		ERROR(PO3030K_NOMEM, NULL);
 
 }
 

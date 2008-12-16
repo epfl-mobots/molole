@@ -148,11 +148,17 @@ int main(void) {
 enum po3030k_errors
 {
 	PO3030K_ERROR_BASE = 0x0B00,
+	PO3030K_INVALID_ZOOM,
+	PO3030K_ARRAY_OUT_OF_BOUND,
+	PO3030K_NONMULTIPLE_SIZE,
+	PO3030K_UNKNOW_COLOR_MODE,
+	PO3030K_INTERNAL_ERROR,
+	PO3030K_NOMEM,
 	PO3030K_IO_ERROR,
 };
 
 
-int po3030k_config_cam(unsigned int sensor_x1,unsigned int sensor_y1,
+void po3030k_config_cam(unsigned int sensor_x1,unsigned int sensor_y1,
 			 unsigned int sensor_width,unsigned int sensor_height,
 			 unsigned int zoom_fact_width,unsigned int zoom_fact_height,  
 			 int color_mode);
