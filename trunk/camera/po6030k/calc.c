@@ -5,6 +5,7 @@
 
 #include "po6030k.h"
 #include "../../i2c/i2c.h"
+#include "../../error/error.h"
 #include <p33fxxxx.h>
 
 #define 	ARRAY_ORIGINE_X	80
@@ -46,15 +47,15 @@ void po6030k_config_cam(unsigned int sensor_x1,unsigned int sensor_y1,
 
 	/* Check if the area is out of bound */
 	if((sensor_x1 + sensor_width) > (ARRAY_ORIGINE_X + ARRAY_WIDTH)) 
-		ERROR(PO6030K_ARRAY_OUT_OF_BOUND,sensor_x1 + sensor_width);
+		ERROR(PO6030K_ARRAY_OUT_OF_BOUND,(void *) sensor_x1 + sensor_width);
 	if((sensor_y1 + sensor_height) > (ARRAY_ORIGINE_Y + ARRAY_HEIGHT))
-		ERROR(PO6030K_ARRAY_OUT_OF_BOUND, sensor_y1 + sensor_height);
+		ERROR(PO6030K_ARRAY_OUT_OF_BOUND, (void *) sensor_y1 + sensor_height);
 	
 	/* Check if Sensor[Width|Height] is a multiple of Zoom */
 	if(sensor_width % zoom_fact_width)
-		ERROR(PO6030K_NONMULTIPLE_SIZE, sensor_width);
+		ERROR(PO6030K_NONMULTIPLE_SIZE,(void *) sensor_width);
 	if(sensor_height % zoom_fact_height)
-		ERROR(PO6030K_NONMULTIPLE_SIZE, sensor_height);	
+		ERROR(PO6030K_NONMULTIPLE_SIZE,(void *) sensor_height);	
 
 	/* Search the best subsampling aviable */
 	if(!(zoom_fact_height%4)) {
@@ -118,13 +119,13 @@ void po6030k_config_cam(unsigned int sensor_x1,unsigned int sensor_y1,
 	/* set camera configuration */
 
 	if(po6030k_set_wx(sensor_x1 /zoom_sample,(ARRAY_ORIGINE_X + ARRAY_WIDTH + 1)/zoom_sample)) 
-		ERROR(PO6030K_INTERNAL_ERROR, 1);
+		ERROR(PO6030K_INTERNAL_ERROR,(void *) 1);
 
 	if(po6030k_set_wy(sensor_y1 /zoom_sample,(ARRAY_ORIGINE_Y + ARRAY_HEIGHT + 1)/zoom_sample))
-		ERROR(PO6030K_INTERNAL_ERROR, 2);
+		ERROR(PO6030K_INTERNAL_ERROR,(void *) 2);
 
 	if(po6030k_set_vsync(sensor_y1,ARRAY_ORIGINE_Y + ARRAY_HEIGHT))
-		ERROR(PO6030K_INTERNAL_ERROR, 3);
+		ERROR(PO6030K_INTERNAL_ERROR,(void *) 3);
 
 	_po6030k_slow_path = 0;
 
@@ -156,7 +157,7 @@ void po6030k_config_cam(unsigned int sensor_x1,unsigned int sensor_y1,
 	}
 
 	if(po6030k_set_mode(color_mode, sampl_mode))
-		ERROR(PO6030K_UNKNOW_COLOR_MODE, color_mode);
+		ERROR(PO6030K_UNKNOW_COLOR_MODE,(void *) color_mode);
 
 	
 	/* set timer configuration */

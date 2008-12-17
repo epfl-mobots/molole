@@ -54,11 +54,31 @@ enum po6030k_errors
 	PO6030K_IO_ERROR,
 };
 
+// Callback to be called after the image is acquired. 
+// DO NOT DO ANY IMAGE PROCESSING INSIDE !
+// it must be FAST
+typedef void (*po6030k_callback)(void);
+
 void po6030k_config_cam(unsigned int sensor_x1,unsigned int sensor_y1,
 			 unsigned int sensor_width,unsigned int sensor_height,
 			 unsigned int zoom_fact_width,unsigned int zoom_fact_height,  
 			 int color_mode);
+			 
+void po6030k_init_cam(unsigned char * port, gpio cam_reset, int timer, int ic, int priority);
 
+// Callback may be NULL if not used
+void po6030k_launch_capture(char * buf, po6030k_callback cb);
+
+int po6030k_is_img_ready(void);
+
+#define PO6030K_SKETCH_BW 0
+#define PO6030K_SKETCH_COLOR 1
+void po6030k_set_sketch_mode(int mode);
+
+void po6030k_reset(void);
+
+
+// The following are internal function, use only if you really know what you are doing
 int  po6030k_get_bytes_per_pixel(int color_mode);
 
 void po6030k_set_color_mode(unsigned char format);
@@ -72,7 +92,6 @@ void po6030k_set_pclkdiv(unsigned char div);
 int po6030k_set_mode(unsigned char format, unsigned char sampl_mode);
 
 
-void po6030k_init_cam(unsigned char * port, gpio cam_reset, int timer, int ic, int priority);
 
 int po6030k_get_bytes_per_pixel(int color_mode);
 int po6030k_set_wx(unsigned int start,unsigned int stop);
@@ -81,12 +100,7 @@ int po6030k_set_wy(unsigned int start, unsigned int stop);
 
 int po6030k_set_vsync(unsigned int start,unsigned int stop);
 
-int po6030k_is_img_ready(void);
 int po6030k_apply_timer_config(int pixel_row, int pixel_col, int bpp, int pbp, int bbl);
-void po6030k_launch_capture(char * buf);
 
-#define PO6030K_SKETCH_BW 0
-#define PO6030K_SKETCH_COLOR 1
-void po6030k_set_sketch_mode(int mode);
 
 #endif

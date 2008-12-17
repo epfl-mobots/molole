@@ -27,21 +27,26 @@ int _po6030k_slow_path;
  */
 int _po6030k_img_ready;
 
+static po6030k_callback done_cb;
+
 static int blank_row_betw;
 static int timer_priority;
 static int timer_id;
 static int ic_id;
+static gpio cam_r;
 
 int _po6030k_current_row;
 int _po6030k_row;
 
 unsigned char * _po6030k_port;
 
-char _po6030k_line_conf[330];
+char _po6030k_line_conf[320*2+1];
 
 /* Yes, it's an ISR ... we goto() to it from the timer irq. */
 void _ISR _po6030k_disable_hsync(void) {
 	timer_disable(timer_id);
+	if(done_cb)
+		done_cb();
 }
 
 
@@ -67,10 +72,11 @@ static void init_hsync(void) {
  * \param buf The buffer to write to
  * \sa po6030k_config_cam and po6030k_is_img_ready
  */
-void po6030k_launch_capture(char * buf) {
+void po6030k_launch_capture(char * buf, po6030k_callback cb) {
 	_po6030k_current_row = 0;
 	_po6030k_buffer = buf;
 	_po6030k_img_ready = 0;
+	done_cb = cb;
 	init_hsync();
 	/* VSync must always be initialised as the last one */
 	ic_enable(ic_id, IC_TIMER3 /* DON'T CARE*/, IC_RISING_EDGE, vsync_cb, timer_priority -1, 0);
@@ -122,6 +128,8 @@ int po6030k_is_img_ready(void) {
 void po6030k_init_cam(unsigned char * port, gpio cam_reset, int timer, int ic, int priority) {
 	int i;
 	unsigned char r[2];
+	
+	cam_r = cam_reset;
 
 	gpio_write(cam_reset, false);
 	gpio_set_dir(cam_reset, GPIO_OUTPUT);
@@ -149,5 +157,16 @@ void po6030k_init_cam(unsigned char * port, gpio cam_reset, int timer, int ic, i
 	ic_id = ic;
 }
 
+void po6030k_reset(void) {
+	int i;
+	gpio_write(cam_r, false);
+	// must be held 16 master clock, mean 32 cycle
+	for(i = 0; i < 32; i++) 
+		Nop();
+		
+	gpio_write(cam_r, true);
+	// wait so the camera finish the reset
+	clock_delay_us(1);
+}	
 
 
