@@ -68,8 +68,9 @@ struct speed_s
 //! Table to lookup CAN timing constants for 40 MHz operation, NULL terminated
 const static struct speed_s __attribute__((space(auto_psv))) speed_tab_40[] = {
 	{ .kbps = 1000,
-	  .CxCFG1 = 0x0,
-	  .CxCFG2 = 0x07FA,
+// 10 Tq. 1 prop, 4 phase 1, 4 phase 2, 4 synchro
+	  .CxCFG1 = 0x00C1, //0x0,
+	  .CxCFG2 = 0x0398, //0x07FA,
 	},
 	{ .kbps = 500,
 	  .CxCFG1 = 0x1,
@@ -90,8 +91,9 @@ const static struct speed_s __attribute__((space(auto_psv))) speed_tab_40[] = {
 //! Table to lookup CAN timing constants for 30 MHz operation, NULL terminated
 const static struct __attribute__((space(auto_psv))) speed_s speed_tab_30[] = {
 	{ .kbps = 1000,
-	  .CxCFG1 = 0x0,
-	  .CxCFG2 = 0x04F8,
+// 15 Tq, 1 prop, 7 phase 1, 6 phase 2, 4 synchro
+	  .CxCFG1 = 0x00C0, // 0x0,
+	  .CxCFG2 = 0x05B0, //0x04F8,
 	},
 	{ .kbps = 500,
 	  .CxCFG1 = 0x1,
