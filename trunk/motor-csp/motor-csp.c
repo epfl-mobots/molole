@@ -21,7 +21,7 @@ static long div32by16s(long a, int b) {
 	
 	q1 = __builtin_divmodsd(a >> 16, b, &rem1);
 	q2 = __builtin_divsd((a & 0xFFFF) | (((unsigned long) rem1) << 16), b);
-	return (((unsigned long) q1) << 16) | q2;
+	return (((long) q1) << 16) | q2;
 }
 
 
@@ -31,6 +31,13 @@ static void __attribute__((always_inline)) s_control(motor_csp_data *d) {
 	long temp;
 	int output;
 	int do_arw = 0;
+	
+	if(d->speed_max || d->speed_min) {
+		if(d->speed_t > d->speed_max)
+			d->speed_t = d->speed_max;
+		if(d->speed_t < d->speed_min)
+			d->speed_t = d->speed_min;
+	}
 	
 	error = d->speed_t - *d->speed_m;
 	error_d = error - d->last_error_s;
@@ -120,11 +127,6 @@ static void __attribute__((always_inline)) p_control_32(motor_csp_data *d) {
 	} else {
 		output = (int) temp;
 	}
-	
-	if(output > d->speed_max)
-		output = d->speed_max;
-	if(output < d->speed_min)
-		output = d->speed_min;
 		
 	d->speed_t = output;
 }
