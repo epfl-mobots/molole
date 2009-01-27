@@ -59,37 +59,37 @@ void gpio_set_opendrain(gpio gpio_id, int opendrain) {
 	
 #if ODC_EXIST(A)
 	if(port == (unsigned int) GPIO_PORTA) {
-			ptr = (volatile unsigned int *) ODCA;
+			ptr = (volatile unsigned int *) &ODCA;
 	} else
 #endif
 #if ODC_EXIST(B)
 	if(port == (unsigned int) GPIO_PORTB) {
-			ptr = (volatile unsigned int *) ODCB;
+			ptr = (volatile unsigned int *) &ODCB;
 	} else 
 #endif
 #if ODC_EXIST(C)
 	if(port == (unsigned int) GPIO_PORTC) {
-			ptr = (volatile unsigned int *) ODCC;
+			ptr = (volatile unsigned int *) &ODCC;
 	} else 
 #endif
 #if ODC_EXIST(D)
 	if(port == (unsigned int) GPIO_PORTD) {
-			ptr = (volatile unsigned int *) ODCD;
+			ptr = (volatile unsigned int *) &ODCD;
 	} else 
 #endif
 #if ODC_EXIST(E)
 	if(port == (unsigned int) GPIO_PORTE) {
-			ptr = (volatile unsigned int *) ODCE;	
+			ptr = (volatile unsigned int *) &ODCE;	
 	} else 
 #endif
 #if ODC_EXIST(F)
 	if(port == (unsigned int) GPIO_PORTF) {
-			ptr = (volatile unsigned int *) ODCF;
+			ptr = (volatile unsigned int *) &ODCF;
 	} else 
 #endif
 #if ODC_EXIST(G)
 	if(port == (unsigned int) GPIO_PORTG) {
-			ptr = (volatile unsigned int *) ODCG;
+			ptr = (volatile unsigned int *) &ODCG;
 	} 
 #endif
 	else {
