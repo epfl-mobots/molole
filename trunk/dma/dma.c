@@ -48,6 +48,7 @@
 
 #include "dma.h"
 #include "../error/error.h"
+#include "../clock/clock.h"
 
 /*
 switch (channel)
