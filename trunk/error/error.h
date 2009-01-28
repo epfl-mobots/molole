@@ -41,6 +41,12 @@ enum generic_errors
 	GENERIC_ERROR_STACK_SPACE_EXHAUSTED			/**< No more room in stack for requested operation */
 };
 
+// Every molole file which has interrupt include error.h so redefine _ISR here 
+#ifdef _ISR
+#undef _ISR
+#endif
+#define _ISR __attribute__((interrupt,auto_psv))
+
 
 /** Callback when an error occurs */
 typedef void  __attribute__((noreturn)) (*error_callback)(const char * file, int line, int id, void* arg);
