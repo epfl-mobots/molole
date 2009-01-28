@@ -45,6 +45,7 @@
 #include <p33fxxxx.h>
 
 #include "cn.h"
+#include "../error/error.h"
 
 static cn_callback CN_Callback;
 
@@ -59,18 +60,41 @@ static cn_callback CN_Callback;
 			mask of pins that should have weak pull-up
 	\param	callback
 			user-define function to call an change notification interrupt
+	\param  priority
+			Interrupt priority
 */
-void cn_init(unsigned long interrupt_mask, unsigned long pull_up_mask, cn_callback callback)
+void cn_init(unsigned long interrupt_mask, unsigned long pull_up_mask, cn_callback callback, int priority)
 {
+	ERROR_CHECK_RANGE(priority, 1, 7, GENERIC_ERROR_INVALID_INTERRUPT_PRIORITY);
+
 	CNEN1 = (unsigned short)(interrupt_mask);
 	CNEN2 = (unsigned short)(interrupt_mask >> 16);
 	CNPU1 = (unsigned short)(interrupt_mask);
 	CNPU2 = (unsigned short)(interrupt_mask >> 16);
 	
+	
 	CN_Callback = callback;
 	
+	_CNIP = priority;
 	_CNIF = 0;					// Reset CN interrupt
 	_CNIE = 1; 					// Enable CN interrupts
+}
+
+/**
+	Re-Enable Change Notification interrupt
+*/
+
+void cn_enable_interrupt(void) {
+	_CNIF = 0;
+	_CNIE = 1;
+}
+
+/**
+	Disable Change Notification interrupt
+*/
+
+void cn_disable_interrupt(void) {
+	_CNIE = 0;
 }
 
 
@@ -85,11 +109,12 @@ void cn_init(unsigned long interrupt_mask, unsigned long pull_up_mask, cn_callba
 */
 void _ISR _CNInterrupt(void)
 {
-	// Call user-defined function
-	CN_Callback();
-	
 	// Clear CN interrupt flag
 	_CNIF = 0;
+	
+	// Call user-defined function
+	CN_Callback();
+
 }
 
 

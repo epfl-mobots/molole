@@ -37,11 +37,16 @@
 // Defines
 
 /** change notification callback on interrupt */
-typedef void (*cn_callback)();
+typedef void (*cn_callback)(void);
 
 // Functions, doc in the .c
 
-void cn_init(unsigned long interrupt_mask, unsigned long pull_up_mask, cn_callback callback);
+void cn_init(unsigned long interrupt_mask, unsigned long pull_up_mask, cn_callback callback, int priority);
+
+void cn_enable_interrupt(void);
+
+void cn_disable_interrupt(void);
+
 
 /*@}*/
 
