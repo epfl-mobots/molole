@@ -70,6 +70,10 @@ enum oc_modes
 	OC_PWM_WITH_FAULT_PROTECTION		/**< PWM mode with fault protection; PWM mode on OCx, Fault pin is enabled */
 };
 
+
+typedef void (*oc_irq_cb)(int oc_id);
+
+
 // Functions, doc in the .c
 
 void oc_enable(int oc_id, int timer, int mode);
@@ -79,6 +83,10 @@ void oc_disable(int oc_id);
 void oc_set_value(int oc_id, unsigned primary, unsigned secondary);
 
 void oc_set_value_pwm(int oc_id, unsigned duty);
+
+void oc_enable_interrupt(int oc_id, oc_irq_cb cb, int priority);
+
+void oc_disable_interrupt(int oc_id);
 
 /*@}*/
 
