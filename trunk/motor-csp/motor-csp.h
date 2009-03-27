@@ -100,5 +100,170 @@ void motor_csp_step(motor_csp_data * d);
 void motor_csp_init_32(motor_csp_data *d);
 void motor_csp_init_16(motor_csp_data *d);
 
+// Some helper defines for aseba
+
+#define MOTOR_VMDESC(name) 	{ 1, #name ".pid._period"}, \
+							{ 1, #name ".pid.target_current"}, \
+							{ 1, #name ".pid._kp_i"}, \
+							{ 1, #name ".pid._ki_i"}, \
+							{ 1, #name ".pid._scaler_i"}, \
+							{ 1, #name ".pwm"} , \
+							{ 1, #name ".pid._prescaler_s"}, \
+							{ 1, #name ".pid._current_speed" }, \
+							{ 1, #name ".pid.target_speed" }, \
+							{ 1, #name ".pid._kp_s" }, \
+							{ 1, #name ".pid._ki_s" }, \
+							{ 1, #name ".pid._kd_s" }, \
+							{ 1, #name ".pid._scaler_s" }, \
+							{ 1, #name ".pid.speed_max"}, \
+							{ 1, #name ".pid._kp_p" }, \
+							{ 1, #name ".pid._kd_p" }, \
+							{ 1, #name ".pid._scaler_p"}, \
+							{ 2, #name ".pid.target_position"}, \
+							{ 1, #name ".pid.current_max" }, \
+							{ 1, #name ".pid._nominal_current"}, \
+							{ 1, #name ".pid._time_cst"}, \
+							{ 1, #name ".pid.enable"}, \
+							{ 2, #name ".enc.pulse"},
+							
+#define MOTOR_VMVAR(name)		sint16 name##_pid_period; \
+								sint16 name##_current_t; \
+								sint16 name##_kp_i; \
+								sint16 name##_ki_i; \
+								sint16 name##_scaler_i; \
+								sint16 name##_pwm_output; \
+								sint16 name##_prescaler_s; \
+								sint16 name##_speed_read; \
+								sint16 name##_speed_target; \
+								sint16 name##_kp_s; \
+								sint16 name##_ki_s; \
+								sint16 name##_kd_s; \
+								sint16 name##_scaler_s; \
+								sint16 name##_speed_max; \
+								sint16 name##_kp_p; \
+								sint16 name##_kd_p; \
+								sint16 name##_scaler_p; \
+								sint16 name##_position_target[2]; \
+								sint16 name##_current_max; \
+								sint16 name##_current_nominal; \
+								sint16 name##_time_cst;  \
+								sint16 name##_pid_enable; \
+								sint16 name##_position[2];
+								
+								
+							
+#define MOTOR_PRIVSET(name)		int name##_kp_i;					/* 0 */ \
+								int name##_ki_i;					/* 1 */ \
+								int name##_scaler_i;				/* 2 */ \
+								int name##_prescaler_s;				/* 3 */ \
+								int name##_kp_s;					/* 4 */ \
+								int name##_kd_s;					/* 5 */ \
+								int name##_ki_s;					/* 6 */ \
+								int name##_scaler_s;				/* 7 */ \
+								int name##_current_max;				/* 8 */ \
+								int name##_nominal_current;			/* 9 */ \
+								int name##_time_cst;				/* 10 */ \
+								int name##_speed_max;				/* 11 */ \
+								int name##_kp_p;					/* 12 */ \
+								int name##_kd_p;					/* 13 */ \
+								int name##_scaler_p;				/* 14 */ \
+								int name##_pid_period;				/* 15 */ \
+								int name##_raw_current_offset;		/* 16 */
+								
+#define MOTOR_ASEBA_WRITE(name) 	static int name##_old_period; static int name##_old_enable; 							\
+		if(vmVariables.name##_pid_period != name##_old_period || name##_old_enable != vmVariables.name##_pid_enable) { 	\
+		name##_old_period = vmVariables.name##_pid_period; 																\
+		name##_old_enable = vmVariables.name##_pid_enable; 																\
+		if(vmVariables.name##_pid_period && name##_old_enable) { 															\
+			int temp = abs(vmVariables.name##_pid_period);			 													\
+			if(temp > 400) 																									\
+				temp = 400; 																								\
+			switch(name##_old_enable) { 																					\
+				case 1: 																									\
+					name##_pid.enable_s = 0; 																				\
+					name##_pid.enable_p = 0; 																				\
+					break; 																									\
+				case 2: 																									\
+					name##_pid.enable_s = 1; 																				\
+					name##_pid.enable_p = 0; 																				\
+					break; 																									\
+				default: 																									\
+				case 3: 																									\
+					name##_pid.enable_s = 1; 																				\
+					name##_pid.enable_p = 1; 																				\
+					break; 																									\
+			} 																												\
+			name##_pid.kp_s = vmVariables.name##_kp_s; 																	\
+			name##_pid.kd_s = vmVariables.name##_kd_s; 																	\
+			name##_pid.ki_s = vmVariables.name##_ki_s; 																	\
+			name##_pid.scaler_i = vmVariables.name##_scaler_i; 															\
+			name##_pid.prescaler_period = vmVariables.name##_prescaler_s; 												\
+			name##_pid.kp_i = vmVariables.name##_kp_i; 																	\
+			name##_pid.ki_i = vmVariables.name##_ki_i; 																	\
+			name##_pid.scaler_s = vmVariables.name##_scaler_s; 															\
+			if(vmVariables.name##_pid_period > 0) { 																		\
+				if(vmVariables.name##_time_cst > 255L * 128 * vmVariables.name##_pid_period) { 							\
+					name##_pid.time_cst = 255; 																				\
+					vmVariables.name##_time_cst = 255L * 128 * vmVariables.name##_pid_period;	 						\
+				} else { 																									\
+					name##_pid.time_cst = vmVariables.name##_time_cst / (vmVariables.name##_pid_period * 128L); 		\
+				} 																											\
+			} 																												\
+			name##_pid.current_nominal = name##_ma_to_raw(vmVariables.name##_current_nominal); 							\
+			name##_pid.scaler_p = vmVariables.name##_scaler_p; 															\
+			name##_pid.kp_p = vmVariables.name##_kp_p; 																	\
+			name##_pid.kd_p = vmVariables.name##_kd_p; 																	\
+			timer_set_period(name##_PID_TIMER, temp, 3); 																	\
+			timer_enable(name##_PID_TIMER); 																				\
+		} else { 																											\
+			timer_disable(name##_PID_TIMER); 																				\
+		} 																													\
+	} 																														\
+	name##_pid.current_max = name##_ma_to_raw(vmVariables.name##_current_max); 											\
+	name##_pid.current_min = name##_ma_to_raw(-vmVariables.name##_current_max); 											\
+	name##_pid.speed_max = vmVariables.name##_speed_max; 																	\
+	name##_pid.speed_min = -vmVariables.name##_speed_max; 																\
+	if(!name##_pid.enable_s) 																								\
+		name##_pid.current_t = name##_ma_to_raw(vmVariables.name##_current_t); 											\
+	if(!name##_pid.enable_p) 																								\
+		name##_pid.speed_t = vmVariables.name##_speed_target; 															\
+	if(vmVariables.name##_pid_period <= 0)																				\
+		pwm_set_duty(name##_PWM, vmVariables.name##_pwm_output);		
+		
+#define MOTOR_ASEBA_READ(name)	 if(vmVariables.name##_pid_period > 0	 && vmVariables.name##_pid_enable) 				\
+			vmVariables.name##_pwm_output = name##_pid.pwm_output;														\
+		if(name##_pid.enable_s)																								\
+			vmVariables.name##_current_t = name##_raw_to_ma( name##_pid.current_t);										\
+		if(name##_pid.enable_p)																								\
+			vmVariables.name##_speed_target = name##_pid.speed_t;															
+		
+		
+
+		
+#define MOTOR_LOAD_CONF(name) 	name##_pid.kp_s = vmVariables.name##_kp_s = settings.name##_kp_s;						\
+		name##_pid.kd_s = vmVariables.name##_kd_s = settings.name##_kd_s;												\
+		name##_pid.ki_s = vmVariables.name##_ki_s = settings.name##_ki_s;												\
+		name##_pid.scaler_i = vmVariables.name##_scaler_i = settings.name##_scaler_i;									\
+		name##_pid.prescaler_period = vmVariables.name##_prescaler_s = settings.name##_prescaler_s;						\
+		name##_pid.kp_i = vmVariables.name##_kp_i = settings.name##_kp_i;												\
+		name##_pid.ki_i = vmVariables.name##_ki_i = settings.name##_ki_i;												\
+		name##_pid.scaler_s = vmVariables.name##_scaler_s = settings.name##_scaler_s;									\
+		name##_pid.current_max = name##_ma_to_raw(settings.name##_current_max);											\
+		vmVariables.name##_current_max = settings.name##_current_max;													\
+		name##_pid.current_min = - name##_pid.current_max;																	\
+		vmVariables.name##_current_nominal = settings.name##_nominal_current;											\
+		name##_pid.current_nominal = name##_ma_to_raw(settings.name##_nominal_current);									\
+		name##_pid.time_cst = vmVariables.name##_time_cst = settings.name##_time_cst;									\
+		name##_pid.speed_max = vmVariables.name##_speed_max = settings.name##_speed_max;								\
+		name##_pid.kp_p = vmVariables.name##_kp_p = settings.name##_kp_p;												\
+		name##_pid.kd_p = vmVariables.name##_kd_p = settings.name##_kd_p;												\
+		name##_pid.scaler_p = vmVariables.name##_scaler_p = settings.name##_scaler_p;									\
+		name##_raw_current_offset = name##_ma_to_raw(settings.name##_raw_current_offset);									\
+		if(settings.name##_pid_period > 0 && settings.name##_pid_period < 400) {										\
+			vmVariables.name##_pid_period = settings.name##_pid_period;													\
+			/*timer_set_period( name##_PID_TIMER, vmVariables.name##_pid_period, 3);*/										\
+			vmVariables.name##_pid_enable = 0;																			\
+			/*timer_enable(name##_PID_TIMER);*/																					\
+		}												
 #endif
 
