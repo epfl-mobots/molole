@@ -28,7 +28,7 @@
 #include "../types/types.h"
 #include "../gpio/gpio.h"
 
-/** \addtogroup uart */
+/** \addtogroup uart_soft_fc */
 /*@{*/
 
 /** \file

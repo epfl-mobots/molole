@@ -27,52 +27,13 @@
 //--------------------
 
 /**
-	\defgroup uart UART
+	\defgroup uart_soft_fc UART With software flow control
 	
 	Wrappers around UART, with a callback oriented interface.
 	
 	\section Usage
 	
-	The following codes echos incoming data on both UARTs:
-\code
-// for Idle()
-#include <p33fxxxx.h>
-// use several molole libraries
-#include <types/types.h>
-#include <error/error.h>
-#include <uart/uart.h>
-#include <clock/clock.h>
-
-// functions for callbacks
-bool uart_byte_received(int uart_id, unsigned char data)
-{
-	uart_transmit_byte(uart_id, data);
-	return true;
-}
-
-bool uart_byte_transmitted(int uart_id, unsigned char* data)
-{
-	return false;
-}
-
-int main(void)
-{
-	// initialise clocks
-	clock_init_internal_rc();
-	
-	// initialise both UART at 115200, no flow control
-	uart_init(UART_1, 115200, false, uart_byte_received, uart_byte_transmitted, 1, 0);
-	uart_init(UART_2, 115200, false, uart_byte_received, uart_byte_transmitted, 1, 0);
-	
-	// sleep
-	while(1) 
-	{
-		Idle();	// do nothing
-	}
-	return 0;
-}
-\endcode
-Note that if flow control is disabled and if data are not read in time, they are silently dropped.
+	The usage is the same as the normal uart module. Only the init routine change.
 */
 /*@{*/
 
