@@ -46,6 +46,7 @@
 
 #include <p33fxxxx.h>
 
+#include "../clock/clock.h" // Idle() macro
 #include "serial-io.h"
 #include "../error/error.h"
 
