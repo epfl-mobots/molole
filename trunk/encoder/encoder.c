@@ -321,6 +321,47 @@ void encoder_step(int type)
 	}
 }
 
+/**
+	Reset the encoder position and speed.
+	
+	\param	type
+			Type of encoder, either hardware or software, one of \ref encoder_type.
+*/
+void encoder_reset(int type)
+{
+	int flags;
+	switch(type){
+		case ENCODER_TIMER_1 ... ENCODER_TIMER_9:
+			// FIXME: disable only the encoder interrupts (timer/IC)
+			RAISE_IPL(flags, Software_Encoder_Data[type].ipl);
+			// Reset internal state
+			timer_set_value(type, 0);
+			Software_Encoder_Data[type].tpos = 0;
+			
+			// Reset external position
+			*(Software_Encoder_Data[type].speed) = 0;
+			*(Software_Encoder_Data[type].pos) = 0;
+			
+			IRQ_ENABLE(flags);		
+			break;
+		case ENCODER_TYPE_HARD:
+			// FIXME: disable only the encoder interrupt
+			RAISE_IPL(flags, QEI_Encoder_Data.ipl);
+			
+			QEI_Encoder_Data.high_word = 0;
+			POS1CNT = 0;
+			QEI_Encoder_Data.poscnt_b15 = 0;
+			
+			*QEI_Encoder_Data.speed = 0;
+			*QEI_Encoder_Data.pos = 0;
+			
+			IRQ_ENABLE(flags);	
+			break;
+		default:
+			ERROR(ENCODER_INVALID_TYPE, &type);
+	}	
+}
+
 //! Callback for Input Capture 
 static void ic_tmr2_cb(int __attribute__((unused)) foo, unsigned int value, void * __attribute__((unused)) bar)
 {
