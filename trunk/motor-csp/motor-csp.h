@@ -217,6 +217,7 @@ void motor_csp_init_16(motor_csp_data *d);
 			timer_enable(name##_PID_TIMER); 																				\
 		} else { 																											\
 			timer_disable(name##_PID_TIMER); 																				\
+			pwm_set_duty(name##_PWM, 0);																					\
 		} 																													\
 	} 																														\
 	name##_pid.current_max = name##_ma_to_raw(vmVariables.name##_current_max); 											\
