@@ -53,13 +53,18 @@ static void __attribute__((always_inline)) s_control(motor_csp_data *d) {
 		output = __builtin_divsd(temp, d->scaler_s);
 		if(SR & 0x4) {
 			// Overflows flag. Mean that 16 bits is not enough
-			if(output > 0) 
+			if(temp > 0) 
 				output = d->current_max;
 			else
 				output = d->current_min;
 		}
 	} else {
-		output = (int) temp;
+		if(temp > 32767)
+			output = d->current_max;
+		else if(temp < -32768)
+			output = d->current_min;
+		else
+			output = (int) temp;
 	}
 	if(d->_over_status) {
 		if(output > d->current_nominal) {
@@ -119,13 +124,18 @@ static void __attribute__((always_inline)) p_control_32(motor_csp_data *d) {
 		output = __builtin_divsd(temp, d->scaler_p);
 		if(SR & 0x4) {
 			// Overflow flag. Mean that 16 bits is not enough
-			if(output > 0) 
+			if(temp > 0) 
 				output = d->speed_max;
 			else
 				output = d->speed_min;
 		}
 	} else {
-		output = (int) temp;
+		if(temp > 32767)
+			output = d->speed_max;
+		else if(temp < -32768)
+			output = d->speed_min;
+		else 
+			output = (int) temp;
 	}
 		
 	d->speed_t = output;
@@ -148,13 +158,18 @@ static void __attribute__((always_inline)) p_control_16(motor_csp_data *d) {
 		output = __builtin_divsd(temp, d->scaler_p);
 		if(SR & 0x4) {
 			// Overflow flag. Mean that 16 bits is not enough
-			if(output > 0) 
-				output = d->speed_max+1;
+			if(temp > 0) 
+				output = d->speed_max;
 			else
-				output = d->speed_min-1;
+				output = d->speed_min;
 		}
 	} else {
-		output = (int) temp;
+		if (temp > 32767)
+			output = d->speed_max;
+		else if(temp < -32768)
+			output = d->speed_min;
+		else
+			output = (int) temp;
 	}
 	
 	if(output > d->speed_max)
