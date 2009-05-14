@@ -173,6 +173,8 @@ void flash_erase_page(unsigned long addr) {
 	TBLPAG = tmp;
 }
 
+static unsigned long _errata_latch_d[4];
+
 void flash_prepare_write(unsigned long addr) {
 	if(addr & (INSTRUCTIONS_PER_ROW * 2 - 1)) 
 		ERROR(FLASH_UNALIGNED_ADDRESS, &addr);
@@ -183,13 +185,27 @@ void flash_prepare_write(unsigned long addr) {
 	TBLPAG = addr >> 16;
 	NVMCON = PROGRAM_ROW;
 }
+void __fixup_errata(void) {
+	int i;
+	unsigned long fixup_addr = current_addr - 128; // Get the row base address
+	fixup_addr |= 0x18; // errata address
+
+	for(i = 0; i < 4; i++) {
+		tblwtl((fixup_addr | (i << 5)) & 0xFFFF, _errata_latch_d[i] & 0xFFFF);
+		tblwth((fixup_addr | (i << 5)) & 0xFFFF, _errata_latch_d[i] >> 16);
+	}
+}
 
 void flash_write_instruction(unsigned long data) {
+	if((current_addr & 0x1F) == 0x18) 
+		_errata_latch_d[(current_addr >> 5) & 0x3] = data;
+	
 	tblwtl(current_addr & 0xFFFF, data & 0xFFFF);
 	tblwth(current_addr & 0xFFFF, data >> 16);
 	current_addr += 2;
 	row_counter++;
 	if(row_counter == INSTRUCTIONS_PER_ROW) {
+		__fixup_errata();
 		do_key_seq(); 
 		TBLPAG = current_addr >> 16; 
 		NVMCON = PROGRAM_ROW;
@@ -216,5 +232,6 @@ void flash_write_buffer(unsigned char * data, size_t size) {
 void flash_complete_write(void) {
 	while(row_counter) 
 		flash_write_instruction(0xFFFFFFFF);
+	TBLPAG = saved_tblpag;
 }
 
