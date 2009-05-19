@@ -148,7 +148,7 @@ void spi_start_transfert(int spi_id, void * tx_buffer, void * rx_buffer, unsigne
 					spi_status[0].data_size == SPI_TRSF_BYTE ? DMA_SIZE_BYTE : DMA_SIZE_WORD,
 					DMA_DIR_FROM_PERIPHERAL_TO_RAM, DMA_INTERRUPT_AT_FULL, DMA_DO_NOT_NULL_WRITE_TO_PERIPHERAL,
 					DMA_ADDRESSING_REGISTER_INDIRECT_POST_INCREMENT, DMA_OPERATING_ONE_SHOT,
-					rx_buffer, 0, (void *) &SPI1BUF, xch_count, spi1_dma_cb);
+					rx_buffer, 0, (void *) &SPI1BUF, xch_count, 0);
 
 				dma_enable_channel(spi_status[0].dma_rx);
 			}
@@ -157,7 +157,7 @@ void spi_start_transfert(int spi_id, void * tx_buffer, void * rx_buffer, unsigne
 				spi_status[0].data_size == SPI_TRSF_BYTE ? DMA_SIZE_BYTE : DMA_SIZE_WORD,
 				DMA_DIR_FROM_RAM_TO_PERIPHERAL, DMA_INTERRUPT_AT_FULL, DMA_DO_NOT_NULL_WRITE_TO_PERIPHERAL,
 				DMA_ADDRESSING_REGISTER_INDIRECT_POST_INCREMENT, DMA_OPERATING_ONE_SHOT,
-				tx_buffer, 0, (void *) &SPI1BUF, xch_count, 0);
+				tx_buffer, 0, (void *) &SPI1BUF, xch_count, spi1_dma_cb);
 			start_tx_dma = spi_status[0].dma_tx;
 
 			dma_enable_channel(spi_status[0].dma_tx);
@@ -197,7 +197,7 @@ void spi_start_transfert(int spi_id, void * tx_buffer, void * rx_buffer, unsigne
 					spi_status[1].data_size == SPI_TRSF_BYTE ? DMA_SIZE_BYTE : DMA_SIZE_WORD,
 					DMA_DIR_FROM_PERIPHERAL_TO_RAM, DMA_INTERRUPT_AT_FULL, DMA_DO_NOT_NULL_WRITE_TO_PERIPHERAL,
 					DMA_ADDRESSING_REGISTER_INDIRECT_POST_INCREMENT, DMA_OPERATING_ONE_SHOT,
-					rx_buffer, 0, (void *) &SPI2BUF, xch_count, spi2_dma_cb);
+					rx_buffer, 0, (void *) &SPI2BUF, xch_count, 0);
 
 				dma_enable_channel(spi_status[1].dma_rx);
 			}
@@ -206,7 +206,7 @@ void spi_start_transfert(int spi_id, void * tx_buffer, void * rx_buffer, unsigne
 				spi_status[1].data_size == SPI_TRSF_BYTE ? DMA_SIZE_BYTE : DMA_SIZE_WORD,
 				DMA_DIR_FROM_RAM_TO_PERIPHERAL, DMA_INTERRUPT_AT_FULL, DMA_DO_NOT_NULL_WRITE_TO_PERIPHERAL,
 				DMA_ADDRESSING_REGISTER_INDIRECT_POST_INCREMENT, DMA_OPERATING_ONE_SHOT,
-				tx_buffer, 0, (void *) &SPI2BUF, xch_count, 0);
+				tx_buffer, 0, (void *) &SPI2BUF, xch_count, spi2_dma_cb);
 			start_tx_dma = spi_status[1].dma_tx;
 
 			dma_enable_channel(spi_status[1].dma_tx);
