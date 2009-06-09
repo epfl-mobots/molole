@@ -34,6 +34,8 @@
 
 // Defines
 
+#define OC_EXIST(p) (defined _OC## p ##IF)		// macro to check if an input capture channel exists in this particular dsPIC model
+
 /** Errors Output Compare can throw */
 enum oc_errors
 {
