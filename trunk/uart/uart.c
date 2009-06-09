@@ -174,8 +174,6 @@ void uart_init(int uart_id, unsigned long baud_rate, bool hardware_flow_control,
 		else
 			U1MODEbits.UEN = 0;	// Do not do any hardware flow control. RTS and CTS are left as GPIO
 			
-		
-		
 		// Setup interrupts
 		_U1RXIF = 0;			// clear the reception interrupt
 		_U1RXIP = priority;   	// set the reception interrupt priority
@@ -376,7 +374,6 @@ void uart_enable_tx_interrupt(int uart_id, int flags) {
 void _ISR _U1RXInterrupt(void)
 {
 	_U1RXIF = 0;			// Clear reception interrupt flag
-
 	if (!UART_1_Data.user_program_busy)
 	{
 		while(U1STAbits.URXDA)
