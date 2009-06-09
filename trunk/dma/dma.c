@@ -163,10 +163,7 @@ void dma_init_channel(int channel, int request_source, int data_size, int transf
 	ERROR_CHECK_RANGE(addressing_mode, 0, 2, DMA_ERROR_INVALID_ADDRESSING_MODE);
 	ERROR_CHECK_RANGE(operating_mode, 0, 3, DMA_ERROR_INVALID_OPERATING_MODE);
 	
-	// Work around Errata 38 at the expense of energy consumption
-	if ((operating_mode == DMA_OPERATING_ONE_SHOT) || (operating_mode == DMA_OPERATING_ONE_SHOT_PING_PONG))
-		clock_disable_idle();
-	
+
 	// setup DMA
 	switch (channel)
 	{
@@ -429,14 +426,56 @@ void dma_enable_channel(int channel)
 {
 	switch (channel)
 	{
-		case DMA_CHANNEL_0: DMA0CONbits.CHEN  = 1; break;
-		case DMA_CHANNEL_1: DMA1CONbits.CHEN  = 1; break;
-		case DMA_CHANNEL_2: DMA2CONbits.CHEN  = 1; break;
-		case DMA_CHANNEL_3: DMA3CONbits.CHEN  = 1; break;
-		case DMA_CHANNEL_4: DMA4CONbits.CHEN  = 1; break;
-		case DMA_CHANNEL_5: DMA5CONbits.CHEN  = 1; break;
-		case DMA_CHANNEL_6: DMA6CONbits.CHEN  = 1; break;
-		case DMA_CHANNEL_7: DMA7CONbits.CHEN  = 1; break;
+		case DMA_CHANNEL_0: 
+			DMA0CONbits.CHEN  = 1; 
+			// Errata 38
+			if((DMA0CONbits.MODE == DMA_OPERATING_ONE_SHOT) || (DMA0CONbits.MODE == DMA_OPERATING_ONE_SHOT_PING_PONG)) 
+				clock_disable_idle();
+			break;
+			
+		case DMA_CHANNEL_1: 
+			DMA1CONbits.CHEN  = 1; 
+			// Errata 38
+			if((DMA1CONbits.MODE == DMA_OPERATING_ONE_SHOT) || (DMA1CONbits.MODE == DMA_OPERATING_ONE_SHOT_PING_PONG)) 
+				clock_disable_idle();
+			break;
+
+		case DMA_CHANNEL_2: 
+			DMA2CONbits.CHEN  = 1; 
+			// Errata 38
+			if((DMA2CONbits.MODE == DMA_OPERATING_ONE_SHOT) || (DMA2CONbits.MODE == DMA_OPERATING_ONE_SHOT_PING_PONG)) 
+				clock_disable_idle();
+			break;
+		case DMA_CHANNEL_3: 
+			DMA3CONbits.CHEN  = 1; 
+			// Errata 38
+			if((DMA3CONbits.MODE == DMA_OPERATING_ONE_SHOT) || (DMA3CONbits.MODE == DMA_OPERATING_ONE_SHOT_PING_PONG)) 
+				clock_disable_idle();
+			break;
+		case DMA_CHANNEL_4:
+			DMA4CONbits.CHEN  = 1; 
+			// Errata 38
+			if((DMA4CONbits.MODE == DMA_OPERATING_ONE_SHOT) || (DMA4CONbits.MODE == DMA_OPERATING_ONE_SHOT_PING_PONG)) 
+				clock_disable_idle();
+			break;
+		case DMA_CHANNEL_5: 
+			DMA5CONbits.CHEN  = 1; 
+			// Errata 38
+			if((DMA5CONbits.MODE == DMA_OPERATING_ONE_SHOT) || (DMA5CONbits.MODE == DMA_OPERATING_ONE_SHOT_PING_PONG)) 
+				clock_disable_idle();
+			break;
+		case DMA_CHANNEL_6:
+			DMA6CONbits.CHEN  = 1; 
+			// Errata 38
+			if((DMA6CONbits.MODE == DMA_OPERATING_ONE_SHOT) || (DMA6CONbits.MODE == DMA_OPERATING_ONE_SHOT_PING_PONG)) 
+				clock_disable_idle();
+			break;
+		case DMA_CHANNEL_7: 
+			DMA7CONbits.CHEN  = 1; 
+			// Errata 38
+			if((DMA7CONbits.MODE == DMA_OPERATING_ONE_SHOT) || (DMA7CONbits.MODE == DMA_OPERATING_ONE_SHOT_PING_PONG)) 
+				clock_disable_idle();
+			break;
 		default: ERROR(DMA_ERROR_INVALID_CHANNEL, &channel);
 	}
 }
@@ -451,14 +490,56 @@ void dma_disable_channel(int channel)
 {
 	switch (channel)
 	{
-		case DMA_CHANNEL_0: DMA0CONbits.CHEN  = 0; break;
-		case DMA_CHANNEL_1: DMA1CONbits.CHEN  = 0; break;
-		case DMA_CHANNEL_2: DMA2CONbits.CHEN  = 0; break;
-		case DMA_CHANNEL_3: DMA3CONbits.CHEN  = 0; break;
-		case DMA_CHANNEL_4: DMA4CONbits.CHEN  = 0; break;
-		case DMA_CHANNEL_5: DMA5CONbits.CHEN  = 0; break;
-		case DMA_CHANNEL_6: DMA6CONbits.CHEN  = 0; break;
-		case DMA_CHANNEL_7: DMA7CONbits.CHEN  = 0; break;
+		case DMA_CHANNEL_0: 
+			DMA0CONbits.CHEN  = 0; 
+			// Errata 38
+			if((DMA0CONbits.MODE == DMA_OPERATING_ONE_SHOT) || (DMA0CONbits.MODE == DMA_OPERATING_ONE_SHOT_PING_PONG)) 
+				clock_enable_idle();
+			break;
+			
+		case DMA_CHANNEL_1: 
+			DMA1CONbits.CHEN  = 0; 
+			// Errata 38
+			if((DMA1CONbits.MODE == DMA_OPERATING_ONE_SHOT) || (DMA1CONbits.MODE == DMA_OPERATING_ONE_SHOT_PING_PONG)) 
+				clock_enable_idle();
+			break;
+
+		case DMA_CHANNEL_2: 
+			DMA2CONbits.CHEN  = 0; 
+			// Errata 38
+			if((DMA2CONbits.MODE == DMA_OPERATING_ONE_SHOT) || (DMA2CONbits.MODE == DMA_OPERATING_ONE_SHOT_PING_PONG)) 
+				clock_enable_idle();
+			break;
+		case DMA_CHANNEL_3: 
+			DMA3CONbits.CHEN  = 0; 
+			// Errata 38
+			if((DMA3CONbits.MODE == DMA_OPERATING_ONE_SHOT) || (DMA3CONbits.MODE == DMA_OPERATING_ONE_SHOT_PING_PONG)) 
+				clock_enable_idle();
+			break;
+		case DMA_CHANNEL_4:
+			DMA4CONbits.CHEN  = 0; 
+			// Errata 38
+			if((DMA4CONbits.MODE == DMA_OPERATING_ONE_SHOT) || (DMA4CONbits.MODE == DMA_OPERATING_ONE_SHOT_PING_PONG)) 
+				clock_enable_idle();
+			break;
+		case DMA_CHANNEL_5: 
+			DMA5CONbits.CHEN  = 0; 
+			// Errata 38
+			if((DMA5CONbits.MODE == DMA_OPERATING_ONE_SHOT) || (DMA5CONbits.MODE == DMA_OPERATING_ONE_SHOT_PING_PONG)) 
+				clock_enable_idle();
+			break;
+		case DMA_CHANNEL_6:
+			DMA6CONbits.CHEN  = 0; 
+			// Errata 38
+			if((DMA6CONbits.MODE == DMA_OPERATING_ONE_SHOT) || (DMA6CONbits.MODE == DMA_OPERATING_ONE_SHOT_PING_PONG)) 
+				clock_enable_idle();
+			break;
+		case DMA_CHANNEL_7: 
+			DMA7CONbits.CHEN  = 0; 
+			// Errata 38
+			if((DMA7CONbits.MODE == DMA_OPERATING_ONE_SHOT) || (DMA7CONbits.MODE == DMA_OPERATING_ONE_SHOT_PING_PONG)) 
+				clock_enable_idle();
+			break;
 		default: ERROR(DMA_ERROR_INVALID_CHANNEL, &channel);
 	}
 }
