@@ -66,6 +66,8 @@ unsigned clock_get_target_bogomips();
 
 void clock_disable_idle();
 
+void clock_enable_idle();
+
 void clock_idle();
 
 void clock_delay_us(unsigned int us);

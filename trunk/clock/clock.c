@@ -58,6 +58,7 @@
 #include <p33fxxxx.h>
 
 #include "clock.h"
+#include "../types/types.h"
 
 
 //-----------------------
@@ -91,6 +92,14 @@ void clock_init_internal_rc_from_n1_m_n2(unsigned n1, unsigned m, unsigned n2)
 	// The dsPIC33 internal oscillator is rated at 7.37 MHz.
 	const unsigned long fin = 7370000;
 	
+	// Make sure we are on a "safe" oscillator (internal RC w/o pll)
+	__builtin_write_OSCCONH(CLOCK_FRC); 
+	__builtin_write_OSCCONL(OSCCONL | 0x1); // Initiate the switch
+	
+	// Wait for the switch to complete
+	while(OSCCONbits.OSWEN)
+		barrier();
+	
 	_PLLPRE = n1 - 2;
 	_PLLDIV = m - 2;
 	switch (n2)
@@ -102,16 +111,16 @@ void clock_init_internal_rc_from_n1_m_n2(unsigned n1, unsigned m, unsigned n2)
 	}
 	
 	// New oscillator selection bits
-	asm volatile ("MOV #%0, w0 \n MOV #OSCCONH, w1 \n MOV #0x78, w2 \n MOV #0x9A, w3 \n MOV.b w2, [w1] \n MOV.b w3, [w1] \n MOV.b w0, [w1]" 
-			: /* no outputs */ 
-			: "i"(CLOCK_FRCPLL));
-
-	// Request switch of clock to new oscillator source
-	asm volatile ("MOV #0x01, w0 \n MOV #OSCCONL, w1 \n MOV #0x46, w2 \n MOV #0x57, w3 \n MOV.b w2, [w1] \n MOV.b w3, [w1] \n MOV.b w0, [w1]");
+	__builtin_write_OSCCONH(CLOCK_FRCPLL); 
+	__builtin_write_OSCCONL(OSCCONL | 0x1); // Initiate the switch
 
 	// Wait for PLL to lock
 	while(OSCCONbits.LOCK!=1)
-		{};
+		barrier();
+		
+	// Wait for the switch to complete
+	while(OSCCONbits.OSWEN)
+		barrier();
 	
 	// Compute cycle frequency
 	unsigned long fosc = (fin * (unsigned long)m) / ((unsigned long)n1 * (unsigned long)n2);
@@ -171,22 +180,33 @@ unsigned clock_get_target_bogomips()
 	return Clock_Data.target_bogomips;
 }
 
-static bool clock_idle_enabled = true;
+static int clock_idle_disabled = 1000; // Non-zero so we can detect underflow
 
 /**
 	Disable use of idle mode, if using buggy DMA, see Errata 38.
 */
 void clock_disable_idle()
 {
-	clock_idle_enabled = false;
+	// Ok, it's not atomic, but it's not a problem since we have a huge margin
+	if(clock_idle_disabled <= 2000 && clock_idle_disabled >= 1000) { // too many nesting or underflow
+		atomic_add(&clock_idle_disabled, 1);
+	}
 }
+
+void clock_enable_idle()
+{
+	if(clock_idle_disabled <= 2000 && clock_idle_disabled >= 1000) {
+		atomic_add(&clock_idle_disabled, -1);
+	}
+}
+		
 
 /**
 	Put the processor in Idle mode, or, if it was disactivated by clock_disable_idle(), just return.
 */
 void clock_idle()
 {
-	if (clock_idle_enabled)
+	if (clock_idle_disabled == 1000)
 		__asm__ volatile ("pwrsav #1");
 }
 
