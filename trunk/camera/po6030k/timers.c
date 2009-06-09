@@ -143,7 +143,7 @@ void po6030k_init_cam(unsigned char * port, gpio cam_reset, int timer, int ic, i
 
 	gpio_write(cam_reset, true);
 	// wait so the camera finish the reset
-	clock_delay_us(1);
+	clock_delay_us(1000);
 
 	/* Test if this is really a po6030k CAM */
 	if(!i2c_read(I2C_1, PO6030K_DEVICE_ID, 0x0, r, 2) || r[0] != 0x60 || r[1] != 0x30) {
@@ -166,7 +166,7 @@ void po6030k_reset(void) {
 		
 	gpio_write(cam_r, true);
 	// wait so the camera finish the reset
-	clock_delay_us(1);
+	clock_delay_us(1000);
 }	
 
 
