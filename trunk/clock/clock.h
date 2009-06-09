@@ -36,6 +36,19 @@
 	\brief Clock configuration
 */
 
+// defines
+
+// oscillator selection: Fast RC or External Clock
+enum clock_type {
+	CLOCK_FRC = 0,		// Fast RC oscillator (FRC)
+	CLOCK_FRCPLL,			// Fast RC oscillator (FRC) with PLL
+	CLOCK_PRIM,			// Primary oscillator (XT, HS, EC)
+	CLOCK_PRIMPLL,		// Primary oscillator (XT, HS, EC) with PLL
+	CLOCK_SEC,			// Secondary oscillator (SOSC)
+	CLOCK_LOW,			// Low-Power RC oscillator (LPRC)
+	CLOCK_FRCDIV16,		// Fast RC oscillator (FRC) with Divide-by-16
+	CLOCK_FRCDIVN,		// Fast RC oscillator (FRC) with Divide-by-n
+};
 
 // Functions, doc in the .c
 

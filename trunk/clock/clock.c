@@ -101,6 +101,14 @@ void clock_init_internal_rc_from_n1_m_n2(unsigned n1, unsigned m, unsigned n2)
 		default: _PLLPOST = 0;
 	}
 	
+	// New oscillator selection bits
+	asm volatile ("MOV #%0, w0 \n MOV #OSCCONH, w1 \n MOV #0x78, w2 \n MOV #0x9A, w3 \n MOV.b w2, [w1] \n MOV.b w3, [w1] \n MOV.b w0, [w1]" 
+			: /* no outputs */ 
+			: "i"(CLOCK_FRCPLL));
+
+	// Request switch of clock to new oscillator source
+	asm volatile ("MOV #0x01, w0 \n MOV #OSCCONL, w1 \n MOV #0x46, w2 \n MOV #0x57, w3 \n MOV.b w2, [w1] \n MOV.b w3, [w1] \n MOV.b w0, [w1]");
+
 	// Wait for PLL to lock
 	while(OSCCONbits.LOCK!=1)
 		{};
