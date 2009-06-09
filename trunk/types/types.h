@@ -112,6 +112,8 @@ enum irq_prio
 /** Atomic or operation to prevent race conditions inside interrupts: *x = (*x) | y */
 #define atomic_or(x,y) do { __asm__ volatile ("ior.w %[yy], [%[xx]], [%[xx]]" : : [xx] "r" (x), [yy] "r"(y): "cc","memory"); } while(0)
 
+/** Atomic addition *x = (*x) + y */
+#define atomic_add(x,y) do { __asm__ volatile ("add.w %[yy], [%[xx]], [%[xx]]": : [xx] "r" (x), [yy] "r"(y): "cc","memory"); } while(0)
 
 /*@}*/
 
