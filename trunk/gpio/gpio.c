@@ -34,7 +34,6 @@
 	LATx
 */
 
-
 #define ODC_EXIST(p) ((defined _ODC## p ##0) || (defined _ODC## p ##1) || (defined _ODC## p ##2) || (defined _ODC## p ##3) || (defined _ODC## p ##4) || (defined _ODC## p ##5)  || (defined _ODC## p ##6) || (defined _ODC## p ##7) || (defined _ODC## p ##8) || (defined _ODC## p ##8) || (defined _ODC## p ##9) || (defined _ODC## p ##10) || (defined _ODC## p ##11) || (defined _ODC## p ##12) || (defined _ODC## p ##13) || (defined _ODC## p ##14) || (defined _ODC## p ##15))
 
 /** 
@@ -90,9 +89,9 @@ void gpio_set_opendrain(gpio gpio_id, int opendrain) {
 #if ODC_EXIST(G)
 	if(port == (unsigned int) GPIO_PORTG) {
 			ptr = (volatile unsigned int *) &ODCG;
-	} 
+	} else
 #endif
-	else {
+	{
 			ERROR(GPIO_INVALID_GPIO, &gpio_id);	
 	}
 
