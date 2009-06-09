@@ -48,6 +48,7 @@ static struct {
 	int data_size;
 	gpio ss;
 	int waiting;
+	int rxtx;
 } spi_status[2];
 
 
@@ -60,6 +61,11 @@ static struct {
 static void spi1_dma_cb(int __attribute__((unused)) channel, bool __attribute__((unused)) first_buffer) {
 	gpio_write(spi_status[0].ss, true);
 	
+	if(spi_status[0].rxtx & 0x1)
+		dma_disable_channel(spi_status[0].dma_tx);
+	if(spi_status[0].rxtx & 0x2)
+		dma_disable_channel(spi_status[0].dma_rx);
+	
 	if(spi_status[0].callback) 
 		spi_status[0].callback(SPI_1);
 }
@@ -67,6 +73,12 @@ static void spi1_dma_cb(int __attribute__((unused)) channel, bool __attribute__(
 /** Callback of the spi2 DMA interrupt */
 static void spi2_dma_cb(int __attribute__((unused)) channel, bool __attribute__((unused)) first_buffer) {
 	gpio_write(spi_status[1].ss, true);
+
+	if(spi_status[1].rxtx & 0x1)
+		dma_disable_channel(spi_status[1].dma_tx);
+	if(spi_status[1].rxtx & 0x2)
+		dma_disable_channel(spi_status[1].dma_rx);
+	
 
 	if(spi_status[1].callback) 
 		spi_status[1].callback(SPI_2);
@@ -138,10 +150,13 @@ void spi_start_transfert(int spi_id, void * tx_buffer, void * rx_buffer, unsigne
 					DMA_DIR_FROM_PERIPHERAL_TO_RAM, DMA_INTERRUPT_AT_FULL, DMA_WRITE_NULL_TO_PERIPHERAL,
 					DMA_ADDRESSING_REGISTER_INDIRECT_POST_INCREMENT, DMA_OPERATING_ONE_SHOT,
 					rx_buffer, 0, (void *) &SPI1BUF, xch_count, spi1_dma_cb);
+			spi_status[0].rxtx = 2;
 			dma_enable_channel(spi_status[0].dma_rx);
 			start_tx_dma = -1;
+			
 	
 		} else {
+			spi_status[0].rxtx = 1;
 			if(rx_buffer) {
 				/* configure RX DMA channel */
 				dma_init_channel(spi_status[0].dma_rx, DMA_INTERRUPT_SOURCE_SPI_1, 	
@@ -151,6 +166,8 @@ void spi_start_transfert(int spi_id, void * tx_buffer, void * rx_buffer, unsigne
 					rx_buffer, 0, (void *) &SPI1BUF, xch_count, 0);
 
 				dma_enable_channel(spi_status[0].dma_rx);
+				spi_status[0].rxtx |= 2;
+				
 			}
 			/* Configure TX DMA channel */
 			dma_init_channel(spi_status[0].dma_tx, DMA_INTERRUPT_SOURCE_SPI_1, 	
@@ -187,10 +204,12 @@ void spi_start_transfert(int spi_id, void * tx_buffer, void * rx_buffer, unsigne
 					DMA_DIR_FROM_PERIPHERAL_TO_RAM, DMA_INTERRUPT_AT_FULL, DMA_WRITE_NULL_TO_PERIPHERAL,
 					DMA_ADDRESSING_REGISTER_INDIRECT_POST_INCREMENT, DMA_OPERATING_ONE_SHOT,
 					rx_buffer, 0, (void *) &SPI2BUF, xch_count, spi2_dma_cb);
+			spi_status[1].rxtx = 2;
 			dma_enable_channel(spi_status[1].dma_rx);
 			start_tx_dma = -1;
 	
 		} else {
+			spi_status[1].rxtx = 1;
 			if(rx_buffer) {
 				/* configure RX DMA channel */
 				dma_init_channel(spi_status[1].dma_rx, DMA_INTERRUPT_SOURCE_SPI_2, 	
@@ -200,6 +219,7 @@ void spi_start_transfert(int spi_id, void * tx_buffer, void * rx_buffer, unsigne
 					rx_buffer, 0, (void *) &SPI2BUF, xch_count, 0);
 
 				dma_enable_channel(spi_status[1].dma_rx);
+				spi_status[1].rxtx |= 2;
 			}
 			/* Configure TX DMA channel */
 			dma_init_channel(spi_status[1].dma_tx, DMA_INTERRUPT_SOURCE_SPI_2, 	
@@ -391,7 +411,7 @@ void spi_transfert_sync(int spi_id, void * tx_buffer, void * rx_buffer, unsigned
 	spi_status[spi_id].waiting = 1;
 	spi_start_transfert(spi_id, tx_buffer, rx_buffer, xch_count, ss, spi_dummy_wait);
 	while(spi_status[spi_id].waiting)
-		Idle();
+		barrier(); // Cannot use Idle, since there is a race between the check on waiting and the pwrsv instruction
 }
 	
 void spi_init_slave(int spi_id, int transfert_mode, int polarity, int data_out_mode, spi_slave_data_cb data_cb, int priority) {
