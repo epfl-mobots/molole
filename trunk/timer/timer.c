@@ -764,6 +764,46 @@ bool timer_force_interrupt(int id)
 	return ret;
 }
 
+/**
+	Get the interrupt flag status of the timer
+	
+	\param	id
+			The timer can be one of the 16-bits timer (\ref TIMER_1 -> \ref TIMER_9) or one of the 32-bits timer (\ref TIMER_23 -> \ref TIMER_89).
+
+	\return 
+			\true if the timer interrupt flag was active, false otherwise
+*/
+bool timer_get_if(int id)
+{
+	switch(id)
+	{
+		case TIMER_1:
+			return _T1IF;
+		case TIMER_2:
+			return _T2IF;
+		case TIMER_23:
+		case TIMER_3:
+			return _T3IF;
+		case TIMER_4:
+			return _T4IF;
+		case TIMER_45:
+		case TIMER_5:
+			return _T5IF;
+		case TIMER_6:
+			return _T6IF;
+		case TIMER_67:
+		case TIMER_7:
+			return _T7IF;
+		case TIMER_8:
+			return _T8IF;
+		case TIMER_89:
+		case TIMER_9:
+			return _T9IF;
+		default:
+			ERROR(TIMER_ERROR_INVALID_TIMER_ID, &id);
+			break;
+	}
+}
 
 
 /**

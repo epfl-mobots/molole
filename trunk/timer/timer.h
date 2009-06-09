@@ -112,6 +112,8 @@ void timer_disable_interrupt(int id);
 
 bool timer_force_interrupt(int id);
 
+bool timer_get_if(int id);
+
 /*@}*/
 
 #endif
