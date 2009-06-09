@@ -81,7 +81,7 @@ void adc1_init_scan_dma(unsigned long inputs, int start_conversion_event, int sa
 
 void adc1_enable();
 
-void adc2_disable();
+void adc1_disable();
 
 void adc2_init_simple(adc_simple_callback callback, int priority, unsigned int inputs, int sample_time);
 

@@ -231,7 +231,7 @@ unsigned log_2(unsigned value)
 	\param	buffers_size
 			Size of memory buffers (in amount of int, i.e. 2 bytes)
 	\param	buffer_build_mode
-			DMA Buffer Build Mode, must be one of \ref adc_dma_buffer_build_mode .
+			DMA Buffer Build Mode, must be one of \ref adc_dma_buffer_build_mode . If one shot mode, the adc is not started, use adc1_enable() to start the transfert.
 	\param	callback
 			User-specified function to call when a buffer filled. If 0, DMA interrupt is disabled
 */
@@ -383,7 +383,8 @@ void adc1_init_scan_dma(unsigned long inputs, int start_conversion_event, int sa
 	// Enable DMA channel
 	dma_enable_channel(dma_channel);
 	
-	adc1_enable();
+	if(buffer_build_mode != ADC_DMA_CONVERSION_ORDER_ONESHOT)
+		adc1_enable();
 }
 
 #ifdef _AD2IF
@@ -521,7 +522,7 @@ void adc2_start_simple_conversion(int channel)
 	\param	buffers_size
 			Size of memory buffers (in amount of int, i.e. 2 bytes)
 	\param	buffer_build_mode
-			DMA Buffer Build Mode, must be one of \ref adc_dma_buffer_build_mode .
+			DMA Buffer Build Mode, must be one of \ref adc_dma_buffer_build_mode . If one shot mode, the adc is not started, use adc2_enable() to start the transfert.
 	\param	callback
 			User-specified function to call when a buffer filled. If 0, DMA interrupt is disabled
 */
@@ -655,7 +656,8 @@ void adc2_init_scan_dma(unsigned int inputs, int start_conversion_event, int sam
 	// Enable DMA channel
 	dma_enable_channel(dma_channel);
 	
-	adc2_enable();
+	if(buffer_build_mode != ADC_DMA_CONVERSION_ORDER_ONESHOT)
+		adc2_enable();
 }
 
 #endif
