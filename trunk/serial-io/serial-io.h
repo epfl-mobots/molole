@@ -45,7 +45,8 @@ enum serial_io_print_alignment
 {
 	SERIAL_IO_ALIGN_COMPACT = 0,						/**< compact number, do not align */
 	SERIAL_IO_ALIGN_LEFT,								/**< align number at left */
-	SERIAL_IO_ALIGN_RIGHT								/**< align number at right */
+	SERIAL_IO_ALIGN_RIGHT,								/**< align number at right */
+	SERIAL_IO_ALIGN_FILL								/**< fill number leading with 0 */
 };
 
 // Structures definitions

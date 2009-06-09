@@ -392,6 +392,10 @@ void serial_io_send_unsigned(Serial_IO_State* state, unsigned value, int alignme
 		{
 			padding++;
 		}
+		else if (alignment == SERIAL_IO_ALIGN_FILL)
+		{
+			serial_io_send_char(state, '0');
+		}
 	}
 	
 	while (padding--)
@@ -434,6 +438,10 @@ void serial_io_send_hex(Serial_IO_State* state, unsigned int value, int alignmen
 		else if (alignment == SERIAL_IO_ALIGN_LEFT)
 		{
 			padding++;
+		}
+		else if (alignment == SERIAL_IO_ALIGN_FILL)
+		{
+			serial_io_send_char(state, '0');
 		}
 	}
 	
