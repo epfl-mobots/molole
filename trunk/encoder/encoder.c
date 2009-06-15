@@ -264,13 +264,25 @@ long encoder_get_position(int type) {
 	unsigned int b15;
 	long temp3;
 	int flags;
+	int restart;
 	switch(type) {
 		case ENCODER_TIMER_1 ... ENCODER_TIMER_9:
-			RAISE_IPL(flags, Software_Encoder_Data[type].ipl);
-			temp3 = Software_Encoder_Data[type].tpos;
-			temp1 = timer_get_value(type);
-			temp2 = Software_Encoder_Data[type].sens;
-			IRQ_ENABLE(flags);		
+			if(SRbits.IPL < Software_Encoder_Data[type].ipl) {
+				do {
+					RAISE_IPL(flags, Software_Encoder_Data[type].ipl);
+					temp3 = Software_Encoder_Data[type].tpos;
+					temp1 = timer_get_value(type);
+					temp2 = Software_Encoder_Data[type].sens;
+					barrier();
+					restart = timer_get_if(type);
+					IRQ_ENABLE(flags);		
+				} while(restart);
+			} else {
+				temp3 = Software_Encoder_Data[type].tpos;
+				temp1 = timer_get_value(type);
+				temp2 = Software_Encoder_Data[type].sens;
+			}
+			
 			if(temp2 == Software_Encoder_Data[type].up) 
 				temp3 += temp1;
 			else
@@ -278,11 +290,22 @@ long encoder_get_position(int type) {
 			return temp3;
 			
 		case ENCODER_TYPE_HARD:	
-			RAISE_IPL(flags, QEI_Encoder_Data.ipl);
-			temp1 = POS1CNT;
-			temp2 = QEI_Encoder_Data.high_word;
-			b15 = QEI_Encoder_Data.poscnt_b15;
-			IRQ_ENABLE(flags);
+			if(SRbits.IPL < QEI_Encoder_Data.ipl) {
+				do {
+					RAISE_IPL(flags, QEI_Encoder_Data.ipl);
+					temp1 = POS1CNT;
+					temp2 = QEI_Encoder_Data.high_word;
+					b15 = QEI_Encoder_Data.poscnt_b15;
+					barrier();
+					restart = IFS3bits.QEIIF;
+					IRQ_ENABLE(flags);
+				} while(restart); // Make sure we captured the data while no interrupt was pending
+			} else {
+				// No protection agains over/underflow of POS1CNT while reading !
+				temp1 = POS1CNT;
+				temp2 = QEI_Encoder_Data.high_word;
+				b15 = QEI_Encoder_Data.poscnt_b15;
+			}
 	
 			return ((long) temp2) << 16 | (temp1 + b15);
 		default:
