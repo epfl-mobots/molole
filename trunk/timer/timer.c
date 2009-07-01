@@ -534,32 +534,44 @@ void timer_set_clock_source(int id, int clock_source)
 		case TIMER_1:	T1CONbits.TCS = clock_source;
 						T1CONbits.TSIDL = 0;
 			break;
+		case TIMER_23:
+						T3CONbits.TSIDL = 0;
 		case TIMER_2:
-		case TIMER_23:	T2CONbits.TCS = clock_source;
+						T2CONbits.TCS = clock_source;
 						T2CONbits.TSIDL = 0;
 			break;
-		case TIMER_3:	T3CONbits.TCS = clock_source;
+		case TIMER_3:	
+						T3CONbits.TCS = clock_source;
 						T3CONbits.TSIDL = 0;
 			break;
+		case TIMER_45:
+						T5CONbits.TSIDL = 0;
 		case TIMER_4:
-		case TIMER_45:	T4CONbits.TCS = clock_source;
+						T4CONbits.TCS = clock_source;
 						T4CONbits.TSIDL = 0;
 			break;
-		case TIMER_5:	T5CONbits.TCS = clock_source;
+		case TIMER_5:	
+						T5CONbits.TCS = clock_source;
 						T5CONbits.TSIDL = 0;
 			break;
+		case TIMER_67:
+						T7CONbits.TSIDL = 0;
 		case TIMER_6:
-		case TIMER_67:	T6CONbits.TCS = clock_source;
+						T6CONbits.TCS = clock_source;
 						T6CONbits.TSIDL = 0;
 			break;
-		case TIMER_7:	T7CONbits.TCS = clock_source;
+		case TIMER_7:	
+						T7CONbits.TCS = clock_source;
 						T7CONbits.TSIDL = 0;
 			break;
+		case TIMER_89:
+						T9CONbits.TSIDL = 0;
 		case TIMER_8:
-		case TIMER_89:	T8CONbits.TCS = clock_source;
+						T8CONbits.TCS = clock_source;
 						T8CONbits.TSIDL = 0;
 			break;
-		case TIMER_9:	T9CONbits.TCS = clock_source;
+		case TIMER_9:	
+						T9CONbits.TCS = clock_source;
 						T9CONbits.TSIDL = 0;
 			break;
 		default:
@@ -809,8 +821,6 @@ bool timer_get_if(int id)
 /**
 	Disable the interrupt of a timer.
 	
-	Discontinue timer operation in Idle mode and in Sleep mode.
-	
 	\param	id
 			The timer can be one of the 16-bits timer (\ref TIMER_1 -> \ref TIMER_9) or one of the 32-bits timer (\ref TIMER_23 -> \ref TIMER_89).
 */
@@ -824,51 +834,42 @@ void timer_disable_interrupt(int id)
 		case TIMER_1:
 			_T1IE = 0;
 			_T1IF = 0;
-			T1CONbits.TSIDL = 1;
 			break;
 		case TIMER_2:
 			_T2IE = 0;
 			_T2IF = 0;
-			T2CONbits.TSIDL = 1;
 			break;
 		case TIMER_23:
 		case TIMER_3:
 			_T3IE = 0;
 			_T3IF = 0;
-			T3CONbits.TSIDL = 1;
 			break;
 		case TIMER_4:
 			_T4IE = 0;
 			_T4IF = 0;
-			T4CONbits.TSIDL = 1;
 			break;  
 		case TIMER_45:
 		case TIMER_5:
 			_T5IE = 0;
 			_T5IF = 0;
-			T5CONbits.TSIDL = 1;
 			break;
 		case TIMER_6:
 			_T6IE = 0;
 			_T6IF = 0;
-			T6CONbits.TSIDL = 1;
 			break;
 		case TIMER_67:
 		case TIMER_7:
 			_T7IE = 0;
 			_T7IF = 0;
-			T7CONbits.TSIDL = 1;
 			break;
 		case TIMER_8:
 			_T8IE = 0;
 			_T8IF = 0;
-			T8CONbits.TSIDL = 1;
 			break;
 		case TIMER_89:
 		case TIMER_9:
 			_T9IE = 0;
 			_T9IF = 0;
-			T9CONbits.TSIDL = 1;
 			break;
 		default:
 			ERROR(TIMER_ERROR_INVALID_TIMER_ID, &id);
