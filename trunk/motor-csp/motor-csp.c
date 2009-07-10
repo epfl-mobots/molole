@@ -6,7 +6,7 @@
 // CHECK OV bit after the division to know if an overflow occured
 
 // 32bits / 16 bits => 32 bits implemented with two 32/16 => 16
-static unsigned long div32by16u(unsigned long a, unsigned int b) {
+unsigned long div32by16u(unsigned long a, unsigned int b) {
 	// Take about 60 cycles
 	unsigned int q1, rem1, q2;
 	
@@ -15,7 +15,7 @@ static unsigned long div32by16u(unsigned long a, unsigned int b) {
 	return (((unsigned long) q1) << 16) | q2;
 }
 
-static long div32by16s(long a, int b) {
+long div32by16s(long a, int b) {
 	// Take about 60 cycles
 	int q1, rem1, q2;
 	
