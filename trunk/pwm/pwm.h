@@ -117,6 +117,8 @@ void pwm_set_special_event_trigger(int direction, int postscale, unsigned value)
 
 void pwm_set_brake(int pwm_id, int mode);
 
+void pwm_invert(int pwm_id, int invert);
+
 /*@}*/
 
 #endif

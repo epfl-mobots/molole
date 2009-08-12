@@ -57,6 +57,7 @@ static struct
 	pwm_callback interrupt_callback; /**< function to call upon PWM interrupt */
 	int mode[4];					 /**< mode */
 	int inverted[4];				 /**< state of the PMOD bbit in PWMxCON1 */
+	unsigned char reverse[4];			 /**< reverse the sens */
 	unsigned int period;
 } PWM_Data;
 
@@ -170,6 +171,9 @@ void pwm_set_duty(int pwm_id, int duty)
 	switch (pwm_id)
 	{
 		case PWM_1:
+			if(PWM_Data.reverse[pwm_id])
+				duty = -duty;
+				
 			PWMCON1bits.PEN1L = 1; 
 			PWMCON1bits.PEN1H = 1; 
 			PWMCON1bits.PMOD1 = PWM_Data.inverted[pwm_id]; 
@@ -252,6 +256,10 @@ void pwm_set_duty(int pwm_id, int duty)
 				
 			break;
 		case PWM_2:
+		
+			if(PWM_Data.reverse[pwm_id])
+				duty = -duty;
+		
 			PWMCON1bits.PEN2L = 1; 
 			PWMCON1bits.PEN2H = 1; 
 			PWMCON1bits.PMOD2 = PWM_Data.inverted[pwm_id]; 
@@ -334,6 +342,9 @@ void pwm_set_duty(int pwm_id, int duty)
 				
 			break;
 		case PWM_3:
+			if(PWM_Data.reverse[pwm_id])
+				duty = -duty;
+				
 			PWMCON1bits.PEN3L = 1; 
 			PWMCON1bits.PEN3H = 1; 
 			PWMCON1bits.PMOD3 = PWM_Data.inverted[pwm_id]; 
@@ -416,6 +427,9 @@ void pwm_set_duty(int pwm_id, int duty)
 				
 			break;
 		case PWM_4:
+			if(PWM_Data.reverse[pwm_id])
+				duty = -duty;
+				
 			PWMCON1bits.PEN4L = 1; 
 			PWMCON1bits.PEN4H = 1; 
 			PWMCON1bits.PMOD4 = PWM_Data.inverted[pwm_id]; 
@@ -548,7 +562,12 @@ void pwm_set_brake(int pwm_id, int mode)
 	PWM_Data.mode[pwm_id] = mode;
 }
 
-
+void pwm_invert(int pwm_id, int invert) 
+{
+	ERROR_CHECK_RANGE(pwm_id, 0, 3, PWM_ERROR_INVALID_PWM_ID);
+	PWM_Data.reverse[pwm_id] = invert;
+}
+	
 //--------------------------
 // Interrupt service routine
 //--------------------------
