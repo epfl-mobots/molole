@@ -253,8 +253,7 @@ void i2c_master_transfert_async(int i2c_id, unsigned char addr, unsigned char* w
 bool i2c_master_transfert_block(int i2c_id, unsigned char addr, unsigned char* write_data, unsigned write_count, unsigned char* read_data, unsigned read_count)
 {
 	i2c_master_transfert_async(i2c_id, addr, write_data, write_count, read_data, read_count, NULL);
-	while (i2c_master_is_busy(i2c_id))
-		Idle();
+	while (i2c_master_is_busy(i2c_id))	barrier(); // Cannot use Idle since we may miss the interrupt
 	return I2C_master_transfert_datas[i2c_id].result;
 }
 
