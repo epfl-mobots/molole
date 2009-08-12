@@ -19,7 +19,7 @@
 char * _po6030k_buffer;
 
 /*! Internal flag to tell that the pixel clock is half speed */
-int _po6030k_slow_path; 
+int __attribute((near)) _po6030k_slow_path; 
 
 /*! The flag to tell, the image is ready or not
  * Zero mean capture is in progress, non-zero mean capture done.
@@ -35,8 +35,8 @@ static int timer_id;
 static int ic_id;
 static gpio cam_r;
 
-int _po6030k_current_row;
-int _po6030k_row;
+int __attribute((near)) _po6030k_current_row;
+int __attribute((near)) _po6030k_row;
 
 unsigned char * _po6030k_port;
 
