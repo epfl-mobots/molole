@@ -69,8 +69,8 @@ void cn_init(unsigned long interrupt_mask, unsigned long pull_up_mask, cn_callba
 
 	CNEN1 = (unsigned short)(interrupt_mask);
 	CNEN2 = (unsigned short)(interrupt_mask >> 16);
-	CNPU1 = (unsigned short)(interrupt_mask);
-	CNPU2 = (unsigned short)(interrupt_mask >> 16);
+	CNPU1 = (unsigned short)(pull_up_mask);
+	CNPU2 = (unsigned short)(pull_up_mask >> 16);
 	
 	
 	CN_Callback = callback;
