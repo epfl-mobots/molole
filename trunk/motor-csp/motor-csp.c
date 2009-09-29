@@ -16,12 +16,33 @@ unsigned long div32by16u(unsigned long a, unsigned int b) {
 }
 
 long div32by16s(long a, int b) {
-	// Take about 60 cycles
-	int q1, rem1, q2;
+	unsigned long ret;
+	unsigned long aa;
+	unsigned int ab;
+	int sgn;
 	
-	q1 = __builtin_divmodsd(a >> 16, b, &rem1);
-	q2 = __builtin_divsd((a & 0xFFFF) | (((unsigned long) rem1) << 16), b);
-	return (((long) q1) << 16) | q2;
+	if(a < 0) {
+		sgn = 1;
+		aa = -a;
+	} else {
+		sgn = -1;
+		aa = a;
+	}
+		
+	if(b < 0) {
+		sgn += 1;
+		ab = -b;
+	} else {
+		sgn -= 1;
+		ab = b;
+	}		
+	
+	ret = div32by16u(aa, ab);
+	
+	if(!sgn)
+		return - ((long) ret);
+	else
+		return ret;
 }
 
 
