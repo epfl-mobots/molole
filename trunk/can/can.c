@@ -374,6 +374,25 @@ bool can_is_frame_room(void)
 	return (C1TR01CONbits.TXREQ0 != 1);
 }
 
+
+/** Check if the FIFO has someting in.
+	\return return -1 if empty, the next buffer to read otherwise
+*/
+static int can_get_next_rx(void) {
+	int bufn = C1FIFObits.FNRB;
+	if(bufn > 15) {
+		if((C1RXFUL2 >> (bufn - 16)) & 0x1)
+			return bufn;
+		else
+			return -1;
+	} else {
+		if((C1RXFUL1 >> bufn) & 0x1)
+			return bufn;
+		else
+			return -1;
+	}
+}	
+
 /*! The CAN RX interrupt handler
  * \sa _C1Interrupt
  */
@@ -382,7 +401,7 @@ static void can_rx(void)
 	int bufn = 0;
 	can_frame frame;
 
-	while((bufn = C1FIFObits.FNRB) != C1FIFObits.FBP)
+	while((bufn = can_get_next_rx()) != -1)
 	{
 		frame.id = (can_buf[bufn].sid >> 2) & 0x7FF;
 		frame.len = can_buf[bufn].dlc & 0xF;
