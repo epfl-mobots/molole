@@ -365,6 +365,22 @@ bool can_send_frame(const can_frame *frame)
 }
 
 /**
+	Disable the CAN device.
+*/
+void can_disable(void)
+{
+	can_ask_runlevel(CAN_DISABLE_MODE);
+}
+
+/** 
+	Reenable the previously disabled CAN device.
+*/
+void can_enable(void)
+{
+	can_ask_runlevel(CAN_NORMAL_MODE);
+}
+
+/**
 	Check if there is room to send a frame.
 	
 	\return	return true if there is enough space to send the frame, false if the send buffer is full.
