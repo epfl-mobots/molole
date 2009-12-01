@@ -84,6 +84,8 @@ void i2c_init_slave(
 	int priority
 );
 
+void i2c_disable_slave(int i2c_id);
+
 void i2c_slave_return_to_idle(int i2c_id);
 
 /** I2C master operations the protocol layer can do */

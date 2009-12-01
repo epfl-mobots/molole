@@ -151,6 +151,27 @@ void i2c_init_slave(
 }
 
 /**
+	 Disable the i2c slave interrupt 
+	 
+	 \param i2c_id
+	 		identifier of the I2C, \ref I2C_1 or \ref I2C_2
+*/
+void i2c_disable_slave(int i2c_id) {
+	if (i2c_id == I2C_1)
+	{
+		_SI2C1IE = 0;				// disable the slave interrupt
+	} 
+	else if(i2c_id == I2C_2)
+	{
+		_SI2C2IE = 0;
+	}
+	else
+	{
+		ERROR(I2C_ERROR_INVALID_ID, &i2c_id);
+	}
+}
+
+/**
 	Force I2C internal state machine to return to IDLE,
 	This can be useful, for instance after an electric problem
 	on the bus.
