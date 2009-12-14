@@ -980,6 +980,8 @@ void m_set_32bits_mode(int id, char mode)
 {
 	switch(id)
 	{
+		case TIMER_1:
+			break;
 		case TIMER_2:
 		case TIMER_3:
 		case TIMER_23:	T2CONbits.T32 = mode;
