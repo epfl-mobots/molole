@@ -1,5 +1,5 @@
 #include <p33fxxxx.h>
-#include <dma/dma.h>
+#include "../dma/dma.h"
 
 #include "dac.h"
 
@@ -9,7 +9,7 @@ static void * dma_bufferR[2];
 static void * dma_bufferL[2];
 static dac_callback dac_cb;
 
-**
+/**
         \defgroup dac DAC
 
 	DAC driver for molole. Can only be used with FRCPLL oscillator
