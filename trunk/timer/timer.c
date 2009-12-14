@@ -436,16 +436,26 @@ void timer_set_enabled(int id, bool enabled)
 			break;
 		case TIMER_5:	T5CONbits.TON = enabled;
 			break;
+#ifdef _T6IF
 		case TIMER_6:
 		case TIMER_67:	T6CONbits.TON = enabled;
 			break;
+#endif
+#ifdef _T7IF
 		case TIMER_7:	T7CONbits.TON = enabled;
 			break;
+#endif
+#ifdef _T8IF
 		case TIMER_8:
 		case TIMER_89:	T8CONbits.TON = enabled;
 			break;
+#endif
+#ifdef _T9IF
 		case TIMER_9:	T9CONbits.TON = enabled;
 			break;
+#endif
+		default:
+			ERROR( TIMER_ERROR_INVALID_TIMER_ID, &id)
 	}
 }
 
@@ -464,17 +474,26 @@ void timer_set_value(int id, unsigned long value)
 	{
 		case TIMER_1: TMR1 = value; break;
 		case TIMER_2: TMR2 = value; break;
+		case TIMER_23: TMR3HLD = value >> 16; TMR2 = value & 0xffff; break;
 		case TIMER_3: TMR3 = value; break;
 		case TIMER_4: TMR4 = value; break;
-		case TIMER_5: TMR5 = value; break;
-		case TIMER_6: TMR6 = value; break;
-		case TIMER_7: TMR7 = value; break;
-		case TIMER_8: TMR8 = value; break;
-		case TIMER_9: TMR9 = value; break;
-		case TIMER_23: TMR3HLD = value >> 16; TMR2 = value & 0xffff; break;
 		case TIMER_45: TMR5HLD = value >> 16; TMR4 = value & 0xffff; break;
+		case TIMER_5: TMR5 = value; break;
+#ifdef _T6IF
+		case TIMER_6: TMR6 = value; break;
 		case TIMER_67: TMR7HLD = value >> 16; TMR6 = value & 0xffff; break;
+#endif
+#ifdef _T7IF
+		case TIMER_7: TMR7 = value; break;
+#endif
+#ifdef _T8IF
+		case TIMER_8: TMR8 = value; break;
 		case TIMER_89: TMR9HLD = value >> 16; TMR8 = value & 0xffff; break;
+#endif
+#ifdef _T9IF
+		case TIMER_9: TMR9 = value; break;
+#endif
+		
 		default:
 			ERROR(TIMER_ERROR_INVALID_TIMER_ID, &id);
 			break;
@@ -495,17 +514,26 @@ unsigned long timer_get_value(int id)
 	{
 		case TIMER_1: return TMR1;
 		case TIMER_2: return TMR2;
+		case TIMER_23: return (unsigned long)TMR2 | ((unsigned long)TMR3HLD << 16);
 		case TIMER_3: return TMR3;
 		case TIMER_4: return TMR4;
-		case TIMER_5: return TMR5;
-		case TIMER_6: return TMR6;
-		case TIMER_7: return TMR7;
-		case TIMER_8: return TMR8;
-		case TIMER_9: return TMR9;
-		case TIMER_23: return (unsigned long)TMR2 | ((unsigned long)TMR3HLD << 16);
 		case TIMER_45: return (unsigned long)TMR4 | ((unsigned long)TMR5HLD << 16);
+		case TIMER_5: return TMR5;
+#ifdef _T6IF
+		case TIMER_6: return TMR6;
 		case TIMER_67: return (unsigned long)TMR6 | ((unsigned long)TMR7HLD << 16);
+#endif
+#ifdef _T7IF
+		case TIMER_7: return TMR7;
+#endif
+#ifdef _T8IF
+		case TIMER_8: return TMR8;
 		case TIMER_89: return (unsigned long)TMR8 | ((unsigned long)TMR9HLD << 16);
+#endif
+#ifdef _T9IF
+		case TIMER_9: return TMR9;
+#endif
+		
 		default:
 			ERROR_RET_0(TIMER_ERROR_INVALID_TIMER_ID, &id);
 			break;
@@ -554,26 +582,34 @@ void timer_set_clock_source(int id, int clock_source)
 						T5CONbits.TCS = clock_source;
 						T5CONbits.TSIDL = 0;
 			break;
+#ifdef _T6IF
 		case TIMER_67:
 						T7CONbits.TSIDL = 0;
 		case TIMER_6:
 						T6CONbits.TCS = clock_source;
 						T6CONbits.TSIDL = 0;
 			break;
+#endif
+#ifdef _T7IF
 		case TIMER_7:	
 						T7CONbits.TCS = clock_source;
 						T7CONbits.TSIDL = 0;
 			break;
+#endif
+#ifdef _T8IF
 		case TIMER_89:
 						T9CONbits.TSIDL = 0;
 		case TIMER_8:
 						T8CONbits.TCS = clock_source;
 						T8CONbits.TSIDL = 0;
 			break;
+#endif
+#ifdef _T9IF
 		case TIMER_9:	
 						T9CONbits.TCS = clock_source;
 						T9CONbits.TSIDL = 0;
 			break;
+#endif
 		default:
 			ERROR(TIMER_ERROR_INVALID_TIMER_ID, &id);
 			break;
@@ -607,16 +643,24 @@ void timer_use_gated_time_accumulation(int id, bool enable)
 			break;
 		case TIMER_5:	T5CONbits.TGATE = enable;
 			break;
+#ifdef _T6IF
 		case TIMER_6:
 		case TIMER_67:	T6CONbits.TGATE = enable;
 			break;
+#endif
+#ifdef _T7IF
 		case TIMER_7:	T7CONbits.TGATE = enable;
 			break;
+#endif
+#ifdef _T8IF
 		case TIMER_8:
 		case TIMER_89:	T8CONbits.TGATE = enable;
 			break;
+#endif
+#ifdef _T9IF
 		case TIMER_9:	T9CONbits.TGATE = enable;
 			break;
+#endif
 		default:
 			ERROR(TIMER_ERROR_INVALID_TIMER_ID, &id);
 			break;
@@ -676,27 +720,38 @@ void timer_enable_interrupt(int id, timer_callback callback, int priority)
 			_T5IF = 0;
 			_T5IE = 1;
 			break;
+#ifdef _T6IF
 		case TIMER_6:
 			_T6IP = priority;
 			_T6IF = 0;
 			_T6IE = 1;
 			break;
+#endif
+#ifdef _T7IF
 		case TIMER_67:
 		case TIMER_7:
 			_T7IP = priority;
 			_T7IF = 0;
 			_T7IE = 1;
 			break;
+#endif
+#ifdef _T8IF
 		case TIMER_8:
 			_T8IP = priority;
 			_T8IF = 0;
 			_T8IE = 1;
 			break;
+#endif
+#ifdef _T9IF
 		case TIMER_89:
 		case TIMER_9:
 			_T9IP = priority;
 			_T9IF = 0;
 			_T9IE = 1;
+			break;
+#endif
+		default:
+			ERROR(TIMER_ERROR_INVALID_TIMER_ID, &id);
 			break;
 	}
 }
@@ -747,28 +802,36 @@ bool timer_force_interrupt(int id)
 			_T5IE = 1;
 			_T5IF = 1;
 			break;
+#ifdef _T6IF
 		case TIMER_6:
 			ret = _T6IE;
 			_T6IE = 1;
 			_T6IF = 1;
 			break;
+#endif
+#ifdef _T7IF
 		case TIMER_67:
 		case TIMER_7:
 			ret = _T7IE;
 			_T7IE = 1;
 			_T7IF = 1;
 			break;
+#endif
+#ifdef _T8IF
 		case TIMER_8:
 			ret = _T8IE;
 			_T8IE = 1;
 			_T8IF = 1;
 			break;
+#endif
+#ifdef _T9IF
 		case TIMER_89:
 		case TIMER_9:
 			ret = _T9IE;
 			_T9IE = 1;
 			_T9IF = 1;
 			break;
+#endif
 		default:
 			ERROR(TIMER_ERROR_INVALID_TIMER_ID, &id);
 			break;
@@ -801,16 +864,24 @@ bool timer_get_if(int id)
 		case TIMER_45:
 		case TIMER_5:
 			return _T5IF;
+#ifdef _T6IF
 		case TIMER_6:
 			return _T6IF;
+#endif
+#ifdef _T7IF
 		case TIMER_67:
 		case TIMER_7:
 			return _T7IF;
+#endif
+#ifdef _T8IF
 		case TIMER_8:
 			return _T8IF;
+#endif
+#ifdef _T9IF
 		case TIMER_89:
 		case TIMER_9:
 			return _T9IF;
+#endif
 		default:
 			ERROR(TIMER_ERROR_INVALID_TIMER_ID, &id);
 			break;
@@ -853,24 +924,32 @@ void timer_disable_interrupt(int id)
 			_T5IE = 0;
 			_T5IF = 0;
 			break;
+#ifdef _T6IF
 		case TIMER_6:
 			_T6IE = 0;
 			_T6IF = 0;
 			break;
+#endif
+#ifdef _T7IF
 		case TIMER_67:
 		case TIMER_7:
 			_T7IE = 0;
 			_T7IF = 0;
 			break;
+#endif
+#ifdef _T8IF
 		case TIMER_8:
 			_T8IE = 0;
 			_T8IF = 0;
 			break;
+#endif
+#ifdef _T9IF
 		case TIMER_89:
 		case TIMER_9:
 			_T9IE = 0;
 			_T9IF = 0;
 			break;
+#endif
 		default:
 			ERROR(TIMER_ERROR_INVALID_TIMER_ID, &id);
 			break;
@@ -909,14 +988,20 @@ void m_set_32bits_mode(int id, char mode)
 		case TIMER_5:
 		case TIMER_45:	T4CONbits.T32 = mode;
 			break;
+#ifdef _T6IF
 		case TIMER_6:
 		case TIMER_7:
 		case TIMER_67:	T6CONbits.T32 = mode;
 			break;
+#endif
+#ifdef _T8IF
 		case TIMER_8:
 		case TIMER_9:
 		case TIMER_89:	T8CONbits.T32 = mode;
 			break;
+#endif
+		default:
+			ERROR(TIMER_ERROR_INVALID_TIMER_ID, &id);
 	}
 }
 
@@ -953,16 +1038,24 @@ void m_set_prescaler(int id, unsigned int prescaler)
 			break;
 		case TIMER_5:	T5CONbits.TCKPS = prescaler;
 			break;
+#ifdef _T6IF
 		case TIMER_6:
 		case TIMER_67:	T6CONbits.TCKPS = prescaler;
 			break;
+#endif
+#ifdef _T7IF
 		case TIMER_7:	T7CONbits.TCKPS = prescaler;
 			break;
+#endif
+#ifdef _T8IF
 		case TIMER_8:
 		case TIMER_89:	T8CONbits.TCKPS = prescaler;
 			break;
+#endif
+#ifdef _T9IF
 		case TIMER_9:	T9CONbits.TCKPS = prescaler;
 			break;
+#endif
 		default:
 			ERROR(TIMER_ERROR_INVALID_TIMER_ID, &id);
 			break;
@@ -993,14 +1086,22 @@ void m_set_period_16b(int id, unsigned short period)
 			break;
 		case TIMER_5:	PR5 = period;
 			break;
+#ifdef _T6IF
 		case TIMER_6:	PR6 = period;
 			break;
+#endif
+#ifdef _T7IF
 		case TIMER_7:	PR7 = period;
 			break;
+#endif
+#ifdef _T8IF
 		case TIMER_8:	PR8 = period;
 			break;
+#endif
+#ifdef _T9IF
 		case TIMER_9:	PR9 = period;
 			break;
+#endif
 		default:
 			ERROR(TIMER_ERROR_INVALID_TIMER_ID, &id);
 			break;
@@ -1031,14 +1132,18 @@ void m_set_period_32b(int id, unsigned long period)
 			PR4 = period & 0xffff;	// LSB
 			PR5 = (period >> 16);	// MSB
 			break;
+#ifdef _T6IF
 		case TIMER_67:	
 			PR6 = period & 0xffff;	// LSB
 			PR7 = (period >> 16);	// MSB
 			break;
+#endif
+#ifdef _T8IF
 		case TIMER_89:	
 			PR8 = period & 0xffff;	// LSB
 			PR9 = (period >> 16);	// MSB
 			break;
+#endif
 		default:
 			ERROR(TIMER_ERROR_INVALID_TIMER_ID, &id);
 			break;
@@ -1142,7 +1247,7 @@ void _ISR _T5Interrupt(void)
 #endif
 
 #ifndef TIMER_6_CUSTOM_INTERRUPT_HANDLER
-
+#ifdef _T6IF
 /**
 	Timer 6 Interrupt Service Routine.
  
@@ -1155,11 +1260,11 @@ void _ISR _T6Interrupt(void)
 	Timer_Data[5].callback(TIMER_6);
 	
 }
-
+#endif
 #endif
 
 #ifndef TIMER_7_CUSTOM_INTERRUPT_HANDLER
-
+#ifdef _T7IF
 /**
 	Timer 7 Interrupt Service Routine.
  
@@ -1176,11 +1281,11 @@ void _ISR _T7Interrupt(void)
 		Timer_Data[6].callback(TIMER_7);
 
 }
-
+#endif
 #endif
 
 #ifndef TIMER_8_CUSTOM_INTERRUPT_HANDLER
-
+#ifdef _T8IF
 /**
 	Timer 8 Interrupt Service Routine.
  
@@ -1196,9 +1301,10 @@ void _ISR _T8Interrupt(void)
 }
 
 #endif
+#endif
 
 #ifndef TIMER_9_CUSTOM_INTERRUPT_HANDLER
-
+#ifdef _T9IF
 /**
 	Timer 9 Interrupt Service Routine.
  
@@ -1214,7 +1320,7 @@ void _ISR _T9Interrupt(void)
 	else
 		Timer_Data[8].callback(TIMER_9);
 }
-
+#endif
 #endif
 
 /*@}*/
