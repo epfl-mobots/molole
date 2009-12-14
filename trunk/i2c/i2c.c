@@ -82,6 +82,7 @@ void i2c_init(int i2c_id )
 	}
 	else
 	{
+#ifdef _MI2C2IF
 		I2C2CONbits.I2CEN = 1;			// Enables the I2C module and configures the SDA and SCL pins as serial port pins
 		I2C2CONbits.I2CSIDL = 0;		// Continue module operation in idle mode
 		I2C2CONbits.SCLREL = 1;			// Release SCLx clock
@@ -97,6 +98,9 @@ void i2c_init(int i2c_id )
 		I2C2CONbits.PEN = 0;			// STOP condition not in progress
 		I2C2CONbits.RSEN = 0;			// Repeated START condition not in progress
 		I2C2CONbits.SEN = 0;			// START condition not in progress
+#else
+		ERROR(I2C_ERROR_INVALID_ID, &i2c_id);
+#endif
 	}
 }
 

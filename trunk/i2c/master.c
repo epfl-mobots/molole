@@ -94,11 +94,15 @@ void i2c_init_master(int i2c_id, long speed, int priority)
 	}
 	else
 	{
+#ifdef _MI2C2IF
 		I2C2BRG = (unsigned int) brg;
 		_MI2C2IF = 0;					// clear the master interrupt
 		_MI2C2IP = priority;			// set the master interrupt priority
 	
 		_MI2C2IE = 1;					// enable the master interrupt*/
+#else
+	ERROR(I2C_ERROR_INVALID_ID, &i2c_id);
+#endif
 	}
 }
 
@@ -120,8 +124,13 @@ void i2c_master_start_operations(int i2c_id, i2c_master_operation_completed_call
 
 	if (i2c_id == I2C_1)
 		I2C1CONbits.SEN = 1;
-	else
+	else {
+#ifdef _MI2C2IF
 		I2C2CONbits.SEN = 1;
+#else
+		ERROR(I2C_ERROR_INVALID_ID, &i2c_id);
+#endif
+	}
 }
 
 /**
@@ -208,6 +217,7 @@ void _ISR _MI2C1Interrupt(void)
  
 	Call the user-defined function.
 */
+#ifdef _MI2C2IF
 void _ISR _MI2C2Interrupt(void)
 {
 	unsigned char* data;
@@ -260,4 +270,5 @@ void _ISR _MI2C2Interrupt(void)
 
 	I2C_Master_Data[I2C_2].prev_operation = next_op;
 }
+#endif
 /*@}*/
