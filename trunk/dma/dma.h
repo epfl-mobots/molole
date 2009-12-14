@@ -88,6 +88,8 @@ enum dma_requests_sources
 	DMA_INTERRUPT_SOURCE_DCI = 0x3c,		/**< CODEC Transfer Done */
 	DMA_INTERRUPT_SOURCE_ECAN_1_TX = 0x46,	/**< ECAN 1 TX Data Request */
 	DMA_INTERRUPT_SOURCE_ECAN_2_TX = 0x47,	/**< ECAN 2 TX Data Request */
+	DMA_INTERRUPT_SOURCE_DAC1_RC = 0x4e,	/**< DAC 1 Right channel Data Request */
+	DMA_INTERRUPT_SOURCE_DAC1_LC = 0x4f,	/**< DAC 1 Left channel Data Request */
 };
 
 /** size of data to transfer */
@@ -142,6 +144,8 @@ typedef void(*dma_callback)(int channel, bool first_buffer);
 // Functions, doc in the .c
 
 void dma_init_channel(int channel, int request_source, int data_size, int transfer_dir, int interrupt_pos, int null_write, int addressing_mode, int operating_mode, void * a, void * b, void* peripheral_address, unsigned transfer_count, dma_callback callback);
+
+void dma_set_priority(int channel, int prio);
 
 void dma_enable_channel(int channel);
 

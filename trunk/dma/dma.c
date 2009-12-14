@@ -71,6 +71,8 @@ switch (channel)
 
 /** DMA wrapper data */
 static dma_callback DMA_Data[8];
+/* Keep track of which buffer is used for ping-pong mode */
+static unsigned char pingpong_dma[8];
 
 
 //-------------------
@@ -152,7 +154,9 @@ void dma_init_channel(int channel, int request_source, int data_size, int transf
 		request_source != DMA_INTERRUPT_SOURCE_ECAN_2_RX &&
 		request_source != DMA_INTERRUPT_SOURCE_DCI &&
 		request_source != DMA_INTERRUPT_SOURCE_ECAN_1_TX &&
-		request_source != DMA_INTERRUPT_SOURCE_ECAN_2_TX
+		request_source != DMA_INTERRUPT_SOURCE_ECAN_2_TX &&
+		request_source != DMA_INTERRUPT_SOURCE_DAC1_RC && 
+		request_source != DMA_INTERRUPT_SOURCE_DAC1_LC
 	)
 		ERROR(DMA_ERROR_INVALID_REQUEST_SOURCE, &request_source);
 	
@@ -492,6 +496,7 @@ void dma_disable_channel(int channel)
 	{
 		case DMA_CHANNEL_0: 
 			DMA0CONbits.CHEN  = 0; 
+			pingpong_dma[0] = 0;
 			// Errata 38
 			if((DMA0CONbits.MODE == DMA_OPERATING_ONE_SHOT) || (DMA0CONbits.MODE == DMA_OPERATING_ONE_SHOT_PING_PONG)) 
 				clock_enable_idle();
@@ -499,6 +504,7 @@ void dma_disable_channel(int channel)
 			
 		case DMA_CHANNEL_1: 
 			DMA1CONbits.CHEN  = 0; 
+			pingpong_dma[1] = 0;
 			// Errata 38
 			if((DMA1CONbits.MODE == DMA_OPERATING_ONE_SHOT) || (DMA1CONbits.MODE == DMA_OPERATING_ONE_SHOT_PING_PONG)) 
 				clock_enable_idle();
@@ -506,36 +512,42 @@ void dma_disable_channel(int channel)
 
 		case DMA_CHANNEL_2: 
 			DMA2CONbits.CHEN  = 0; 
+			pingpong_dma[2] = 0;
 			// Errata 38
 			if((DMA2CONbits.MODE == DMA_OPERATING_ONE_SHOT) || (DMA2CONbits.MODE == DMA_OPERATING_ONE_SHOT_PING_PONG)) 
 				clock_enable_idle();
 			break;
 		case DMA_CHANNEL_3: 
 			DMA3CONbits.CHEN  = 0; 
+			pingpong_dma[3] = 0;
 			// Errata 38
 			if((DMA3CONbits.MODE == DMA_OPERATING_ONE_SHOT) || (DMA3CONbits.MODE == DMA_OPERATING_ONE_SHOT_PING_PONG)) 
 				clock_enable_idle();
 			break;
 		case DMA_CHANNEL_4:
 			DMA4CONbits.CHEN  = 0; 
+			pingpong_dma[4] = 0;
 			// Errata 38
 			if((DMA4CONbits.MODE == DMA_OPERATING_ONE_SHOT) || (DMA4CONbits.MODE == DMA_OPERATING_ONE_SHOT_PING_PONG)) 
 				clock_enable_idle();
 			break;
 		case DMA_CHANNEL_5: 
 			DMA5CONbits.CHEN  = 0; 
+			pingpong_dma[5] = 0;
 			// Errata 38
 			if((DMA5CONbits.MODE == DMA_OPERATING_ONE_SHOT) || (DMA5CONbits.MODE == DMA_OPERATING_ONE_SHOT_PING_PONG)) 
 				clock_enable_idle();
 			break;
 		case DMA_CHANNEL_6:
 			DMA6CONbits.CHEN  = 0; 
+			pingpong_dma[6] = 0;
 			// Errata 38
 			if((DMA6CONbits.MODE == DMA_OPERATING_ONE_SHOT) || (DMA6CONbits.MODE == DMA_OPERATING_ONE_SHOT_PING_PONG)) 
 				clock_enable_idle();
 			break;
 		case DMA_CHANNEL_7: 
 			DMA7CONbits.CHEN  = 0; 
+			pingpong_dma[7] = 0;
 			// Errata 38
 			if((DMA7CONbits.MODE == DMA_OPERATING_ONE_SHOT) || (DMA7CONbits.MODE == DMA_OPERATING_ONE_SHOT_PING_PONG)) 
 				clock_enable_idle();
@@ -568,6 +580,32 @@ void dma_start_transfer(int channel)
 	}
 }
 
+/**
+	Set the interrupt priority on a DMA channel
+
+	\param channel
+		DMA channel, from \ref DMA_CHANNEL_0 to \ref DMA_CHANNEL_7.
+	\param prio
+		The interrupt priority
+*/
+void dma_set_priority(int channel, int prio) {
+	ERROR_CHECK_RANGE(prio, 1, 7, GENERIC_ERROR_INVALID_INTERRUPT_PRIORITY);
+
+	switch (channel)
+	{
+		case DMA_CHANNEL_0: _DMA0IP = prio; break;
+		case DMA_CHANNEL_1: _DMA1IP = prio; break;
+		case DMA_CHANNEL_2: _DMA2IP = prio; break;
+		case DMA_CHANNEL_3: _DMA3IP = prio; break;
+		case DMA_CHANNEL_4: _DMA4IP = prio; break;
+		case DMA_CHANNEL_5: _DMA5IP = prio; break;
+		case DMA_CHANNEL_6: _DMA6IP = prio; break;
+		case DMA_CHANNEL_7: _DMA7IP = prio; break;
+		default: ERROR(DMA_ERROR_INVALID_CHANNEL, &channel);
+	}
+
+}
+
 //--------------------------
 // Interrupt service routine
 //--------------------------
@@ -579,14 +617,12 @@ void dma_start_transfer(int channel)
 */
 void _ISR  _DMA0Interrupt(void)
 {
-	static int dmaBuffer = 0;
-
 	// Clear interrupt flag
 	_DMA0IF = 0;	
 
 	// Call use-defined function with true as argument if first buffer, false if second buffer
-	DMA_Data[0](DMA_CHANNEL_0, dmaBuffer == 0);
-	dmaBuffer ^= 1;
+	DMA_Data[0](DMA_CHANNEL_0, pingpong_dma[0] == 0);
+	pingpong_dma[0] ^= 1;
 	
 }
 
@@ -597,14 +633,12 @@ void _ISR  _DMA0Interrupt(void)
 */
 void _ISR  _DMA1Interrupt(void)
 {
-	static int dmaBuffer = 0;
-
 	// Clear interrupt flag
 	_DMA1IF = 0;
 	
 	// Call use-defined function with true as argument if first buffer, false if second buffer
-	DMA_Data[1](DMA_CHANNEL_1, dmaBuffer == 0);
-	dmaBuffer ^= 1;
+	DMA_Data[1](DMA_CHANNEL_1, pingpong_dma[1] == 0);
+	pingpong_dma[1] ^= 1;
 }
 
 /**
@@ -614,14 +648,12 @@ void _ISR  _DMA1Interrupt(void)
 */
 void _ISR  _DMA2Interrupt(void)
 {
-	static int dmaBuffer = 0;
-	
 	// Clear interrupt flag
 	_DMA2IF = 0;
 
 	// Call use-defined function with true as argument if first buffer, false if second buffer
-	DMA_Data[2](DMA_CHANNEL_2, dmaBuffer == 0);
-	dmaBuffer ^= 1;
+	DMA_Data[2](DMA_CHANNEL_2, pingpong_dma[2] == 0);
+	pingpong_dma[2] ^= 1;
 }
 
 /**
@@ -631,14 +663,12 @@ void _ISR  _DMA2Interrupt(void)
 */
 void _ISR  _DMA3Interrupt(void)
 {
-	static int dmaBuffer = 0;
-	
 	// Clear interrupt flag
 	_DMA3IF = 0;
 
 	// Call use-defined function with true as argument if first buffer, false if second buffer
-	DMA_Data[3](DMA_CHANNEL_3, dmaBuffer == 0);
-	dmaBuffer ^= 1;
+	DMA_Data[3](DMA_CHANNEL_3, pingpong_dma[3] == 0);
+	pingpong_dma[3] ^= 1;
 }
 
 /**
@@ -648,15 +678,12 @@ void _ISR  _DMA3Interrupt(void)
 */
 void _ISR  _DMA4Interrupt(void)
 {
-	static int dmaBuffer = 0;
-	
-	
 	// Clear interrupt flag
 	_DMA4IF = 0;
 
 	// Call use-defined function with true as argument if first buffer, false if second buffer
-	DMA_Data[4](DMA_CHANNEL_4, dmaBuffer == 0);
-	dmaBuffer ^= 1;
+	DMA_Data[4](DMA_CHANNEL_4, pingpong_dma[4] == 0);
+	pingpong_dma[4] ^= 1;
 }
 
 /**
@@ -666,14 +693,12 @@ void _ISR  _DMA4Interrupt(void)
 */
 void _ISR  _DMA5Interrupt(void)
 {
-	static int dmaBuffer = 0;
-	
 	// Clear interrupt flag
 	_DMA5IF = 0;
 
 	// Call use-defined function with true as argument if first buffer, false if second buffer
-	DMA_Data[5](DMA_CHANNEL_5, dmaBuffer == 0);
-	dmaBuffer ^= 1;
+	DMA_Data[5](DMA_CHANNEL_5, pingpong_dma[5] == 0);
+	pingpong_dma[5] ^= 1;
 }
 
 /**
@@ -683,14 +708,12 @@ void _ISR  _DMA5Interrupt(void)
 */
 void _ISR  _DMA6Interrupt(void)
 {
-	static int dmaBuffer = 0;
-	
 	// Clear interrupt flag
 	_DMA6IF = 0;
 
 	// Call use-defined function with true as argument if first buffer, false if second buffer
-	DMA_Data[6](DMA_CHANNEL_6, dmaBuffer == 0);
-	dmaBuffer ^= 1;
+	DMA_Data[6](DMA_CHANNEL_6, pingpong_dma[6] == 0);
+	pingpong_dma[6] ^= 1;
 }
 
 /**
@@ -699,15 +722,13 @@ void _ISR  _DMA6Interrupt(void)
 	Call the user-defined function.
 */
 void _ISR  _DMA7Interrupt(void)
-{
-	static int dmaBuffer = 0;
-	
+{	
 	// Clear interrupt flag
 	_DMA7IF = 0;
 
 	// Call use-defined function with true as argument if first buffer, false if second buffer
-	DMA_Data[7](DMA_CHANNEL_7, dmaBuffer == 0);
-	dmaBuffer ^= 1;
+	DMA_Data[7](DMA_CHANNEL_7, pingpong_dma[7] == 0);
+	pingpong_dma[7] ^= 1;
 }
 
 /*@}*/
