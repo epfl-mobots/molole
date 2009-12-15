@@ -151,6 +151,7 @@ void spi_start_transfert(int spi_id, void * tx_buffer, void * rx_buffer, unsigne
 					DMA_ADDRESSING_REGISTER_INDIRECT_POST_INCREMENT, DMA_OPERATING_ONE_SHOT,
 					rx_buffer, 0, (void *) &SPI1BUF, xch_count, spi1_dma_cb);
 			spi_status[0].rxtx = 2;
+			dma_set_priority(spi_status[0].dma_rx, _SPI1IP);
 			dma_enable_channel(spi_status[0].dma_rx);
 			start_tx_dma = -1;
 			
@@ -165,6 +166,7 @@ void spi_start_transfert(int spi_id, void * tx_buffer, void * rx_buffer, unsigne
 				DMA_DIR_FROM_PERIPHERAL_TO_RAM, DMA_INTERRUPT_AT_FULL, DMA_DO_NOT_NULL_WRITE_TO_PERIPHERAL,
 				DMA_ADDRESSING_REGISTER_INDIRECT_POST_INCREMENT, DMA_OPERATING_ONE_SHOT,
 				rx_buffer, 0, (void *) &SPI1BUF, xch_count, spi1_dma_cb);
+			dma_set_priority(spi_status[0].dma_rx, _SPI1IP);
 			dma_enable_channel(spi_status[0].dma_rx);
 			spi_status[0].rxtx |= 2;
 				
@@ -175,6 +177,7 @@ void spi_start_transfert(int spi_id, void * tx_buffer, void * rx_buffer, unsigne
 				DMA_ADDRESSING_REGISTER_INDIRECT_POST_INCREMENT, DMA_OPERATING_ONE_SHOT,
 				tx_buffer, 0, (void *) &SPI1BUF, xch_count, 0);
 			start_tx_dma = spi_status[0].dma_tx;
+			dma_set_priority(spi_status[0].dma_tx, _SPI1IP);
 
 			dma_enable_channel(spi_status[0].dma_tx);
 		}
@@ -204,6 +207,7 @@ void spi_start_transfert(int spi_id, void * tx_buffer, void * rx_buffer, unsigne
 					DMA_ADDRESSING_REGISTER_INDIRECT_POST_INCREMENT, DMA_OPERATING_ONE_SHOT,
 					rx_buffer, 0, (void *) &SPI2BUF, xch_count, spi2_dma_cb);
 			spi_status[1].rxtx = 2;
+			dma_set_priority(spi_status[1].dma_rx, _SPI2IP);
 			dma_enable_channel(spi_status[1].dma_rx);
 			start_tx_dma = -1;
 	
@@ -216,6 +220,7 @@ void spi_start_transfert(int spi_id, void * tx_buffer, void * rx_buffer, unsigne
 				DMA_ADDRESSING_REGISTER_INDIRECT_POST_INCREMENT, DMA_OPERATING_ONE_SHOT,
 				rx_buffer, 0, (void *) &SPI2BUF, xch_count, spi2_dma_cb);
 				
+			dma_set_priority(spi_status[1].dma_rx, _SPI2IP);
 			dma_enable_channel(spi_status[1].dma_rx);
 			spi_status[1].rxtx |= 2;
 			
@@ -227,6 +232,7 @@ void spi_start_transfert(int spi_id, void * tx_buffer, void * rx_buffer, unsigne
 				tx_buffer, 0, (void *) &SPI2BUF, xch_count, 0);
 			start_tx_dma = spi_status[1].dma_tx;
 
+			dma_set_priority(spi_status[1].dma_tx, _SPI2IP);
 			dma_enable_channel(spi_status[1].dma_tx);
 		}
 		spi_status[1].ss = ss;
@@ -293,7 +299,7 @@ void spi_init_master(int spi_id, unsigned int speed_khz, int dma_rx, int dma_tx,
 		SPI1CON1bits.CKP = polarity;
 		SPI1CON1bits.MSTEN = 1;				/* I'm a master ! */
 		SPI1CON2 = 0x0;						/* Framing support completly disabled */
-		_SPI1IP = priority;					/* Not really usefull since no IRQ is used */
+		_SPI1IP = priority;					/* Used to set the DMA priority */
 		
 		
 		/* Get the "Optimal" speed: NOT > as asked speed*/
