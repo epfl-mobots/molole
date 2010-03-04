@@ -63,6 +63,7 @@ static struct
 	int* speed;			/**< difference of last two absolutes positions (i.e. speed) */
 	unsigned int ipl;	/**< IPL of qei interrupt */
 	unsigned int poscnt_b15; /**< errata 31 "QEI Interrupt Generation" */
+	unsigned int got_irq; /**< Set to 1 by each interrupt */
 } QEI_Encoder_Data;
 
 /** Data for the Software (emulated) Encoder Interface */
@@ -77,6 +78,7 @@ static struct
 	gpio mode;			/**< GPIO used for mode selection */
 	gpio g_sens;		/**< GPIO used for direction read */
 	unsigned int ipl;	/**< IPL of the timer/IC interrupt */
+	unsigned int got_irq; /**< Set to 1 by each interrupt */
 } Software_Encoder_Data[9];
 
 
@@ -263,26 +265,19 @@ long encoder_get_position(int type) {
 	unsigned int temp2;
 	unsigned int b15;
 	long temp3;
-	int flags;
-	int restart;
 	switch(type) {
 		case ENCODER_TIMER_1 ... ENCODER_TIMER_9:
-			if(SRbits.IPL < Software_Encoder_Data[type].ipl) {
-				do {
-					RAISE_IPL(flags, Software_Encoder_Data[type].ipl);
-					temp3 = Software_Encoder_Data[type].tpos;
-					temp1 = timer_get_value(type);
-					temp2 = Software_Encoder_Data[type].sens;
-					barrier();
-					restart = timer_get_if(type);
-					IRQ_ENABLE(flags);		
-				} while(restart);
-			} else {
+			do {
+				Software_Encoder_Data[type].got_irq = 0;
+				barrier();
+				
 				temp3 = Software_Encoder_Data[type].tpos;
 				temp1 = timer_get_value(type);
 				temp2 = Software_Encoder_Data[type].sens;
-			}
-			
+					
+				barrier();
+			} while(Software_Encoder_Data[type].got_irq);
+				
 			if(temp2 == Software_Encoder_Data[type].up) 
 				temp3 += temp1;
 			else
@@ -290,22 +285,15 @@ long encoder_get_position(int type) {
 			return temp3;
 			
 		case ENCODER_TYPE_HARD:	
-			if(SRbits.IPL < QEI_Encoder_Data.ipl) {
-				do {
-					RAISE_IPL(flags, QEI_Encoder_Data.ipl);
-					temp1 = POS1CNT;
-					temp2 = QEI_Encoder_Data.high_word;
-					b15 = QEI_Encoder_Data.poscnt_b15;
-					barrier();
-					restart = IFS3bits.QEIIF;
-					IRQ_ENABLE(flags);
-				} while(restart); // Make sure we captured the data while no interrupt was pending
-			} else {
-				// No protection agains over/underflow of POS1CNT while reading !
+			do {
+				QEI_Encoder_Data.got_irq = 0;
+				barrier();
+				
 				temp1 = POS1CNT;
 				temp2 = QEI_Encoder_Data.high_word;
 				b15 = QEI_Encoder_Data.poscnt_b15;
-			}
+				barrier();
+			} while(QEI_Encoder_Data.got_irq);
 	
 			return ((long) temp2) << 16 | (temp1 + b15);
 		default:
@@ -424,6 +412,7 @@ static void ic_tmr2_cb(int __attribute__((unused)) foo, unsigned int value, void
 			Software_Encoder_Data[1].tpos += ((long) tmr) - ((long) value);
 	}
 	
+	Software_Encoder_Data[1].got_irq = 1;
 	Software_Encoder_Data[1].sens = gpio_read(Software_Encoder_Data[1].g_sens);
 }
 
@@ -464,6 +453,8 @@ static void ic_tmr3_cb(int __attribute__((unused)) foo, unsigned int value, void
 	}
 	
 	Software_Encoder_Data[2].sens = gpio_read(Software_Encoder_Data[2].g_sens);
+	
+	Software_Encoder_Data[2].got_irq = 1;
 }
 
 static void tmr2_3_cb(int tmr) {
@@ -480,6 +471,8 @@ static void tmr2_3_cb(int tmr) {
 		Software_Encoder_Data[tmr].tpos += 0x00010000L;
 	else
 		Software_Encoder_Data[tmr].tpos -= 0x00010000L;
+		
+	Software_Encoder_Data[tmr].got_irq = 1;
 }
 
 static void tmr_cb(int tmr) {
@@ -489,6 +482,7 @@ static void tmr_cb(int tmr) {
 		Software_Encoder_Data[tmr].tpos -= 0x00010000L;
 
 
+	Software_Encoder_Data[tmr].got_irq = 1;
 }
 
 static void ic_cb(int __attribute__((unused)) foo, unsigned int __attribute((unused)) bar, void * data) {
@@ -527,14 +521,15 @@ static void ic_cb(int __attribute__((unused)) foo, unsigned int __attribute((unu
 			TMR9 = 0;
 			break;
 	}
-
-
+	
 	if(Software_Encoder_Data[tmr].sens == Software_Encoder_Data[tmr].up) 
 		Software_Encoder_Data[tmr].tpos += value;
 	else
 		Software_Encoder_Data[tmr].tpos -= value;
 	
 	Software_Encoder_Data[tmr].sens = gpio_read(Software_Encoder_Data[tmr].g_sens);
+	
+	Software_Encoder_Data[tmr].got_irq = 1;
 	
 }
 
@@ -550,6 +545,8 @@ static void ic_cb(int __attribute__((unused)) foo, unsigned int __attribute((unu
 void _ISR _QEIInterrupt(void)
 {
 	IFS3bits.QEIIF = 0;						// Clear interrupt flag
+	
+	QEI_Encoder_Data.got_irq = 1;
 	
 	QEI_Encoder_Data.poscnt_b15 ^=0x8000;
 	
