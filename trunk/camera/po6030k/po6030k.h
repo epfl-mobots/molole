@@ -1,8 +1,99 @@
 /*! \file
  * \brief PO6030k library header
- * \author Philippe R�tornaz
- */
+ * \author Philippe Rétornaz
+ * \defgroup camera_po6030k Po6030k camera drivers
+ *
+ * This driver expose most of the Po6030k camera interfaces. Some functions
+ * are useful, some other not. But since this is not up to the driver to
+ * decide if a function is needed, I've exported almost all.
+ *
+ *
+ * \section defset Default settings
+ * The camera is, by default, configured with the following settings:
+ * - Automatic white balance control
+ * - Automatic expousesure control
+ * - Automatic flicker detection ( 50Hz and 60Hz )
+ * .
+ * There are no default setting for the image size and color.
+ *
+ * \section perfsec Performances
+ * The maximum framerate ( without doing anything else than acquiring the picture ) varies
+ * with the subsampling and the color mode.
+ * Here are some framerates:
+ * - Size: 640x480, Subsampling: 16x16, RGB565: 4.3 fps
+ * - Size: 16x480, Subsampling: 16x16, RGB565: 4.3 fps
+ * - Size: 480x16, Subsampling: 16x16: RGB565: 4.3fps
+ * - Size: 64x64, Subsampling: 4x4, RGB565: 4.3 fps
+ * - Size: 32x32, Subsampling: 2x2, RGB565: 2.6 fps
+ * - Size: 16x16, No Subsampling, RGB565: 1.3 fps
+ * - Size: 640x480, Subsampling: 16x16, GREYSCALE: 8.6 fps
+ * - Size: 16x480, Subsampling: 16x16, GREYSCALE: 8.6 fps
+ * - Size: 480x16, Subsampling: 16x16, GREYSCALE: 8.6 fps
+ * - Size: 64x64, Subsampling: 4x4, GREYSCALE: 8.6 fps
+ * - Size: 32x32, Subsampling: 2x2, GREYSCALE: 4.3 fps
+ * - Size: 16x16, No subsampling, GREYSCALE: 2.2 fps
+ *
+ * \section IntegrDet Important note
+ * This driver is extremly sensitive to interrupt latency, thus it uses interrupt priority to
+ * be sure that the latencies are kept low. The Timer4 and Timer5 interrupt priorities are set at
+ * level 6 and interrupt nesting is enabled.
+ * The Timer4 interrupt uses the "push.s" and "pop.s" instructions. You should not have any
+ * code using thoses two instructions when you use the camera. This includes the _ISRFAST C
+ * macro. If you use them, some random and really hard to debug behaviors will happen.
+ * You have been warned !
+ *
+ * \section example_sect Examples
+ *
+ * \subsection ex1_sect Basic example
+ *
+ * \code
+#include "po6030k.h"
 
+char buffer[2*40*40];
+int main(void) {
+
+        po6030k_init_cam();
+        po6030k_config_cam((ARRAY_WIDTH -160)/2,(ARRAY_HEIGHT-160)/2,
+                         160,160,4,4,RGB_565_MODE);
+
+        po6030k_launch_capture(buffer);
+        while(!po6030k_is_img_ready());
+
+        // buffer contain a 40*40 RGB picture now
+        ( insert useful code here )
+
+        return 0;
+}
+\endcode
+
+ * This example tells the driver to acquire a 160x160 pixel picture from the camera, with
+ * 4x subsampling, thus resulting with a 40x40 pixel. The buffer has a size of
+ * 40*40*2 because RGB565 is a two bytes-per-pixel data format.
+ *
+ * \subsection ex2_sect More advanced example
+\code
+#include "po6030k.h"
+
+char buffer[160*2];
+int main(void) {
+        po6030k_init_cam();
+        po6030k_config_cam((ARRAY_WIDTH - 320)/2,(ARRAY_HEIGHT - 32)/2,
+                        320,8,2,4,GREY_SCALE_MODE);
+        po6030k_set_sketch_mode(PO6030K_SKETCH_COLOR);
+
+        po6030k_launch_capture(buffer);
+        while(!po6030k_is_img_ready());
+
+        // Here buffer contain a 160x2 greyscale picture
+
+        return 0;
+}
+\endcode
+ * This example configures the camera to acquire a 320x8 pixel picture, but subsampled
+ * 2x in width and 4x in height, thus resulting in a 160*2 linear
+ * greyscale picture. It "emulates" a linear camera.
+ */
+/*@{*/
 
 
 #ifndef __PO6030K_H__
@@ -104,3 +195,5 @@ int po6030k_apply_timer_config(int pixel_row, int pixel_col, int bpp, int pbp, i
 
 
 #endif
+
+/*@}*/

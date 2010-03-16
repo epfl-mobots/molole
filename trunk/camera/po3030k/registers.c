@@ -24,9 +24,10 @@
 
 /*! \file
  * \brief Manage po3030k registers
- * \author Philippe Rétornaz
+ * \author Philippe RÃ©tornaz
+ * \addtogroup camera_po3030k
  */
-
+/*@{*/
 
 
 #include "../../i2c/i2c.h"
@@ -910,3 +911,5 @@ int  po3030k_set_flicker_man_set(int hz50, int hz60, int fdm, int fk, int tol) {
 	return 0;
 }
 #endif
+
+/*@}*/

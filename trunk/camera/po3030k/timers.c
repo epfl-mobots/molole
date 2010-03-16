@@ -24,9 +24,11 @@
 
 /*! \file
  * \brief Manage camera's interrupts
- * \author Philippe Rétornaz
+ * \author Philippe RÃ©tornaz
  * \verbinclude interrupt.s
+ * \addtogroup camera_po3030k
  */
+/*@{*/
 
 #include <p33fxxxx.h>
 #include "po3030k.h"
@@ -165,3 +167,5 @@ void po3030k_init_cam(unsigned char * port, gpio cam_reset, int timer, int ic, i
 	timer_id = timer;
 	ic_id = ic;
 }
+
+/*@}*/

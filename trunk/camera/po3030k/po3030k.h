@@ -1,18 +1,16 @@
 /*! \file
  * \brief PO3030k library header
- * \author Philippe Rétornaz
+ * \author Philippe RÃ©tornaz
  */
 
-/*! \mainpage Po3030k Device Driver for dsPIC33 
+/*! \defgroup camera_po3030k Po3030k camera drivers
  * 
- * \section intro_sec Introduction
+ * This driver exposes most of the Po3030k camera interfaces. Some functions
+ * are useful, some other not. But since this is not up to the driver to
+ * decide if a function is needed, I've exported almost all.
  *
- * This driver expose most of the Po3030k camera interfaces. Some functions
- * are usefull, some other not. But since this is not up to the driver to
- * decide if a function is needed, I've exported almost all. 
- *
- * The architecture is quite simple. The driver keep a array where
- * every known camera register is keept in memory. The configuration function
+ * The architecture is quite simple. The driver keeps a array where
+ * every known camera register is kept in memory. The configuration functions
  * only alter this array. When you call, for example po3030k_config_cam(), nothing
  * is written on the camera, but only in the internal register representation.
  *
@@ -21,17 +19,17 @@
  * the first picture.
  * 
  * \section defset Default settings
- * The camera is, by default, configured with the followin settings:
+ * The camera is, by default, configured with the following settings:
  * - Automatic white balance control
  * - Automatic exposure control
  * - Automatic flicker detection ( 50Hz and 60Hz )
  * .
- * There is no default setting for the image size and color.
+ * There are no default setting for the image size and color.
  * 
  * \section perfsec Performances
- * The maximum framerate ( without doing anything else than acquiring the picture ) vary 
+ * The maximum framerate ( without doing anything else than acquiring the picture ) varies
  * with the subsampling and the color mode.
- * Here are some framerates:
+ * Here are some available framerates:
  * - Size: 640x480, Subsampling: 16x16, RGB565: 4.3 fps
  * - Size: 16x480, Subsampling: 16x16, RGB565: 4.3 fps
  * - Size: 480x16, Subsampling: 16x16: RGB565: 4.3fps
@@ -46,12 +44,12 @@
  * - Size: 16x16, No subsampling, GREYSCALE: 2.2 fps
  *
  * \section IntegrDet Important note
- * This driver is extremly sensible to interrupt latency, thus it use interrupt priority to 
- * be sure that the latencies are kepts low. The Timer4 and Timer5 interrupt priority are set at 
+ * This driver is extremly sensitive to interrupt latency, thus it uses interrupt priority to
+ * be sure that the latencies are kept low. The Timer4 and Timer5 interrupt priorities are set at
  * level 6 and interrupt nesting is enabled. 
- * The Timer4 interrupt use the "push.s" and "pop.s" instructions. You should not have any 
- * code using thoses two instructions when you use the camera. This include the _ISRFAST C 
- * macro. If you use them, some random and really hard to debug behavior will happen.
+ * The Timer4 interrupt uses the "push.s" and "pop.s" instructions. You should not have any 
+ * code using thoses two instructions when you use the camera. This includes the _ISRFAST C 
+ * macro. If you use them, some random and really hard to debug behaviors will happen.
  * You have been warned ! 
  * 
  * \section example_sect Examples
@@ -73,15 +71,15 @@ int main(void) {
         while(!po3030k_is_img_ready());
 
         // buffer contain a 40*40 RGB picture now
-        ( insert usefull code here )
+        ( insert useful code here )
 
         return 0;
 }
 \endcode
 
- * This example tell de driver to aquire 160x160 pixel picture from the camera
- * 4x subsampling, thus resulting with a 40x40 pixel. The buffer as a size of
- * 40*40*2 because RGB565 is a two bytes per pixel data format.
+* This example tells the driver to acquire a 160x160 pixel picture from the camera, with
+ * 4x subsampling, thus resulting with a 40x40 pixel. The buffer has a size of
+ * 40*40*2 because RGB565 is a two bytes-per-pixel data format.
  *
  * \subsection ex2_sect More advanced example
 \code
@@ -93,7 +91,7 @@ int main(void) {
         po3030k_config_cam((ARRAY_WIDTH - 320)/2,(ARRAY_HEIGHT - 32)/2,
                         320,8,2,4,GREY_SCALE_MODE);
         po3030k_set_mirror(1,1);
-        po3030ke_set_ref_exposure(100);
+        po3030k_set_ref_exposure(100);
 
         po3030k_write_cam_registers();
 
@@ -105,12 +103,13 @@ int main(void) {
         return 0;
 }
 \endcode
- * This example configure the camera to aquire a 320x8 pixel picture, but subsampled
- * 2x in width and 4x in heigth, thus resulting in a 160*2 linear
- * greyscale picture. It "emulate" a linear camera. This example tell the camera to
+ * This example configures the camera to acquire a 320x8 pixel picture, but subsampled
+ * 2x in width and 4x in height, thus resulting in a 160*2 linear
+ * greyscale picture. It "emulates" a linear camera. This example tells the camera to
  * to enable the vertical and horizontal mirror, and to set the average exposure to
  * 100.
  */
+/*@{*/
 
 #ifndef __MOLOLE_PO3030K_H__
 #define __MOLOLE_PO3030K_H__
@@ -255,3 +254,5 @@ int  po3030k_set_flicker_man_set(int hz50, int hz60, int fdm, int fk, int tol);
 #endif
 
 #endif
+
+/*@}*/

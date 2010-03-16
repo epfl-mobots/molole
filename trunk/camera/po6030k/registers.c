@@ -1,8 +1,10 @@
 
 /*! \file
  * \brief Manage po6030k registers (two timers)
- * \author Philippe R�tornaz
+ * \author Philippe Rétornaz
+ * \addtogroup camera_po6030k 
  */
+/*@{*/
 
 
 
@@ -191,3 +193,5 @@ void po6030k_set_sketch_mode(int mode) {
 		po6030k_write_register(BANK_B, 0x8B, 0xFF);
 	}
 }
+
+/*@}*/

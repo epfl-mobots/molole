@@ -1,9 +1,11 @@
 /*! \file
  * \ingroup camera1
- * \brief Manage camera's interrupts (two timers)
- * \author Philippe R�tornaz
+ * \brief Manage camera's interrupts
+ * \author Philippe Rétornaz
  * \verbinclude interrupt.s
+ * \addtogroup camera_po6030k 
  */
+/*@{*/
 
 
 #include <p33fxxxx.h>
@@ -169,4 +171,4 @@ void po6030k_reset(void) {
 	clock_delay_us(1000);
 }	
 
-
+/*@}*/

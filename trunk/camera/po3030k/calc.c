@@ -24,8 +24,10 @@
 
 /*! \file
  * \brief Calculate the timing for the camera
- * \author Philippe Rétornaz
+ * \author Philippe RÃ©tornaz
+ * \addtogroup camera_po3030k
  */
+/*@{*/
 
 #include "po3030k.h"
 #include "../../i2c/i2c.h"
@@ -200,5 +202,4 @@ int po3030k_get_bytes_per_pixel(int color_mode) {
 	return 1;
 }
 
-	
-
+/*@}*/
