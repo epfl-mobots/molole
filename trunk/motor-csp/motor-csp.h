@@ -101,7 +101,7 @@ void motor_csp_init_32(motor_csp_data *d);
 void motor_csp_init_16(motor_csp_data *d);
 
 // 32bits / 16 bits => 32 bits implemented with two 32/16 => 16
-unsigned long div32by16u(unsigned long a, unsigned int b);
+#define div32by16u __udiv3216
 long div32by16s(long a, int b);
 
 // Some helper defines for aseba

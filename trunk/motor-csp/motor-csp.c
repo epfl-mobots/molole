@@ -1,19 +1,11 @@
 #include "motor-csp.h"
 #include <string.h>
+#include <math.h>
 // use (long)  __builtin_mulss(a,b) to perform int*int => long
 
 // use (int) __builtin_divsd(a,b) to perfrom long/int => int
 // CHECK OV bit after the division to know if an overflow occured
 
-// 32bits / 16 bits => 32 bits implemented with two 32/16 => 16
-unsigned long div32by16u(unsigned long a, unsigned int b) {
-	// Take about 60 cycles
-	unsigned int q1, rem1, q2;
-	
-	q1 = __builtin_divmodud(a >> 16, b, &rem1);
-	q2 = __builtin_divud((a & 0xFFFF) | (((unsigned long) rem1) << 16), b);
-	return (((unsigned long) q1) << 16) | q2;
-}
 
 long div32by16s(long a, int b) {
 	unsigned long ret;
@@ -37,7 +29,7 @@ long div32by16s(long a, int b) {
 		ab = b;
 	}		
 	
-	ret = div32by16u(aa, ab);
+	ret = __udiv3216(aa, ab);
 	
 	if(!sgn)
 		return - ((long) ret);
