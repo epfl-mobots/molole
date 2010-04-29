@@ -131,7 +131,9 @@ void spi_start_transfert(int spi_id, void * tx_buffer, void * rx_buffer, unsigne
 
 	int start_tx_dma;
 	ERROR_CHECK_RANGE(spi_id, SPI_1, SPI_2, SPI_INVALID_ID);
-
+	if(rx_buffer == NULL) {
+		ERROR(DMA_ERROR_INVALID_ADDRESS, &rx_buffer);
+	}
 
 	
 	if(!xch_count || (!tx_buffer && !rx_buffer))  {
