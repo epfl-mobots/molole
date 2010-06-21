@@ -114,6 +114,10 @@ bool timer_force_interrupt(int id);
 
 bool timer_get_if(int id);
 
+bool timer_set_if(int id, bool f);
+
+unsigned int timer_get_prescaler(int id);
+
 /*@}*/
 
 #endif

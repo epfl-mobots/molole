@@ -227,7 +227,6 @@ void timer_init(int id, unsigned long int arg_sample_time, int unit)
 	timer_use_gated_time_accumulation(id, false);	
 }
 
-
 /**
 	Set the period of a timer.
 	
@@ -890,6 +889,72 @@ bool timer_get_if(int id)
 
 
 /**
+	Set the interrupt flag
+	
+	\param	id
+			The timer can be one of the 16-bits timer (\ref TIMER_1 -> \ref TIMER_9) or one of the 32-bits timer (\ref TIMER_23 -> \ref TIMER_89).
+	\return 
+			\true if the timer interrupt flag was active, false otherwise
+*/
+bool timer_set_if(int id, bool f) {
+	bool ret;
+	switch(id)
+	{
+		case TIMER_1:
+			ret = _T1IF;
+			_T1IF = f;
+			return ret;
+		case TIMER_2:
+			ret = _T2IF;
+			_T2IF = f;
+			return ret;
+		case TIMER_23:
+		case TIMER_3:
+			ret = _T3IF;
+			_T3IF = f;
+			return ret;
+		case TIMER_4:
+			ret = _T4IF;
+			_T4IF = f;
+			return ret;
+		case TIMER_45:
+		case TIMER_5:
+			ret = _T5IF;
+			_T5IF = f;
+			return ret;
+#ifdef _T6IF
+		case TIMER_6:
+			ret = _T6IF;
+			_T6IF = f;
+			return ret;
+#endif
+#ifdef _T7IF
+		case TIMER_67:
+		case TIMER_7:
+			ret = _T7IF;
+			_T7IF = f;
+			return ret;
+#endif
+#ifdef _T8IF
+		case TIMER_8:
+			ret = _T8IF;
+			_T8IF = f;
+			return ret;
+#endif
+#ifdef _T9IF
+		case TIMER_89:
+		case TIMER_9:
+			ret = _T9IF;
+			_T9IF = f;
+			return ret;
+#endif
+		default:
+			ERROR(TIMER_ERROR_INVALID_TIMER_ID, &id);
+			break;
+	}
+}	
+
+/**
 	Disable the interrupt of a timer.
 	
 	\param	id
@@ -956,7 +1021,68 @@ void timer_disable_interrupt(int id)
 	}
 }
 
-
+/**
+	Get the timer prescaler
+	
+	\param	id
+			The timer can be one of the 16-bits timer (\ref TIMER_1 -> \ref TIMER_9) or one of the 32-bits timer (\ref TIMER_23 -> \ref TIMER_89).
+	\return 
+			The prescaler factor		
+*/
+unsigned int timer_get_prescaler(int id) {
+	unsigned int ret = 0;
+	switch(id)
+	{
+		case TIMER_1:	ret = T1CONbits.TCKPS;
+			break;
+		case TIMER_2:
+		case TIMER_23:	ret = T2CONbits.TCKPS;
+			break;
+		case TIMER_3:	ret = T3CONbits.TCKPS;
+			break;
+		case TIMER_4:
+		case TIMER_45:	ret = T4CONbits.TCKPS;
+			break;
+		case TIMER_5:	ret = T5CONbits.TCKPS;
+			break;
+	#ifdef _T6IF
+		case TIMER_6:
+		case TIMER_67:	ret = T6CONbits.TCKPS;
+			break;
+	#endif
+	#ifdef _T7IF
+		case TIMER_7:	ret = T7CONbits.TCKPS;
+			break;
+	#endif
+	#ifdef _T8IF
+		case TIMER_8:
+		case TIMER_89:	ret = T8CONbits.TCKPS;
+			break;
+	#endif
+	#ifdef _T9IF
+		case TIMER_9:	ret = T9CONbits.TCKPS;
+			break;
+	#endif
+		default:
+			ERROR(TIMER_ERROR_INVALID_TIMER_ID, &id);
+			break;
+	}
+	switch(ret) {
+		case 0:
+			ret = 1;
+			break;
+		case 1:
+			ret = 8;
+			break;
+		case 2:
+			ret = 64;
+			break;
+		case 3:
+			ret = 256;
+			break;
+	}
+	return ret;	
+}	
 
 //-----------------------------------
 // Internal functions, implementation
