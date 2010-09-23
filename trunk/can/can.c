@@ -399,7 +399,7 @@ static int can_get_next_rx(void) {
 	if(bufn > 15) {
 		if((C1RXFUL2 >> (bufn - 16)) & 0x1)
 			return bufn;
-		else
+		else 
 			return -1;
 	} else {
 		if((C1RXFUL1 >> bufn) & 0x1)
@@ -426,10 +426,13 @@ static void can_rx(void)
 		((int *) frame.data)[2] = can_buf[bufn].data[2];
 		((int *) frame.data)[3] = can_buf[bufn].data[3];
 	
-		if(bufn > 15)
+		if(bufn > 15) {
 			C1RXFUL2 &= ~(1<<(bufn-16));
-		else
+			C1RXOVF2 &= ~(1<<(bufn-16));
+		} else {
 			C1RXFUL1 &= ~(1<<bufn);
+			C1RXOVF1 &= ~(1<<bufn);
+		}
 	
 		rx_cb(&frame);
 	}
