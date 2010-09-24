@@ -72,26 +72,11 @@ static struct
 	unsigned target_bogomips;	/**< a vague and optimistic estimation of the MIPS this processor provides */
 } Clock_Data;
 
-
 //-------------------
-// Exported functions
+// Private functions
 //-------------------
+static void setup_pll(unsigned n1, unsigned m, unsigned n2, unsigned long fin, unsigned osc) {
 
-/**
-	Initialize PLL for operations on internal RC with specified values.
-	
-	\param	n1
-			PLL prescaler
-	\param	m
-			PLL multiplier
-	\param	n2
-			PLL postscaler
-*/
-void clock_init_internal_rc_from_n1_m_n2(unsigned n1, unsigned m, unsigned n2)
-{
-	// The dsPIC33 internal oscillator is rated at 7.37 MHz.
-	const unsigned long fin = 7370000;
-	
 	// Make sure we are on a "safe" oscillator (internal RC w/o pll)
 	__builtin_write_OSCCONH(CLOCK_FRC); 
 	__builtin_write_OSCCONL(OSCCONL | 0x1); // Initiate the switch
@@ -111,7 +96,7 @@ void clock_init_internal_rc_from_n1_m_n2(unsigned n1, unsigned m, unsigned n2)
 	}
 	
 	// New oscillator selection bits
-	__builtin_write_OSCCONH(CLOCK_FRCPLL); 
+	__builtin_write_OSCCONH(osc); 
 	__builtin_write_OSCCONL(OSCCONL | 0x1); // Initiate the switch
 
 	// Wait for PLL to lock
@@ -129,6 +114,44 @@ void clock_init_internal_rc_from_n1_m_n2(unsigned n1, unsigned m, unsigned n2)
 	
 	// Lower the priority of all non-interrupt code.
 	SRbits.IPL = 0;
+}
+
+//-------------------
+// Exported functions
+//-------------------
+
+
+/**
+	Initialize PLL for operation on external clock with specified value.
+	\param	n1
+			PLL prescaler
+	\param 	m
+			PLL multiplier
+	\param 	n2
+			PLL postscaler
+	\param 	source_freq
+			External source frequency in Hz
+*/
+
+void clock_init_external_clock_from_n1_m_n2(unsigned n1, unsigned m, unsigned n2, unsigned long source_freq)
+{
+	setup_pll(n1, m, n2, source_freq, CLOCK_PRIMPLL);
+	
+}
+
+/**
+	Initialize PLL for operations on internal RC with specified values.
+	
+	\param	n1
+			PLL prescaler
+	\param	m
+			PLL multiplier
+	\param	n2
+			PLL postscaler
+*/
+void clock_init_internal_rc_from_n1_m_n2(unsigned n1, unsigned m, unsigned n2)
+{
+	setup_pll(n1, m, n2, 7370000UL, CLOCK_FRC);
 }
 
 /**
