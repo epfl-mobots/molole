@@ -151,7 +151,7 @@ void clock_init_external_clock_from_n1_m_n2(unsigned n1, unsigned m, unsigned n2
 */
 void clock_init_internal_rc_from_n1_m_n2(unsigned n1, unsigned m, unsigned n2)
 {
-	setup_pll(n1, m, n2, 7370000UL, CLOCK_FRC);
+	setup_pll(n1, m, n2, 7370000UL, CLOCK_FRCPLL);
 }
 
 /**
