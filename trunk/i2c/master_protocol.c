@@ -173,8 +173,14 @@ static int i2c_master_transfert_op(int i2c_id, unsigned char** data, void* user_
 			break;
 
 		case I2C_STOP_DONE:
-			ret = I2C_MASTER_DONE;
+			ret = I2C_MASTER_QUIT;
 			I2C_master_transfert_datas[i2c_id].state = I2C_IDLE;
+			
+			/* We have to reset the state machine, the callback may want to
+			   immediatly restart an i2c transfert ... 
+			 */
+			i2c_master_reset(i2c_id);
+			
 			if(I2C_master_transfert_datas[i2c_id].result_callback)
 				I2C_master_transfert_datas[i2c_id].result_callback(i2c_id, I2C_master_transfert_datas[i2c_id].result);
 			break;

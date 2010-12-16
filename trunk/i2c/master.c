@@ -148,6 +148,21 @@ bool i2c_master_is_busy(int i2c_id)
 	return I2C_Master_Data[i2c_id].operation_completed_callback != 0;
 }
 
+/**
+	Force the state machine to become idle
+	This is safe to call only after a stop has been generated.
+	It only reset the software state machine, not the hardware (dspic) one
+
+	\param 	i2c_id
+			identifier of the I2C, \ref I2C_1 or \ref I2C_2
+*/
+
+void i2c_master_reset(int i2c_id)
+{
+	ERROR_CHECK_RANGE(i2c_id, I2C_1, I2C_2, I2C_ERROR_INVALID_ID);
+
+	I2C_Master_Data[i2c_id].operation_completed_callback = 0;
+}
 
 //--------------------------
 // Interrupt service routine
@@ -202,6 +217,9 @@ void _ISR _MI2C1Interrupt(void)
 		case I2C_MASTER_DONE:
 			I2C_Master_Data[I2C_1].operation_completed_callback = 0;
 		break;
+		
+		case I2C_MASTER_QUIT:
+			return;
 
 		default:
 			ERROR(I2C_INVALID_OPERATION, &next_op);
@@ -262,6 +280,9 @@ void _ISR _MI2C2Interrupt(void)
 		case I2C_MASTER_DONE:
 			I2C_Master_Data[I2C_2].operation_completed_callback = 0;
 		break;
+		
+		case I2C_MASTER_QUIT:
+			return;
 
 		default:
 			ERROR(I2C_INVALID_OPERATION, &next_op);

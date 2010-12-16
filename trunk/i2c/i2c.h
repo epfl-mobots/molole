@@ -98,7 +98,8 @@ enum i2c_master_operation
 	I2C_MASTER_ACK,		/** Ack bit operation */
 	I2C_MASTER_NACK,	/** NAck bit operation */
 	I2C_MASTER_STOP,	/** Stop bit operation */
-	I2C_MASTER_DONE		/** No more operation */
+	I2C_MASTER_DONE,	/** No more operation, but reset the state machine */
+	I2C_MASTER_QUIT		/** No more operation, do _NOT_ reset the state machine, you have to call \ref i2c_master_reset manually */
 };
 
 /** I2C callback when a transfert (read/write) is completed.
@@ -113,6 +114,8 @@ typedef int (*i2c_master_operation_completed_callback)(int i2c_id, unsigned char
 void i2c_init_master(int i2c_id, long speed, int priority);
 
 void i2c_master_start_operations(int i2c_id, i2c_master_operation_completed_callback operation_completed_callback, void* user_data);
+
+void i2c_master_reset(int i2c_id);
 
 bool i2c_master_is_busy(int i2c_id);
 
