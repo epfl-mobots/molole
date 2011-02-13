@@ -22,7 +22,7 @@
 	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <p33fxxxx.h>
+#include "../types/types.h"
 
 #include "flash.h"
 #include "../error/error.h"
