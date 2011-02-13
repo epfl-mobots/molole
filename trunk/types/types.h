@@ -25,7 +25,7 @@
 #ifndef _MOLOLE_TYPES_H
 #define _MOLOLE_TYPES_H
 
-#include <p33fxxxx.h>
+#include "uc.h"
 
 /**
 	\defgroup types Types
