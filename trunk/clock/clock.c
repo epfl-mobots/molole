@@ -54,9 +54,6 @@
 // Clock constants
 
 
-
-#include <p33fxxxx.h>
-
 #include "clock.h"
 #include "../types/types.h"
 
@@ -75,6 +72,7 @@ static struct
 //-------------------
 // Private functions
 //-------------------
+#ifdef _PLLPRE
 static void setup_pll(unsigned n1, unsigned m, unsigned n2, unsigned long fin, unsigned osc) {
 
 	// Make sure we are on a "safe" oscillator (internal RC w/o pll)
@@ -171,6 +169,16 @@ void clock_init_internal_rc_40()
 {
 	clock_init_internal_rc_from_n1_m_n2(6, 130, 2);
 	Clock_Data.target_bogomips = 40;
+}
+#endif
+
+/**
+	Force the clock speed, this does not configure any hardware clock.
+*/
+
+void clock_set_speed(unsigned long hz, unsigned int mips) {
+	Clock_Data.fcy = hz;
+	Clock_Data.target_bogomips = mips;
 }
 
 /**

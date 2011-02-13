@@ -60,6 +60,8 @@ void clock_init_internal_rc_30();
 
 void clock_init_internal_rc_40();
 
+void clock_set_speed(unsigned long hz, unsigned int mips);
+
 unsigned long clock_get_cycle_duration();
 
 unsigned long clock_get_cycle_frequency();
