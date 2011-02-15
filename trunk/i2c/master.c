@@ -38,8 +38,10 @@
 // Definitions
 //------------
 
-#include <p33fxxxx.h>
 #include "i2c.h"
+#include "i2c_priv.h"
+
+#include "../types/uc.h"
 #include "../error/error.h"
 #include "../clock/clock.h"
 
@@ -55,7 +57,8 @@ static struct
 	void* user_data; /**< optional user data that is passed to operation_completed_callback callback */
 	int prev_operation; /**< previous operation, \ref I2C_MASTER_NONE if start of message */
 	unsigned char* prev_data; /**< pointer to data for previous operation, in case of \ref I2C_MASTER_READ */
-} I2C_Master_Data[2] = {
+} I2C_Master_Data[3] = {
+	{ NULL, NULL, I2C_MASTER_NONE, NULL},
 	{ NULL, NULL, I2C_MASTER_NONE, NULL},
 	{ NULL, NULL, I2C_MASTER_NONE, NULL}
 };
@@ -79,11 +82,19 @@ void i2c_init_master(int i2c_id, long speed, int priority)
 {
 	unsigned long brg;
 	
-	ERROR_CHECK_RANGE(i2c_id, I2C_1, I2C_2, I2C_ERROR_INVALID_ID);
+	i2c_check_range(i2c_id);
 	ERROR_CHECK_RANGE(priority, 1, 7, GENERIC_ERROR_INVALID_INTERRUPT_PRIORITY);
+#if defined __dsPIC33F__
 	brg = (clock_get_cycle_frequency()/speed - clock_get_cycle_frequency()/1111111) - 1;
 	ERROR_CHECK_RANGE(brg, 1, 65535, I2C_INVALID_CLOCK);
-	
+#elif defined __PIC24F__
+	brg = (clock_get_cycle_frequency()/speed - clock_get_cycle_frequency()/10000000l) - 1;
+	ERROR_CHECK_RANGE(brg, 1, 511, I2C_INVALID_CLOCK);
+#else
+	brg = 0;
+	ERROR(I2C_INVALID_CLOCK, "Unsupported architecture");
+#endif
+
 	if (i2c_id == I2C_1)
 	{
 		I2C1BRG = (unsigned int) brg;
@@ -92,18 +103,26 @@ void i2c_init_master(int i2c_id, long speed, int priority)
 	
 		_MI2C1IE = 1;					// enable the master interrupt*/
 	}
-	else
-	{
 #ifdef _MI2C2IF
+	else if (i2c_id == I2C_2)
+	{
 		I2C2BRG = (unsigned int) brg;
 		_MI2C2IF = 0;					// clear the master interrupt
 		_MI2C2IP = priority;			// set the master interrupt priority
 	
 		_MI2C2IE = 1;					// enable the master interrupt*/
-#else
-	ERROR(I2C_ERROR_INVALID_ID, &i2c_id);
-#endif
 	}
+#endif
+#ifdef _MI2C3IF
+	else if (i2c_id == I2C_3)
+	{
+		I2C3BRG = (unsigned int) brg;
+		_MI2C3IF = 0;					// clear the master interrupt
+		_MI2C3P = priority;			// set the master interrupt priority
+	
+		_MI2C3IE = 1;					// enable the master interrupt*/
+	}
+#endif
 }
 
 /**
@@ -114,7 +133,7 @@ void i2c_init_master(int i2c_id, long speed, int priority)
 // TODO: doc
 void i2c_master_start_operations(int i2c_id, i2c_master_operation_completed_callback operation_completed_callback, void* user_data)
 {
-	ERROR_CHECK_RANGE(i2c_id, I2C_1, I2C_2, I2C_ERROR_INVALID_ID);
+	i2c_check_range(i2c_id);
 	if (I2C_Master_Data[i2c_id].operation_completed_callback != 0)
 		ERROR(I2C_ERROR_MASTER_BUSY, &(I2C_Master_Data[i2c_id].operation_completed_callback));
 
@@ -123,14 +142,21 @@ void i2c_master_start_operations(int i2c_id, i2c_master_operation_completed_call
 	I2C_Master_Data[i2c_id].prev_operation = I2C_MASTER_NONE;
 
 	if (i2c_id == I2C_1)
+	{
 		I2C1CONbits.SEN = 1;
-	else {
-#ifdef _MI2C2IF
-		I2C2CONbits.SEN = 1;
-#else
-		ERROR(I2C_ERROR_INVALID_ID, &i2c_id);
-#endif
 	}
+#ifdef _MI2C2IF
+	else if (i2c_id == I2C_2)
+	{
+		I2C2CONbits.SEN = 1;
+	}
+#endif
+#ifdef _MI2C3IF
+	else if (i2c_id == I2C_3)
+	{
+		I2C3CONbits.SEN = 1;
+	}
+#endif
 }
 
 /**
@@ -143,7 +169,7 @@ void i2c_master_start_operations(int i2c_id, i2c_master_operation_completed_call
 */
 bool i2c_master_is_busy(int i2c_id)
 {
-	ERROR_CHECK_RANGE(i2c_id, I2C_1, I2C_2, I2C_ERROR_INVALID_ID);
+	i2c_check_range(i2c_id);
 
 	return I2C_Master_Data[i2c_id].operation_completed_callback != 0;
 }
@@ -159,7 +185,7 @@ bool i2c_master_is_busy(int i2c_id)
 
 void i2c_master_reset(int i2c_id)
 {
-	ERROR_CHECK_RANGE(i2c_id, I2C_1, I2C_2, I2C_ERROR_INVALID_ID);
+	i2c_check_range(i2c_id);
 
 	I2C_Master_Data[i2c_id].operation_completed_callback = 0;
 }
@@ -290,6 +316,69 @@ void _ISR _MI2C2Interrupt(void)
 	}
 
 	I2C_Master_Data[I2C_2].prev_operation = next_op;
+}
+#endif
+
+/**
+	I2C 3 Interrupt Service Routine.
+ 
+	Call the user-defined function.
+*/
+#ifdef _MI2C3IF
+void _ISR _MI2C3Interrupt(void)
+{
+	unsigned char* data;
+	int next_op;
+
+	_MI2C3IF = 0;			// clear master interrupt flag
+
+	if (I2C_Master_Data[I2C_3].prev_operation == I2C_MASTER_READ)
+		*(I2C_Master_Data[I2C_3].prev_data) = I2C3RCV;
+
+	next_op = I2C_Master_Data[I2C_3].operation_completed_callback(I2C_3, &data, I2C_Master_Data[I2C_3].user_data, I2C3STATbits.ACKSTAT);
+
+	switch (next_op)
+	{
+		case I2C_MASTER_READ:
+			I2C_Master_Data[I2C_3].prev_data = data;
+			I2C3CONbits.RCEN = 1;
+		break;
+
+		case I2C_MASTER_WRITE:
+			I2C3TRN = *data;
+		break;
+
+		case I2C_MASTER_RESTART:
+			I2C3CONbits.RSEN = 1;
+		break;
+
+		case I2C_MASTER_ACK:
+			I2C3CONbits.ACKDT = 0;
+			I2C3CONbits.ACKEN = 1;
+		break;
+
+		case I2C_MASTER_NACK:
+			I2C3CONbits.ACKDT = 1;
+			I2C3CONbits.ACKEN = 1;
+		break;
+
+		case I2C_MASTER_STOP:
+			I2C3CONbits.PEN = 1;
+		break;
+
+		case I2C_MASTER_DONE:
+			I2C_Master_Data[I2C_3].operation_completed_callback = 0;
+		break;
+		
+		case I2C_MASTER_QUIT:
+			return;
+
+		default:
+			ERROR(I2C_INVALID_OPERATION, &next_op);
+		break;
+	}
+
+	I2C_Master_Data[I2C_3].prev_operation = next_op;
 }
 #endif
 /*@}*/

@@ -42,9 +42,10 @@
 // Definitions
 //------------
 
-#include <p33fxxxx.h>
+#include "i2c.h"
+#include "i2c_priv.h"
 
-#include "../i2c/i2c.h"
+#include "../types/uc.h"
 #include "../error/error.h"
 
 //-------------------
@@ -60,8 +61,7 @@
 */
 void i2c_init(int i2c_id )
 {
-	if ((i2c_id < I2C_1) || (i2c_id > I2C_2))
-		ERROR(I2C_ERROR_INVALID_ID, &i2c_id);
+	i2c_check_range(i2c_id);
 
 	if(i2c_id ==I2C_1){
 		I2C1CONbits.I2CEN = 1;			// Enables the I2C module and configures the SDA and SCL pins as serial port pins
@@ -80,9 +80,9 @@ void i2c_init(int i2c_id )
 		I2C1CONbits.RSEN = 0;			// Repeated START condition not in progress
 		I2C1CONbits.SEN = 0;			// START condition not in progress
 	}
-	else
-	{
 #ifdef _MI2C2IF
+	else if(i2c_id == I2C_2)
+	{
 		I2C2CONbits.I2CEN = 1;			// Enables the I2C module and configures the SDA and SCL pins as serial port pins
 		I2C2CONbits.I2CSIDL = 0;		// Continue module operation in idle mode
 		I2C2CONbits.SCLREL = 1;			// Release SCLx clock
@@ -98,10 +98,28 @@ void i2c_init(int i2c_id )
 		I2C2CONbits.PEN = 0;			// STOP condition not in progress
 		I2C2CONbits.RSEN = 0;			// Repeated START condition not in progress
 		I2C2CONbits.SEN = 0;			// START condition not in progress
-#else
-		ERROR(I2C_ERROR_INVALID_ID, &i2c_id);
-#endif
 	}
+#endif
+#ifdef _MI2C3IF
+	else if(i2c_id == I2C_3)
+	{
+		I2C3CONbits.I2CEN = 1;			// Enables the I2C module and configures the SDA and SCL pins as serial port pins
+		I2C3CONbits.I2CSIDL = 0;		// Continue module operation in idle mode
+		I2C3CONbits.SCLREL = 1;			// Release SCLx clock
+		I2C3CONbits.IPMIEN = 0;			// Only acknowledge own address
+		I2C3CONbits.A10M = 0;			// 7bit slave address
+		I2C3CONbits.DISSLW = 1;			// Slew rate control disabled (enable for 400kHz operation!)
+		I2C3CONbits.SMEN = 0;			// Disable SMBus Input thresholds (set for 3.3V operation!)
+		I2C3CONbits.GCEN = 0;			// General call address disabled
+		I2C3CONbits.STREN = 0;			// Disable software or receive clock stretching
+		I2C3CONbits.ACKDT = 0;			// Send ACK during acknowledge
+		I2C3CONbits.ACKEN = 0;			// Acknowledge sequence not in progress
+		I2C3CONbits.RCEN = 0;			// Receive sequence not in progress
+		I2C3CONbits.PEN = 0;			// STOP condition not in progress
+		I2C3CONbits.RSEN = 0;			// Repeated START condition not in progress
+		I2C3CONbits.SEN = 0;			// START condition not in progress
+	}
+#endif
 }
 
 /*@}*/

@@ -36,10 +36,11 @@
 //------------
 // Definitions
 //------------
-
-#include <p33fxxxx.h>
 #include <string.h> //memcpy
 #include "i2c.h"
+#include "i2c_priv.h"
+
+#include "../types/uc.h"
 #include "../error/error.h"
 #include "../clock/clock.h"
 
@@ -73,11 +74,10 @@ typedef struct {
 	unsigned char * read_data; /** ptr where to put data to read */
 	unsigned int read_data_size; /** byte still to be read on the bus */
 	i2c_master_transfert_result_callback result_callback;
-
 } I2C_Master_Protocol_Data;
 
 /** data for the master I2C 1 and 2 high level protocol */
-static I2C_Master_Protocol_Data I2C_master_transfert_datas[2];
+static I2C_Master_Protocol_Data I2C_master_transfert_datas[3];
 
 //-------------------
 // Internal callbacks
@@ -86,6 +86,8 @@ static I2C_Master_Protocol_Data I2C_master_transfert_datas[2];
 /** callback from low-level I2C layer on I2C interrupt */
 static int i2c_master_transfert_op(int i2c_id, unsigned char** data, void* user_data, bool nack)
 {
+	i2c_check_range(i2c_id);
+	
 	int ret = I2C_MASTER_NONE;
 	switch (I2C_master_transfert_datas[i2c_id].state)
 	{
@@ -221,7 +223,7 @@ static int i2c_master_transfert_op(int i2c_id, unsigned char** data, void* user_
 */
 void i2c_master_transfert_async(int i2c_id, unsigned char addr, unsigned char* write_data, unsigned write_count, unsigned char* read_data, unsigned read_count, i2c_master_transfert_result_callback result_callback)
 {
-	ERROR_CHECK_RANGE(i2c_id, I2C_1, I2C_2, I2C_ERROR_INVALID_ID);
+	i2c_check_range(i2c_id);
 	if (I2C_master_transfert_datas[i2c_id].state != I2C_IDLE)
 		ERROR(I2C_ERROR_MASTER_BUSY, &(I2C_master_transfert_datas[i2c_id].state));
  

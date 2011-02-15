@@ -26,6 +26,7 @@
 #define _MOLOLE_I2C_H
 
 #include "../types/types.h"
+#include "../error/error.h"
 
 /** Errors I2C can throw */
 enum i2c_errors
@@ -51,9 +52,9 @@ enum i2c_errors
 enum i2c_identifiers
 {
 	I2C_1 = 0,			/**< first I2C */
-	I2C_2				/**< second I2C */
+	I2C_2,				/**< second I2C */
+	I2C_3				/**< third I2C */
 };
-
 
 /** I2C callback for status change */
 typedef void (*i2c_status_callback)(int i2c_id);

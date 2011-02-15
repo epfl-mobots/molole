@@ -38,9 +38,10 @@
 // Definitions
 //------------
 
-#include <p33fxxxx.h>
-
 #include "i2c.h"
+#include "i2c_priv.h"
+
+#include "../types/uc.h"
 #include "../error/error.h"
 
 
@@ -70,8 +71,15 @@ typedef struct
 /** data for the slave I2C 1 wrapper */
 static I2C_Slave_Data I2C_1_Slave_Data;
 
+#if defined _SI2C2IF
 /** data for the slave I2C 2 wrapper */
 static I2C_Slave_Data I2C_2_Slave_Data;
+#endif
+
+#if defined _SI2C3IF
+/** data for the slave I2C 3 wrapper */
+static I2C_Slave_Data I2C_3_Slave_Data;
+#endif
 
 //-------------------
 // Exported functions
@@ -105,6 +113,7 @@ void i2c_init_slave(
 	int priority
 )
 {
+	i2c_check_range(i2c_id);
 	ERROR_CHECK_RANGE(priority, 1, 7, GENERIC_ERROR_INVALID_INTERRUPT_PRIORITY);
 	
 	if (i2c_id == I2C_1)
@@ -126,6 +135,7 @@ void i2c_init_slave(
 		_SI2C1IP = priority;   		// set the slave interrupt priority
 		_SI2C1IE = 1;				// enable the slave interrupt
 	}
+#if defined _SI2C2IF
 	else if (i2c_id == I2C_2)
 	{
 		// Store callback functions
@@ -144,10 +154,27 @@ void i2c_init_slave(
 		_SI2C2IP = priority;   		// set the slave interrupt priority
 		_SI2C2IE = 1;				// enable the slave interrupt
 	}
-	else
+#endif
+#if defined _SI2C3IF
+	else if (i2c_id == I2C_3)
 	{
-		ERROR(I2C_ERROR_INVALID_ID, &i2c_id);
+		// Store callback functions
+		I2C_3_Slave_Data.message_from_master_callback = message_from_master_callback;
+		I2C_3_Slave_Data.message_to_master_callback = message_to_master_callback;
+		I2C_3_Slave_Data.data_from_master_callback = data_from_master_callback;
+		I2C_3_Slave_Data.data_to_master_callback = data_to_master_callback;
+		
+		I2C_3_Slave_Data.state = I2C_IDLE;
+
+		I2C3STAT = 0;
+
+		I2C3ADD = address;			// Set the module address 
+		I2C3MSK = 0x00;
+		_SI2C3IF = 0;				// clear the slave interrupt
+		_SI2C3P = priority;   		// set the slave interrupt priority
+		_SI2C3IE = 1;				// enable the slave interrupt
 	}
+#endif
 }
 
 /**
@@ -157,18 +184,24 @@ void i2c_init_slave(
 	 		identifier of the I2C, \ref I2C_1 or \ref I2C_2
 */
 void i2c_disable_slave(int i2c_id) {
+	i2c_check_range(i2c_id);
+
 	if (i2c_id == I2C_1)
 	{
 		_SI2C1IE = 0;				// disable the slave interrupt
 	} 
+#if defined _SI2C2IF
 	else if(i2c_id == I2C_2)
 	{
 		_SI2C2IE = 0;
 	}
-	else
+#endif
+#if defined _SI2C3IF
+	else if (i2c_id == I2C_3)
 	{
-		ERROR(I2C_ERROR_INVALID_ID, &i2c_id);
+		_SI2C3IE = 0;
 	}
+#endif
 }
 
 /**
@@ -181,12 +214,22 @@ void i2c_disable_slave(int i2c_id) {
 */
 void i2c_slave_return_to_idle(int i2c_id)
 {
+	i2c_check_range(i2c_id);
+
 	if (i2c_id == I2C_1)
 		I2C_1_Slave_Data.state = I2C_IDLE;
+#if defined _SI2C2IF
 	else if (i2c_id == I2C_2)
+	{
 		I2C_2_Slave_Data.state = I2C_IDLE;
-	else
-		ERROR(I2C_ERROR_INVALID_ID, &i2c_id);
+	}
+#endif
+#if defined _SI2C3IF
+	else if (i2c_id == I2C_3)
+	{
+		I2C_3_Slave_Data.state = I2C_IDLE;
+	}
+#endif
 }
 
 
@@ -262,6 +305,7 @@ void _ISR _SI2C1Interrupt(void)
  
 	Call the state-specific user-defined function.
 */
+#ifdef _SI2C2IF
 void _ISR _SI2C2Interrupt(void)
 {
 	unsigned char data;
@@ -315,5 +359,67 @@ void _ISR _SI2C2Interrupt(void)
 		
 	}
 }
+#endif
+
+/**
+	I2C 3 Interrupt Service Routine.
+ 
+	Call the state-specific user-defined function.
+*/
+#ifdef _SI2C3IF
+void _ISR _SI2C3Interrupt(void)
+{
+	unsigned char data;
+	_SI2C3IF = 0;				// Clear Slave interrupt flag
+	
+	// no interrupt is generated at the end of cycle,
+	// nor all way to detect beginning of cycle are buggy
+	// and do not behave as the doc predicts
+	if (I2C_3_Slave_Data.state == I2C_IDLE)
+	{
+		if (I2C3STATbits.R_W)
+		{
+			data = I2C3RCV;
+			I2C_3_Slave_Data.state = I2C_TO_MASTER;
+			I2C_3_Slave_Data.message_to_master_callback(I2C_3);
+		}
+		else
+		{
+			data = I2C3RCV;
+			I2C_3_Slave_Data.state = I2C_FROM_MASTER;
+			I2C_3_Slave_Data.message_from_master_callback(I2C_3);
+			I2C3CONbits.SCLREL = 1;
+			return;
+		}
+	}
+	
+	switch (I2C_3_Slave_Data.state)
+	{
+		case I2C_TO_MASTER:
+		{
+			if (I2C_3_Slave_Data.data_to_master_callback(I2C_3, &data))
+				I2C_3_Slave_Data.state = I2C_END_TO_MASTER;
+			I2C3TRN = data; 									// Write data
+			I2C3CONbits.SCLREL = 1;								// Release clock
+		}
+		break;
+		
+		case I2C_FROM_MASTER:
+		{
+			data = I2C3RCV;										// Read data
+			if (I2C_3_Slave_Data.data_from_master_callback(I2C_3, data))
+				I2C_3_Slave_Data.state = I2C_IDLE;
+			I2C3CONbits.SCLREL = 1;
+		}
+		break;
+		
+		case I2C_END_TO_MASTER:
+			I2C_3_Slave_Data.state = I2C_IDLE;
+			I2C3CONbits.SCLREL = 1;									// Release clock
+		break;
+		
+	}
+}
+#endif
 
 /*@}*/
