@@ -42,27 +42,39 @@
 // Definitions
 //------------
 
-#include <p33fxxxx.h>
+#include "../types/uc.h"
 
 #include "cn.h"
 #include "../error/error.h"
+#include "../types/types.h"
 
-static cn_callback CN_Callback;
+#if defined __dsPIC33F__
+	#define CN_NUMBER		32
+#elif defined __PIC24F__
+	#define CN_NUMBER		82
+#endif
+
+static cn_callback CN_callback;
 
 /**
 	Initialize Change Notification.
 	
-	All pins corresponding to bits at one on interrupt_mask must be configured as digital inputs by setting the associated bit in the TRISx register.
+	All pins corresponding to bits at one on interrupt_mask must be configured as digital inputs by setting the associated bit in the TRISx register. Only CN0 to CN31 can be configured this way. On PIC24F, you should use cn_add_notification if you want to configure CN above 31, or the optionnal internal pull-down.
+
+	Bear in mind there is only one interrupt for all the CN pins. They will thus share the same callback. And there is no hardware edge discrimination. Try using another peripheral if possible...
 	
+	Finally, the pull-up is usually pulling to only VDD - 0.7V, so you'd better use an external pull-up depending on your application.
+
 	\param 	interrupt_mask
-			mask of pins that have to generate interrupts on state change
+			Mask of pins that have to generate interrupts on state change (CN0 to CN31)
 	\param	pull_up_mask
-			mask of pins that should have weak pull-up
+			Mask of pins that should have weak pull-up
 	\param	callback
-			user-define function to call an change notification interrupt
+			User-define function to call an change notification interrupt
 	\param  priority
 			Interrupt priority
 */
+
 void cn_init(unsigned long interrupt_mask, unsigned long pull_up_mask, cn_callback callback, int priority)
 {
 	ERROR_CHECK_RANGE(priority, 1, 7, GENERIC_ERROR_INVALID_INTERRUPT_PRIORITY);
@@ -72,8 +84,7 @@ void cn_init(unsigned long interrupt_mask, unsigned long pull_up_mask, cn_callba
 	CNPU1 = (unsigned short)(pull_up_mask);
 	CNPU2 = (unsigned short)(pull_up_mask >> 16);
 	
-	
-	CN_Callback = callback;
+	CN_callback = callback;
 	
 	_CNIP = priority;
 	_CNIF = 0;					// Reset CN interrupt
@@ -81,7 +92,93 @@ void cn_init(unsigned long interrupt_mask, unsigned long pull_up_mask, cn_callba
 }
 
 /**
-	Re-Enable Change Notification interrupt
+	Add a Change Notification.
+	
+	cn_init must be called first, at least to enable the CN global interrupt. cn_init(NULL,NULL,priority) is OK.
+
+	Bear in mind there is only one interrupt for all the CN pins. They will thus share the same callback (defined in cn_init). And there is no hardware edge discrimination. Try using another peripheral if possible...
+	
+	Finally, the pull-up is usually pulling to only VDD - 0.7V, so you'd better use an external pull-up depending on your application.
+
+	\param 	channel
+			Channel CNx on which you have to generate interrupt on state change (CN0 to CN_NUMBER-1)
+	\param	pullup
+			Enable the weak pull-up if true
+	\param	pulldown
+			Enable the weak pull-down if true
+*/
+
+void cn_add_notification(unsigned int channel, bool pullup, bool pulldown)
+{
+	_CNIE = 0;
+
+	ERROR_CHECK_RANGE(channel, 0, CN_NUMBER - 1, CN_ERROR_INVALID_CHANNEL);
+
+	if (pullup && pulldown)
+	{
+		ERROR(CN_ERROR_PU_AND_PD, NULL);
+		return;
+	}
+
+	// Set the CNENx register
+	volatile unsigned int* ptr = &CNEN1;
+	unsigned int index = channel >> 4;
+	unsigned int bit = channel & 0x000F;
+	atomic_or(&ptr[index], (1 << bit));
+
+	// Set the CNPUx register
+	if (pullup) {
+		ptr = &CNPU1;
+		atomic_or(&ptr[index], (1 << bit));
+	}
+#if defined __PIC24F__
+	// Set the CNPDx register
+	if (pulldown) {
+		ptr = &CNPD1;
+		atomic_or(&ptr[index], (1 << bit));
+	}
+#endif
+
+	_CNIF = 0;
+	_CNIE = 1;
+}
+
+/**
+	Remove a Change Notification.
+
+	Inverse of cn_add_notification().
+	
+	\param 	channel
+			Channel CNx to remove (CN0 to CN_NUMBER-1)
+*/
+
+void cn_remove_notification(unsigned int channel)
+{
+	_CNIE = 0;
+
+	ERROR_CHECK_RANGE(channel, 0, CN_NUMBER - 1, CN_ERROR_INVALID_CHANNEL);
+
+	// Unset the CNENx register
+	volatile unsigned int * ptr = &CNEN1;
+	unsigned int index = channel >> 4;
+	unsigned int bit = channel & 0x000F;
+	atomic_and(&ptr[index], ~(1 << bit));
+
+	// Unset the CNPUx register
+	ptr = &CNPU1;
+	atomic_and(&ptr[index], ~(1 << bit));
+#if defined __PIC24F__
+	// Unset the CNPDx register
+	ptr = &CNPD1;
+	atomic_and(&ptr[index], ~(1 << bit));
+#endif
+
+	_CNIF = 0;
+	_CNIE = 1;
+}
+
+/**
+	Re-Enable the global Change Notification interrupt (all channels affected)
 */
 
 void cn_enable_interrupt(void) {
@@ -90,7 +187,7 @@ void cn_enable_interrupt(void) {
 }
 
 /**
-	Disable Change Notification interrupt
+	Disable the global Change Notification interrupt (all channels affected)
 */
 
 void cn_disable_interrupt(void) {
@@ -113,9 +210,8 @@ void _ISR _CNInterrupt(void)
 	_CNIF = 0;
 	
 	// Call user-defined function
-	CN_Callback();
-
+	if(CN_callback)
+		CN_callback();
 }
-
 
 /*@}*/

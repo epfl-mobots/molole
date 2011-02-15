@@ -39,12 +39,20 @@
 /** change notification callback on interrupt */
 typedef void (*cn_callback)(void);
 
+enum cn_errors
+{
+	CN_ERROR_BASE = 0x1200,
+	CN_ERROR_PU_AND_PD,				/**< Both pullup and pulldown have been selected. */
+	CN_ERROR_INVALID_CHANNEL,			/**< This channel is not available on the current architecture. */
+};
+
 // Functions, doc in the .c
 
 void cn_init(unsigned long interrupt_mask, unsigned long pull_up_mask, cn_callback callback, int priority);
+void cn_add_notification(unsigned int channel, bool pullup, bool pulldown);
+void cn_remove_notification(unsigned int channel);
 
 void cn_enable_interrupt(void);
-
 void cn_disable_interrupt(void);
 
 
