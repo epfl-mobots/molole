@@ -1,3 +1,9 @@
 Philippe Rétornaz <philippe dot retornaz at epfl dot ch>
 Valentin Longchamp <valentin dot longchamp at a3 dot epfl dot ch>
 Stéphane Magnenat <stephane at magnenat dot net>
+
+Additional contributors, per module:
+
+* pwm
+Copyright (C) 2007 Florian Vaussard <Florian dot Vaussard at a3 dot epfl dot ch>
+Copyright (C) 2004 Daniel Baer, Autonomous Systems Lab, EPFL
