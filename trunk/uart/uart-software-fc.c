@@ -114,8 +114,8 @@ void uart1_timer_cb(int __attribute((unused)) timer_id);
 			The timer used to poll the CTS line
 	\param	byte_received_callback
 			function to call when a new byte is received
-	\param	byte_transmitted_callback
-			function to call when a byte has been transmitted
+	\param	tx_ready_callback
+			function called when a byte has been transmitted
 	\param  th_priority
 			Hardware fifo read interrupt priority, from bh_priority + 1 to 7 (NMI priority)
 	\param 	bh_priority

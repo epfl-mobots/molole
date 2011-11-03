@@ -10,11 +10,16 @@ static void * dma_bufferL[2];
 static dac_callback dac_cb;
 
 /**
-        \defgroup dac DAC
-
-	DAC driver for molole. Can only be used with FRCPLL oscillator
+	\defgroup dac DAC (Digital to Analog Converters)
+	
+	This very simple wrapper ease the usage of the DAC converter.
+	\warning Can only be used with FRCPLL oscillator.
 */
 /*@{*/
+
+/** \file
+	Implementation of the wrapper around dsPIC33 DAC.
+*/
 
 static void set_auxclk_divider(int div) {
 	switch(div) {

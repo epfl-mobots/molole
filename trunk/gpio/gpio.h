@@ -31,11 +31,11 @@
 /*@{*/
 
 /** \file
-	GPIO abstraction
+	\brief A wrapper around dsPIC33 GPIOs.
 */
 
 // Defines
-
+                                                                                                                                                                                                        
 /** Errors GPIO can throw */
 enum gpio_errors
 {
@@ -65,26 +65,29 @@ enum gpio_dir
 /** GPIO Pin number, to use with \ref GPIO_MAKE_ID 
  * The association pin number 0 == value 0 etc ... is alway guaranteed
  */
-#define GPIO_PIN_0 0
-#define GPIO_PIN_1 1
-#define GPIO_PIN_2 2
-#define GPIO_PIN_3 3
-#define GPIO_PIN_4 4
-#define GPIO_PIN_5 5
-#define GPIO_PIN_6 6
-#define GPIO_PIN_7 7
-#define GPIO_PIN_8 8
-#define GPIO_PIN_9 9
-#define GPIO_PIN_10 10
-#define GPIO_PIN_11 11
-#define GPIO_PIN_12 12
-#define GPIO_PIN_13 13
-#define GPIO_PIN_14 14
-#define GPIO_PIN_15 15
+enum gpio_pin_number
+{
+	/*! */	GPIO_PIN_0 = 0,
+	/*! */	GPIO_PIN_1,
+	/*! */	GPIO_PIN_2,
+	/*! */	GPIO_PIN_3,
+	/*! */	GPIO_PIN_4,
+	/*! */	GPIO_PIN_5,
+	/*! */	GPIO_PIN_6,
+	/*! */	GPIO_PIN_7,
+	/*! */	GPIO_PIN_8,
+	/*! */	GPIO_PIN_9,
+	/*! */	GPIO_PIN_10,
+	/*! */	GPIO_PIN_11,
+	/*! */	GPIO_PIN_12,
+	/*! */	GPIO_PIN_13,
+	/*! */	GPIO_PIN_14,
+	/*! */	GPIO_PIN_15,
+};
 
-/** GPIO Byte referenced, to use with \ref GPIO_MAKE_ID and the _byte verion of the gpio access function */
-#define GPIO_LOW_BYTE 0
-#define GPIO_HIGH_BYTE 8
+/** GPIO Byte referenced, to use with \ref GPIO_MAKE_ID and the _byte version of the gpio access function */
+/*! */	#define GPIO_LOW_BYTE 0
+/*! */	#define GPIO_HIGH_BYTE 8
 
 /** GPIO Word tag, to use with \ref GPIO_MAKE_ID and the _word version of the gpio access */
 #define GPIO_WORD 0
@@ -112,8 +115,6 @@ void gpio_set_opendrain_word(gpio gpio_id, int opendrain);
 void gpio_set_dir_word(gpio gpio_id, int dir);
 unsigned int gpio_read_word(gpio gpio_id);
 void gpio_write_word(gpio gpio_id, unsigned int value);
-
-
 
 /*@}*/
 

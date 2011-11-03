@@ -70,5 +70,6 @@ bool can_is_frame_room(void);
 void can_enable(void);
 void can_disable(void);
 
+/*@}*/
 
 #endif

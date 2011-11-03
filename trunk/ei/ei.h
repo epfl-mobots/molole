@@ -36,7 +36,7 @@
 enum ei_errors
 {
 	EI_ERROR_BASE = 0x0D00,
-	EI_INVALID_ID,						/**< The desired External Interrupt does not exists, must be one of \ref ei_identifiers. */
+	EI_INVALID_ID,					/**< The desired External Interrupt does not exists, must be one of \ref ei_identifiers. */
 	EI_INVALID_POLARITY,			/**< The specified polarity is invalid, must be one of \ref ei_polarity */
 };
 
@@ -46,8 +46,8 @@ typedef void (*ei_callback)(int ei_id, void * user_data);
 
 /** Available External Interrupt signal polarity */
 enum ei_polarity {
-	EI_POSITIVE_EDGE = 0,
-	EI_NEGATIVE_EDGE,
+	EI_POSITIVE_EDGE = 0,			/**< Interrupt catched on 0 to 1 transition. */
+	EI_NEGATIVE_EDGE,				/**< Interrupt catched on 1 to 0 transition. */
 };
 
 /** Identifiers of available External Interrupt. */

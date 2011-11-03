@@ -77,4 +77,6 @@ void flash_write_buffer(unsigned char * data, size_t size);
 // Finish a write. Flush all buffers etc ... 
 void flash_complete_write(void);
 
+/*@}*/
+
 #endif

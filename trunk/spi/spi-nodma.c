@@ -27,9 +27,19 @@
 #include "../clock/clock.h"
 #include "../gpio/gpio.h"
 
+//--------------------
+// Usage documentation
+//--------------------
+
+/**
+	\defgroup spi_nodma SPI_NODMA
+	
+	Wrapper around SPI_NODMA interface
+*/
 /*@{*/
+
 /** \file
-	Implementation of the SPI_NODMA interface.
+	\brief Implementation of the SPI_NODMA interface.
 */
 
 //-----------------------
@@ -51,17 +61,17 @@ static struct {
 	Initialise an SPI device
 	
 	\param	spi_id
-			SPI id. One of \ref spi_id.
+			SPI id. One of \ref spi_nodma_id
 	\param	speed_khz
 			The speed of the SPI clock. The effective speed will not be higher than the specified speed, but can be slower.
 	\param	transfert_mode
-			The mode used for transfert. Must be one of \ref spi_tranfert_size.
+			The mode used for transfert. Must be one of \ref spi_nodma_tranfert_size.
 	\param 	polarity
-			The polarity used by the clock. Must be one of \ref spi_clock_polarity.
+			The polarity used by the clock. Must be one of \ref spi_nodma_clock_polarity.
 	\param 	data_out_mode
-			Used to specify when the data out must happend on the clock transition. Must be one of \ref spi_data_out_mode.
+			Used to specify when the data out must happend on the clock transition. Must be one of \ref spi_nodma_data_out_mode.
 	\param 	sample_phase
-			Used to specify when the data must be sampled for RX. Must be one of \ref spi_sample_phase.
+			Used to specify when the data must be sampled for RX. Must be one of \ref spi_nodma_sample_phase.
 */
 void spi_nodma_init_master(int spi_id, unsigned int speed_khz, int transfert_mode, int polarity, int data_out_mode, int sample_phase) {
 	unsigned int ratio;
@@ -176,7 +186,7 @@ void spi_nodma_init_master(int spi_id, unsigned int speed_khz, int transfert_mod
 	Perform a busy-waiting SPI transfert
 	
 	\param	spi_id
-			SPI id. One of \ref spi_id.
+			SPI id. One of \ref spi_nodma_id.
 	\param	tx_buffer
 			The tx buffer pointer. Can be NULL
 	\param	rx_buffer

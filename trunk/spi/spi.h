@@ -33,59 +33,57 @@
 // Usage documentation
 //--------------------
 
-/**
-	\defgroup spi SPI
-	
-	Wrapper around SPI interface
-*/
+/** \addtogroup spi */
 /*@{*/
 
-
+/** \file
+	Wrapper around SPI interface
+*/
 
 /** Error spi can throw */
 enum spi_errors
 {
 	SPI_ERROR_BASE = 0x0C00,
-	SPI_INVALID_ID,				/* The specified ID is invalid */
-	SPI_INVALID_TRANFERT_MODE,	/* The specified transfert mode is invalid */
-	SPI_INVALID_POLARITY,		/* The specified polarity is invalid */
-	SPI_INVALID_SPEED,			/* The specified speed is invalid */
-	SPI_INVALID_DATA_OUT_MODE,	/* The specified data out mode is invalide */
-	SPI_INVALID_SAMPLE_PHASE,	/* The specified sample phase mode is invalid */
-	SPI_INVALID_TRANSFERT,		/* An invalide transfert has been requested */
+	SPI_INVALID_ID,				/**< The specified ID is invalid */
+	SPI_INVALID_TRANFERT_MODE,	/**< The specified transfert mode is invalid */
+	SPI_INVALID_POLARITY,		/**< The specified polarity is invalid */
+	SPI_INVALID_SPEED,			/**< The specified speed is invalid */
+	SPI_INVALID_DATA_OUT_MODE,	/**< The specified data out mode is invalide */
+	SPI_INVALID_SAMPLE_PHASE,	/**< The specified sample phase mode is invalid */
+	SPI_INVALID_TRANSFERT,		/**< An invalide transfert has been requested */
 };
 
 
 enum spi_id
 {
-	SPI_1 = 0,
-	SPI_2,
+	/*! */ SPI_1 = 0,
+	/*! */ SPI_2,
 };
 
 enum spi_tranfert_size
 {
-	SPI_TRSF_BYTE = 0,
-	SPI_TRSF_WORD,
+	/*! */ SPI_TRSF_BYTE = 0,
+	/*! */ SPI_TRSF_WORD,
 };
 
 enum spi_clock_polarity
 {
-	SPI_CLOCK_IDLE_HIGH = 1,
-	SPI_CLOCK_ACTIVE_LOW = 1,
-	SPI_CLOCK_IDLE_LOW = 0,
-	SPI_CLOCK_ACTIVE_HIGH = 0,
+	/*! */ SPI_CLOCK_IDLE_HIGH = 1,
+	/*! */ SPI_CLOCK_ACTIVE_LOW = 1,
+	/*! */ SPI_CLOCK_IDLE_LOW = 0,
+	/*! */ SPI_CLOCK_ACTIVE_HIGH = 0,
 };
 
 enum spi_data_out_mode
 {
-	SPI_DATA_OUT_CLK_IDLE_TO_ACTIVE = 0,
-	SPI_DATA_OUT_CLK_ACTIVE_TO_IDLE,
+	/*! */ SPI_DATA_OUT_CLK_IDLE_TO_ACTIVE = 0,
+	/*! */ SPI_DATA_OUT_CLK_ACTIVE_TO_IDLE,
 };
 
 enum spi_sample_phase
 {
-	SPI_SAMPLE_PHASE_MIDDLE = 0,
-	SPI_SAMPLE_PHASE_END,
+	/*! */ SPI_SAMPLE_PHASE_MIDDLE = 0,
+	/*! */ SPI_SAMPLE_PHASE_END,
 };
 typedef void (*spi_transfert_done)(int spi_id);
 

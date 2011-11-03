@@ -92,21 +92,21 @@ void i2c_slave_return_to_idle(int i2c_id);
 /** I2C master operations the protocol layer can do */
 enum i2c_master_operation
 {
-	I2C_MASTER_NONE,		/** No operation, used when no previous operation */
-	I2C_MASTER_READ,	/** Read byte operation */
-	I2C_MASTER_WRITE,	/** Write byte operation */
-	I2C_MASTER_RESTART,	/** Restart bit operation */
-	I2C_MASTER_ACK,		/** Ack bit operation */
-	I2C_MASTER_NACK,	/** NAck bit operation */
-	I2C_MASTER_STOP,	/** Stop bit operation */
-	I2C_MASTER_DONE,	/** No more operation, but reset the state machine */
-	I2C_MASTER_QUIT		/** No more operation, do _NOT_ reset the state machine, you have to call \ref i2c_master_reset manually */
+	I2C_MASTER_NONE,	/**< No operation, used when no previous operation */
+	I2C_MASTER_READ,	/**< Read byte operation */
+	I2C_MASTER_WRITE,	/**< Write byte operation */
+	I2C_MASTER_RESTART,	/**< Restart bit operation */
+	I2C_MASTER_ACK,		/**< Ack bit operation */
+	I2C_MASTER_NACK,	/**< NAck bit operation */
+	I2C_MASTER_STOP,	/**< Stop bit operation */
+	I2C_MASTER_DONE,	/**< No more operation, but reset the state machine */
+	I2C_MASTER_QUIT		/**< No more operation, do _NOT_ reset the state machine, you have to call \ref i2c_master_reset manually */
 };
 
 /** I2C callback when a transfert (read/write) is completed.
 	Return next action to do, \ref I2C_MASTER_DONE if no more action must be done.
 	- If this function returns \ref I2C_MASTER_READ, data points to the destination of read
-	- If this function returns \ref I2C_MASTER_WRITER, data points to the data to write
+	- If this function returns \ref I2C_MASTER_WRITE, data points to the data to write
 */
 typedef int (*i2c_master_operation_completed_callback)(int i2c_id, unsigned char** data, void* user_data, bool nack);
 

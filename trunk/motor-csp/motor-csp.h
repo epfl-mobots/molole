@@ -324,5 +324,8 @@ long div32by16s(long a, int b);
 	     	else																								\
 	     		name##_pid.pwm_max = 1401;																		\
 	     }
+
+/*@}*/
+
 #endif
 

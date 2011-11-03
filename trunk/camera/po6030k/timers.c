@@ -72,6 +72,7 @@ static void init_hsync(void) {
 
 /*! Launch a capture in the \a buf buffer
  * \param buf The buffer to write to
+ * \param cb Pointer to a function that will be called upon capture done
  * \sa po6030k_config_cam and po6030k_is_img_ready
  */
 void po6030k_launch_capture(char * buf, po6030k_callback cb) {

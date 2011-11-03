@@ -77,9 +77,9 @@ enum pwm_prescaler_values
 /** Available PWM time base modes */
 enum pwm_time_base_modes
 {
-	PWM_MODE_FREE_RUNNING = 0,			/**< PWM time base operates in a continuous Up/Down Counting mode */
+	PWM_MODE_FREE_RUNNING = 0,			/**< PWM time base operates in Free Running mode */
 	PWM_MODE_SINGLE_EVENT,				/**< PWM time base operates in Single Event mode */
-	PWM_CONTINUOUS_UP_DOWN, 			/**< PWM time base operates in Free Running mode */
+	PWM_CONTINUOUS_UP_DOWN, 			/**< PWM time base operates in a continuous Up/Down Counting mode */
 	PWM_CONTINUOUS_UP_DOWN_DOUBLE		/**< PWM time base operates in a continuous Up/Down mode with interrupts for double PWM updates */
 };
 

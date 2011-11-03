@@ -760,7 +760,7 @@ void timer_enable_interrupt(int id, timer_callback callback, int priority)
 			The timer can be one of the 16-bits timer (\ref TIMER_1 -> \ref TIMER_9) or one of the 32-bits timer (\ref TIMER_23 -> \ref TIMER_89).
 
 	\return 
-			\true if the timer interrupt was perviously enabled, false otherwise
+			\ref true if the timer interrupt was perviously enabled, \ref false otherwise
 */
 
 bool timer_force_interrupt(int id)
@@ -841,7 +841,7 @@ bool timer_force_interrupt(int id)
 			The timer can be one of the 16-bits timer (\ref TIMER_1 -> \ref TIMER_9) or one of the 32-bits timer (\ref TIMER_23 -> \ref TIMER_89).
 
 	\return 
-			\true if the timer interrupt flag was active, false otherwise
+			\ref true if the timer interrupt flag was active, \ref false otherwise
 */
 bool timer_get_if(int id)
 {
@@ -889,8 +889,10 @@ bool timer_get_if(int id)
 	
 	\param	id
 			The timer can be one of the 16-bits timer (\ref TIMER_1 -> \ref TIMER_9) or one of the 32-bits timer (\ref TIMER_23 -> \ref TIMER_89).
+	\param	f
+			enable the timer interrupt flag if \ref true, \ref false otherwise
 	\return 
-			\true if the timer interrupt flag was active, false otherwise
+			\ref true if the timer interrupt flag was active, \ref false otherwise
 */
 bool timer_set_if(int id, bool f) {
 	bool ret;

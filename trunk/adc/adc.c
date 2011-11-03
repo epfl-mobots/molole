@@ -27,7 +27,7 @@
 //--------------------
 
 /**
-	\defgroup adc ADC
+	\defgroup adc ADC (Analog to Digital Converters)
 	
 	This very simple wrapper ease the usage of the ADC converter.
 */
@@ -218,7 +218,7 @@ unsigned log_2(unsigned value)
 			1 put pins in analogic, 0 in digital.
 	\param	start_conversion_event
 			Which event triggers stop of sampling and start of conversion.
-			Muse be one of \ref adc_start_conversion_event
+			Must be one of \ref adc_start_conversion_event
 	\param	sample_time
 			If start_conversion_event is \ref ADC_START_CONVERSION_FROM_INTERNAL_COUNTER : Sample time, from 0 to 31, in number of ADC Internal RC Clock cycle. Otherwise ignored.
 	\param	dma_channel

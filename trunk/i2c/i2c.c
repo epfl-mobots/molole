@@ -57,7 +57,7 @@
 	
 	Required prior to i2c_init_slave() or i2c_init_master().
 	
-	\param address I2C address of the module
+	\param i2c_id identifier of I2C module, must be one of \ref i2c_identifiers
 */
 void i2c_init(int i2c_id )
 {

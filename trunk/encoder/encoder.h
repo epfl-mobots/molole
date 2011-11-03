@@ -42,7 +42,7 @@ enum encoder_errors
 {
 	ENCODER_ERROR_BASE = 0x0800,
 	ENCODER_INVALID_TYPE,				/**< The specified encoder type is invalid, must be one of \ref encoder_type */
-	ENCODER_INVALID_X2X4,				/**< The specified encoder speed is invalid, must be one of \ref encoder_x2x4 */
+	ENCODER_INVALID_MODE,				/**< The specified encoder speed is invalid, must be one of \ref encoder_mode */
 };
 
 

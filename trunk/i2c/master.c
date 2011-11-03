@@ -126,11 +126,15 @@ void i2c_init_master(int i2c_id, long speed, int priority)
 }
 
 /**
-	
+	Init I2C master subsystem.
+
 	\param	i2c_id
 			identifier of the I2C, \ref I2C_1 or \ref I2C_2
+	\param	operation_completed_callback
+			callback to high-level I2C layer on I2C interrupt
+	\param 	user_data
+			optional user data that is passed to operation_completed_callback callback
 */
-// TODO: doc
 void i2c_master_start_operations(int i2c_id, i2c_master_operation_completed_callback operation_completed_callback, void* user_data)
 {
 	i2c_check_range(i2c_id);

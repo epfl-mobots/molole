@@ -27,7 +27,7 @@
 //--------------------
 
 /**
-	\defgroup dma DMA
+	\defgroup dma DMA (Direct Memory Access)
 	
 	Wrapper around DMA, with a callback oriented interface.
 	

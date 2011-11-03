@@ -26,6 +26,16 @@
 #include "gpio.h"
 #include "../error/error.h"
 
+/**
+	\defgroup gpio Gpio (General Purpose Inputs/Outputs)
+	
+	This very simple wrapper ease the usage of the GPIOs.
+*/
+/*@{*/
+
+/** \file
+	Implementation of the wrapper around dsPIC33 GPIOs.
+*/
 
 /* (ds)PIC GPIO memory:
 	TRISx
@@ -38,7 +48,7 @@
 /** 
 	Set the OpenDrain functionality of a GPIO
 
-	\param gpio
+	\param gpio_id
 			identifier of the GPIO, must be created by GPIO_MAKE_ID()
 	\param opendrain
 			\ref true if must be configured as open-drain, false otherwise
@@ -106,7 +116,7 @@ void gpio_set_opendrain(gpio gpio_id, int opendrain) {
 /**
 	Set the direction of a GPIO.
 	
-	\param	gpio
+	\param	gpio_id
 			identifier of the GPIO, must be created by GPIO_MAKE_ID()
 	\param	dir
 			direction of the GPIO, either \ref GPIO_OUTPUT or \ref GPIO_INPUT .
@@ -142,7 +152,7 @@ void gpio_set_dir(gpio gpio_id, int dir)
 /**
 	Set the value of a GPIO.
 	
-	\param	gpio
+	\param	gpio_id
 			identifier of the GPIO, must be created by GPIO_MAKE_ID().
 	\param	value
 			\ref true for VCC, \ref false for GND.
@@ -179,7 +189,7 @@ void gpio_write(gpio gpio_id, bool value)
 /**
 	Get the value of a GPIO.
 	
-	\param	gpio
+	\param	gpio_id
 			identifier of the GPIO, must be created by GPIO_MAKE_ID().
 	\return
 			\ref true for VCC, \ref false for GND.
@@ -209,7 +219,7 @@ bool gpio_read(gpio gpio_id)
 /**
 	Write to a 16 bits GPIO port
 	
-	\param	gpio
+	\param	gpio_id
 			identifier of the GPIO, must be created by GPIO_MAKE_ID(). Take only in account the PORT and not the bit number.
 	\param	value
 			the value to write on the port
@@ -229,7 +239,7 @@ void gpio_write_word(gpio gpio_id, unsigned int value)
 /**
 	Get the value of a GPIO port
 	
-	\param	gpio
+	\param	gpio_id
 			identifier of the GPIO, must be created by GPIO_MAKE_ID(). Take only in account the PORT and not the bit number.
 	\return
 			Return the value read on the port
@@ -248,7 +258,7 @@ unsigned int gpio_read_word(gpio gpio_id)
 /**
 	Set the direction of a GPIO.
 	
-	\param	gpio
+	\param	gpio_id
 			identifier of the GPIO, must be created by GPIO_MAKE_ID(). Take only in account the PORT and not the bit number.
 	\param	dir
 			direction of the GPIO, either \ref GPIO_OUTPUT or \ref GPIO_INPUT .
@@ -276,7 +286,7 @@ void gpio_set_dir_word(gpio gpio_id, int dir)
 /**
 	Set the OpenDrain functionality of a GPIO
 	
-	\param	gpio
+	\param	gpio_id
 			identifier of the GPIO, must be created by GPIO_MAKE_ID(). Use  \ref GPIO_LOW_BYTE or \ref  GPIO_HIGH_BYTE as pin number to select which byte is used.
 	\param opendrain
 			\ref true if must be configured as open-drain, false otherwise
@@ -292,7 +302,7 @@ void gpio_set_opendrain_word(gpio gpio_id, int opendrain) {
 /**
 	Write to a 8 bits GPIO port
 	
-	\param	gpio
+	\param	gpio_id
 			identifier of the GPIO, must be created by GPIO_MAKE_ID(). Use  \ref GPIO_LOW_BYTE or \ref  GPIO_HIGH_BYTE as pin number to select which byte is used.
 	\param	value
 			the value to write on the port
@@ -316,7 +326,7 @@ void gpio_write_byte(gpio gpio_id, unsigned char value)
 /**
 	Get the value of a GPIO port
 	
-	\param	gpio
+	\param	gpio_id
 			identifier of the GPIO, must be created by GPIO_MAKE_ID(). Use  \ref GPIO_LOW_BYTE or \ref  GPIO_HIGH_BYTE as pin number to select which byte is used.
 	\return
 			Return the value read on the port
@@ -340,7 +350,7 @@ unsigned char gpio_read_byte(gpio gpio_id)
 /**
 	Set the direction of a GPIO.
 	
-	\param	gpio
+	\param	gpio_id
 			identifier of the GPIO, must be created by GPIO_MAKE_ID(). Use  \ref GPIO_LOW_BYTE or \ref  GPIO_HIGH_BYTE as pin number to select which byte is used.
 	\param	dir
 			direction of the GPIO, either \ref GPIO_OUTPUT or \ref GPIO_INPUT .
@@ -372,7 +382,7 @@ void gpio_set_dir_byte(gpio gpio_id, int dir)
 /**
 	Set the OpenDrain functionality of a GPIO
 	
-	\param	gpio
+	\param	gpio_id
 			identifier of the GPIO, must be created by GPIO_MAKE_ID(). Use  \ref GPIO_LOW_BYTE or \ref  GPIO_HIGH_BYTE as pin number to select which byte is used.
 	\param opendrain
 			\ref true if must be configured as open-drain, false otherwise
@@ -387,3 +397,4 @@ void gpio_set_opendrain_byte(gpio gpio_id, int opendrain) {
 		gpio_set_opendrain((gpio_id & 0xFFF0) | i, opendrain);
 }
 
+/*@}*/

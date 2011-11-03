@@ -117,7 +117,7 @@ static void init_qei1_module(int ipl, bool reverse, int x2x4)
 	else if(x2x4 == ENCODER_MODE_X2)
 		QEI1CONbits.QEIM = 5;			// x2 mode position counter reset by match MAXCNT
 	else
-		ERROR(ENCODER_INVALID_TYPE, &x2x4);
+		ERROR(ENCODER_INVALID_MODE, &x2x4);
 	IFS3bits.QEIIF = 0;					// Clear interrupt flag
 	IPC14bits.QEIIP = ipl;
 	IEC3bits.QEIIE = 1;					// Enable Interrupt
@@ -189,7 +189,7 @@ void encoder_init(int type, int encoder_ic, long* pos, int* speed, int direction
 			gpio_write(gpio_speed, true);
 			gpio_set_dir(gpio_speed, GPIO_OUTPUT);
 		} else
-			ERROR(ENCODER_INVALID_TYPE, &decoding_mode)
+			ERROR(ENCODER_INVALID_MODE, &decoding_mode)
 
 		init_timer_encoder(TIMER_2, priority);
 		return;
@@ -212,7 +212,7 @@ void encoder_init(int type, int encoder_ic, long* pos, int* speed, int direction
 			gpio_write(gpio_speed, true);
 			gpio_set_dir(gpio_speed, GPIO_OUTPUT);
 		} else
-			ERROR(ENCODER_INVALID_TYPE, &decoding_mode)
+			ERROR(ENCODER_INVALID_MODE, &decoding_mode)
 
 		init_timer_encoder(TIMER_3, priority);
 		return;
@@ -241,7 +241,7 @@ void encoder_init(int type, int encoder_ic, long* pos, int* speed, int direction
 			gpio_write(gpio_speed, true);
 			gpio_set_dir(gpio_speed, GPIO_OUTPUT);
 		} else
-			ERROR(ENCODER_INVALID_TYPE, &decoding_mode)
+			ERROR(ENCODER_INVALID_MODE, &decoding_mode)
 
 		init_timer_encoder(type, priority);
 		return;

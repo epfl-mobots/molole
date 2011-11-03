@@ -28,9 +28,15 @@
 #include "../dma/dma.h"
 #include "../gpio/gpio.h"
 
+/**
+	\defgroup spi SPI
+	
+	Wrapper around SPI interface
+*/
 /*@{*/
+
 /** \file
-	Implementation of the SPI interface.
+	\brief Implementation of the SPI interface.
 */
 
 //-----------------------

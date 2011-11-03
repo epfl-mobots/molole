@@ -4,8 +4,13 @@
 #include "../types/types.h"
 #include "../error/error.h"
 
-/* Warning: DAC clock source is the PLL. External oscillator not supported ! */
+/** \addtogroup dac */
+/*@{*/
 
+/** \file
+	\brief A wrapper around dsPIC33 DAC.
+	\warning DAC clock source is the PLL. External oscillator not supported !
+*/
 
 enum dac_errors
 {
@@ -40,8 +45,7 @@ void dac_set_default_value(unsigned int dflt);
 void dac_stop(void);
 void dac_start(void);
 
-
-
+/*@}*/
 
 #endif
 
