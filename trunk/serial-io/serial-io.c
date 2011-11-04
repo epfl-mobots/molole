@@ -27,7 +27,7 @@
 //--------------------
 
 /**
-	\defgroup serialio Serial input/output library
+	\defgroup serial-io Serial input/output library
 	
 	An input/output library using UART.
 	It provides buffered operations, basic types parsing, and terminal support.
@@ -300,7 +300,7 @@ void serial_io_send_char(Serial_IO_State* state, char c)
 {
 	int flags;
 	
-	// if we were able to send directly, return
+	// if there was nothing in the transmission buffer and we were able to send directly, return
 	if ((state->transmission_buffer_write_pos == state->transmission_buffer_transmit_pos) && (uart_transmit_byte(state->uart_id, c)))
 		return;
 	

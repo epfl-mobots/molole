@@ -28,7 +28,7 @@
 #include "../types/types.h"
 #include "../uart/uart.h"
 
-/** \addtogroup serialio */
+/** \addtogroup serial-io */
 /*@{*/
 
 /** \file
