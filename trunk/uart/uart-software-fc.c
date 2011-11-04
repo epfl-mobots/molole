@@ -68,7 +68,7 @@
 typedef struct 
 {
 	uart_byte_received byte_received_callback; /**< function to call when a new byte is received */
-	uart_tx_ready tx_ready_callback; /**< function to call when a byte has been transmitted */
+	uart_tx_ready tx_ready_callback; /**< function called when a byte has been transmitted */
 	bool user_program_busy; /**< true if user program is busy and cannot read any more data, false otherwise */
 	unsigned char bh_ipl; /**< the rx interrupt callback priority level */
 	unsigned char th_ipl; /**< The hardware RX priority level */
@@ -446,6 +446,41 @@ void uart_enable_tx_interrupt(int uart_id, int flags) {
 	}
 }
 
+/**
+	Disable the RX interrupt
+	
+	\param	uart_id
+			identifier of the UART, \ref UART_1 or \ref UART_2
+*/
+int uart_disable_rx_interrupt(int uart_id) {
+	int flags = 0;
+	if(uart_id == UART_1) {
+		RAISE_IPL(flags,UART_1_Data.bh_ipl);
+	} else if(uart_id == UART_2) {
+		RAISE_IPL(flags,UART_2_Data.bh_ipl);
+	} else {	
+		ERROR(UART_ERROR_INVALID_ID, &uart_id);
+	}
+	return flags;
+}
+
+/**
+	Re-enable the RX interrupt
+	
+	\param	uart_id
+			identifier of the UART, \ref UART_1 or \ref UART_2
+	\param flags
+			The return value of the \ref uart_disable_rx_interrupt function
+*/
+void uart_enable_rx_interrupt(int uart_id, int flags) {
+	if(uart_id == UART_1) {
+		SET_IPL(flags);
+	} else if(uart_id == UART_2) {
+		SET_IPL(flags);
+	} else {	
+		ERROR(UART_ERROR_INVALID_ID, &uart_id);
+	}
+}
 
 //--------------------------
 // Interrupt service routine

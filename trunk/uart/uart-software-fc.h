@@ -51,13 +51,13 @@ enum uart_errors
 	UART_ERROR_INVALID_ID,			/**< The specified UART does not exists. */
 }; 
 
-
 /** UART callback when a byte is received
-	Return true if new data is accepted, false otherwise. */
+	The actual data passed in parameter MUST BE consumed
+	Return true if a new data me be accepted later, false otherwise. */
 typedef bool (*uart_byte_received)(int uart_id, unsigned char data, void* user_data);
 
 /** UART callback when tx is available
-	Return true if a new one should be sent, false otherwise. */
+	Return true if there is any data to send, false otherwise. */
 typedef bool (*uart_tx_ready)(int uart_id, unsigned char* data, void* user_data);
 
 // Functions, doc in the .c
@@ -83,6 +83,9 @@ void uart_enable_tx_interrupt(int uart_id, int flags);
 
 int uart_disable_tx_interrupt(int uart_id);
 
+void uart_enable_rx_interrupt(int uart_id, int flags);
+
+int uart_disable_rx_interrupt(int uart_id);
 
 /*@}*/
 
