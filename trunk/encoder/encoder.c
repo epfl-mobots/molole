@@ -149,7 +149,7 @@ static void init_timer_encoder(unsigned timer, int ipl)
 			Pointer to where encoder_step() must update the position.
 	\param	speed
 			Pointer to where encoder_step() must update the speed (difference of positions between two calls to encoder_step()).
-	\param	diretion
+	\param	direction
 			Direction of counting, either \ref ENCODER_DIR_NORMAL or \ref ENCODER_DIR_REVERSE .
 	\param	gpio_dir
 			GPIO on which encoder_ic is routed ; only used when type is \ref ENCODER_TIMER_2 or \ref ENCODER_TIMER_3 ; ignored when type is \ref ENCODER_TYPE_HARD

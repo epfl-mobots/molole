@@ -49,30 +49,30 @@ enum encoder_errors
 /** Type of the encoder; might either be hard (one per dsPIC) or soft (one per 16 bits timer) */
 enum encoder_type
 {
-	ENCODER_TIMER_1 = 0,
-	ENCODER_TIMER_2,
-	ENCODER_TIMER_3,
-	ENCODER_TIMER_4,
-	ENCODER_TIMER_5,
-	ENCODER_TIMER_6,
-	ENCODER_TIMER_7,
-	ENCODER_TIMER_8,
-	ENCODER_TIMER_9,
-	ENCODER_TYPE_HARD,		/**< encoder uses Quadrature Encoder Interface */
+	ENCODER_TIMER_1 = 0,	/**< encoder uses \ref TIMER_1 CK input */
+	ENCODER_TIMER_2,		/**< encoder uses \ref TIMER_2 CK input */
+	ENCODER_TIMER_3,		/**< encoder uses \ref TIMER_3 CK input */
+	ENCODER_TIMER_4,		/**< encoder uses \ref TIMER_4 CK input */
+	ENCODER_TIMER_5,		/**< encoder uses \ref TIMER_5 CK input */
+	ENCODER_TIMER_6,		/**< encoder uses \ref TIMER_6 CK input */
+	ENCODER_TIMER_7,		/**< encoder uses \ref TIMER_7 CK input */
+	ENCODER_TIMER_8,		/**< encoder uses \ref TIMER_8 CK input */
+	ENCODER_TIMER_9,		/**< encoder uses \ref TIMER_9 CK input */
+	ENCODER_TYPE_HARD,		/**< encoder uses QE (Quadrature Encoder) interface */
 };
 
 /** Direction of the encoder; might either be normal, or reverse */
 enum encoder_direction
 {
-	ENCODER_DIR_NORMAL = 0,
-	ENCODER_DIR_REVERSE = 1,
+	ENCODER_DIR_NORMAL = 0,		/**< Normal direction of Encoder */
+	ENCODER_DIR_REVERSE = 1,	/**< Reverse direction of Encoder */
 };
 
 /** Decoding mode; Either 4x mode or 2x */
 enum encoder_mode
 {
-	ENCODER_MODE_X2 = 0,
-	ENCODER_MODE_X4 = 1,
+	ENCODER_MODE_X2 = 0,	/**< 2 times mode */
+	ENCODER_MODE_X4 = 1,	/**< 4 times mode */
 };
 
 // Functions, doc in the .c
