@@ -173,6 +173,24 @@ void flash_erase_page(unsigned long addr) {
 	TBLPAG = tmp;
 }
 
+void flash_flash_instr(unsigned long addr, unsigned long data) {
+	unsigned int tmp;
+	
+	if(addr & 0x1)
+		ERROR(FLASH_UNALIGNED_ADDRESS, &addr);
+	
+	tmp = TBLPAG;
+	TBLPAG = addr >> 16;
+	NVMCON = PROGRAM_WORD;
+	
+	tblwtl(addr & 0xFFFF, data & 0xFFFF);
+	tblwth(addr & 0xFFFF, data >> 16);
+	
+	do_key_seq();
+	
+	TBLPAG = tmp;
+}
+
 static unsigned long _errata_latch_d[4];
 
 void flash_prepare_write(unsigned long addr) {
