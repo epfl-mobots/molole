@@ -64,6 +64,10 @@ void flash_read_chunk(unsigned long addr, size_t size, unsigned char * buffer);
 // Erase the page pointed by addr 
 void flash_erase_page(unsigned long addr);
 
+// Write an instruction directly in flash without 
+// using the write buffer.
+void flash_flash_instr(unsigned long addr, unsigned long data);
+
 // Prepare a write operation, must be completed with "flash_complete_write();
 // ONLY "WRITE" call are allowed between a prepare and a complete !
 void flash_prepare_write(unsigned long addr);
