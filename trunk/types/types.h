@@ -114,6 +114,7 @@ enum irq_prio
 
 /** Atomic addition *x = (*x) + y */
 #define atomic_add(x,y) do { __asm__ volatile ("add.w %[yy], [%[xx]], [%[xx]]": : [xx] "r" (x), [yy] "r"(y): "cc","memory"); } while(0)
+#define atomic_add_and_test(x,y) ({unsigned int _r = 0;  __asm__ volatile ("add.w %[yy], [%[xx]], [%[xx]]\n bra Z,1f\n setm %[oo]\n1:": [oo] "+r" (_r) : [xx] "r" (x), [yy] "r"(y): "cc","memory"); _r;})
 
 /*@}*/
 
