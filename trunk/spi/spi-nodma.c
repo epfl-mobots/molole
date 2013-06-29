@@ -90,11 +90,14 @@ void spi_nodma_init_master(int spi_id, unsigned int speed_khz, int transfert_mod
 		SPI1CON1bits.DISSCK = 0;			/* Enable SCK */
 		SPI1CON1bits.DISSDO = 0;			/* Enable SDO */
 		SPI1CON1bits.MODE16 = transfert_mode;
-		SPI1CON1bits.SMP = sample_phase;
+                // According to datasheet DS70206D (page 18-5, note 1) SMP must be set ONLY AFTER having set MSTEN
+		// Then do that later : SPI1CON1bits.SMP = sample_phase;
 		SPI1CON1bits.CKE = data_out_mode;
 		SPI1CON1bits.SSEN = 0;				/* I'm not a slave */
 		SPI1CON1bits.CKP = polarity;
 		SPI1CON1bits.MSTEN = 1;				/* I'm a master ! */
+                // According to datasheet DS70206D (page 18-5, note 1) SMP must be set ONLY AFTER having set MSTEN
+                SPI1CON1bits.SMP = sample_phase;
 		SPI1CON2 = 0x0;						/* Framing support completly disabled */
 		
 		/* Get the "Optimal" speed: NOT > as asked speed*/
@@ -136,11 +139,14 @@ void spi_nodma_init_master(int spi_id, unsigned int speed_khz, int transfert_mod
 		SPI2CON1bits.DISSCK = 0;			/* Enable SCK */
 		SPI2CON1bits.DISSDO = 0;			/* Enable SDO */
 		SPI2CON1bits.MODE16 = transfert_mode;
-		SPI2CON1bits.SMP = sample_phase;
+                // According to datasheet DS70206D (page 18-5, note 1) SMP must be set ONLY AFTER having set MSTEN
+		// Then do that later : SPI2CON1bits.SMP = sample_phase;
 		SPI2CON1bits.CKE = data_out_mode;
 		SPI2CON1bits.SSEN = 0;				/* I'm not a slave */
 		SPI2CON1bits.CKP = polarity;
 		SPI2CON1bits.MSTEN = 1;				/* I'm a master ! */
+                // According to datasheet DS70206D (page 18-5, note 1) SMP must be set ONLY AFTER having set MSTEN
+                SPI2CON1bits.SMP = sample_phase;
 		SPI2CON2 = 0x0;						/* Framing support completly disabled */
 
 		/* Get the "Optimal" speed: NOT > as asked speed*/
