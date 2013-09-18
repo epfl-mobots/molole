@@ -44,7 +44,7 @@
 // Definitions
 //------------
 
-#include <p33fxxxx.h>
+#include <p33Fxxxx.h>
 
 #include "dma.h"
 #include "../error/error.h"
@@ -79,14 +79,14 @@ static unsigned char pingpong_dma[8];
 // Privates functions 
 //-------------------
 
-static unsigned int get_offset(void * addr)
+static unsigned int get_offset(void * addr, unsigned int size)
 {
 	unsigned int offset;
 	/* Special handling for addr == 0. It mean "Do not use this buffer" */
 	if(!addr)
 		return 0;
 	offset = ((unsigned int) addr) - ((unsigned int) &_DMA_BASE);
-	if(offset > ((unsigned int) addr) || offset >  ((unsigned int) &_DMA_BASE) + 0x2000)
+	if(offset > ((unsigned int) addr) || ((offset + size)>  ((unsigned int) &_DMA_BASE) + 0x2000))
 	{
 		ERROR(DMA_ERROR_INVALID_ADDRESS, &addr)
 	}
@@ -185,8 +185,8 @@ void dma_init_channel(int channel, int request_source, int data_size, int transf
 			DMA0CONbits.MODE = operating_mode;
 			
 			
-			DMA0STA = get_offset(a);
-			DMA0STB = get_offset(b);
+			DMA0STA = get_offset(a, transfer_count * (2-data_size));
+			DMA0STB = get_offset(b, transfer_count * (2-data_size));
 			DMA0PAD = (volatile unsigned int)peripheral_address;
 			DMA0CNT = transfer_count - 1;
 			
@@ -215,8 +215,8 @@ void dma_init_channel(int channel, int request_source, int data_size, int transf
 			DMA1CONbits.AMODE = addressing_mode;
 			DMA1CONbits.MODE = operating_mode;
 			
-			DMA1STA = get_offset(a);
-			DMA1STB = get_offset(b);
+			DMA1STA = get_offset(a, transfer_count * (2-data_size));
+			DMA1STB = get_offset(b, transfer_count * (2-data_size));
 			DMA1PAD = (volatile unsigned int)peripheral_address;
 			DMA1CNT = transfer_count - 1;
 			
@@ -245,8 +245,8 @@ void dma_init_channel(int channel, int request_source, int data_size, int transf
 			DMA2CONbits.AMODE = addressing_mode;
 			DMA2CONbits.MODE = operating_mode;
 			
-			DMA2STA = get_offset(a);
-			DMA2STB = get_offset(b);
+			DMA2STA = get_offset(a, transfer_count * (2-data_size));
+			DMA2STB = get_offset(b, transfer_count * (2-data_size));
 			DMA2PAD = (volatile unsigned int)peripheral_address;
 			DMA2CNT = transfer_count - 1;
 			
@@ -275,8 +275,8 @@ void dma_init_channel(int channel, int request_source, int data_size, int transf
 			DMA3CONbits.AMODE = addressing_mode;
 			DMA3CONbits.MODE = operating_mode;
 			
-			DMA3STA = get_offset(a);
-			DMA3STB = get_offset(b);
+			DMA3STA = get_offset(a, transfer_count * (2-data_size));
+			DMA3STB = get_offset(b, transfer_count * (2-data_size));
 			DMA3PAD = (volatile unsigned int)peripheral_address;
 			DMA3CNT = transfer_count - 1;
 			
@@ -305,8 +305,8 @@ void dma_init_channel(int channel, int request_source, int data_size, int transf
 			DMA4CONbits.AMODE = addressing_mode;
 			DMA4CONbits.MODE = operating_mode;
 			
-			DMA4STA = get_offset(a);
-			DMA4STB = get_offset(b);
+			DMA4STA = get_offset(a, transfer_count * (2-data_size));
+			DMA4STB = get_offset(b, transfer_count * (2-data_size));
 			DMA4PAD = (volatile unsigned int)peripheral_address;
 			DMA4CNT = transfer_count - 1;
 			
@@ -335,8 +335,8 @@ void dma_init_channel(int channel, int request_source, int data_size, int transf
 			DMA5CONbits.AMODE = addressing_mode;
 			DMA5CONbits.MODE = operating_mode;
 			
-			DMA5STA = get_offset(a);
-			DMA5STB = get_offset(b);
+			DMA5STA = get_offset(a, transfer_count * (2-data_size));
+			DMA5STB = get_offset(b, transfer_count * (2-data_size));
 			DMA5PAD = (volatile unsigned int)peripheral_address;
 			DMA5CNT = transfer_count - 1;
 			
@@ -365,8 +365,8 @@ void dma_init_channel(int channel, int request_source, int data_size, int transf
 			DMA6CONbits.AMODE = addressing_mode;
 			DMA6CONbits.MODE = operating_mode;
 			
-			DMA6STA = get_offset(a);
-			DMA6STB = get_offset(b);
+			DMA6STA = get_offset(a, transfer_count * (2-data_size));
+			DMA6STB = get_offset(b, transfer_count * (2-data_size));
 			DMA6PAD = (volatile unsigned int)peripheral_address;
 			DMA6CNT = transfer_count - 1;
 			
@@ -395,8 +395,8 @@ void dma_init_channel(int channel, int request_source, int data_size, int transf
 			DMA7CONbits.AMODE = addressing_mode;
 			DMA7CONbits.MODE = operating_mode;
 			
-			DMA7STA = get_offset(a);
-			DMA7STB = get_offset(b);
+			DMA7STA = get_offset(a, transfer_count * (2-data_size));
+			DMA7STB = get_offset(b, transfer_count * (2-data_size));
 			DMA7PAD = (volatile unsigned int)peripheral_address;
 			DMA7CNT = transfer_count - 1;
 			
