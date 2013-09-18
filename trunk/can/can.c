@@ -22,7 +22,7 @@
 	along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <p33fxxxx.h>
+#include <p33Fxxxx.h>
 
 #include "can.h"
 #include "../error/error.h"

@@ -42,7 +42,7 @@
 // Definitions
 //------------
 
-#include <p33fxxxx.h>
+#include <p33Fxxxx.h>
 
 #include "encoder.h"
 #include "../error/error.h"

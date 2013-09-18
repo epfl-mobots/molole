@@ -44,7 +44,7 @@
 // Definitions
 //------------
 
-#include <p33fxxxx.h>
+#include <p33Fxxxx.h>
 
 #include "oc.h"
 #include "../error/error.h"

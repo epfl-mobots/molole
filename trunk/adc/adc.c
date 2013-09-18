@@ -41,7 +41,7 @@
 // Definitions
 //------------
 
-#include <p33fxxxx.h>
+#include <p33Fxxxx.h>
 
 #include "adc.h"
 #include "../clock/clock.h"

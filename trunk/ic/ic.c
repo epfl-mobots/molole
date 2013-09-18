@@ -42,7 +42,7 @@
 // Definitions
 //------------
 
-#include <p33fxxxx.h>
+#include <p33Fxxxx.h>
 
 #include "ic.h"
 #include "../error/error.h"
