@@ -37,7 +37,7 @@
 	Implementation of the wrapper around External Interrupt.
 */
 
-#include <p33fxxxx.h>
+#include <p33Fxxxx.h>
 
 #include "ei.h"
 #include "../types/types.h"
