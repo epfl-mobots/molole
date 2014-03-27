@@ -8,7 +8,7 @@
 #include "po6030k.h"
 #include "../../i2c/i2c.h"
 #include "../../error/error.h"
-#include <p33fxxxx.h>
+#include <p33Fxxxx.h>
 
 #define 	ARRAY_ORIGINE_X	80
 #define		ARRAY_ORIGINE_Y 8

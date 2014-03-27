@@ -85,7 +85,7 @@ Note that if flow control is disabled and if data are not read in time, they are
 // Definitions
 //------------
 
-#include <p33fxxxx.h>
+#include <p33Fxxxx.h>
 
 #include "uart.h"
 #include "../error/error.h"

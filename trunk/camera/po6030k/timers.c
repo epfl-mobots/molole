@@ -8,7 +8,7 @@
 /*@{*/
 
 
-#include <p33fxxxx.h>
+#include <p33Fxxxx.h>
 #include "po6030k.h"
 #include "../../ic/ic.h"
 #include "../../timer/timer.h"
